@@ -3,6 +3,7 @@
 
 # folders
 node_modules/
+/coverage/
 
 # db
 /mongo
