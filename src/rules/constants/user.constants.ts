@@ -1,0 +1,5 @@
+
+export const USER_VALIDATION_CONSTANTS = {
+    MAX_NAME_LENGTH: 15,
+    MAX_PASSWORD_LENGTH: 20
+} as const;
