@@ -30,7 +30,7 @@ export class CreateUserValidator implements Omit<UserInterface, 'id' | 'createdA
     role!: Roles;
 
     // returns the object with validation and transformation applied
-    static async create(body: any): ValidationResult<CreateUserValidator> {
+    static async create(body: object): ValidationResult<CreateUserValidator> {
         const user = new CreateUserValidator();
         Object.assign(user, body);
         const errors = await validate(user, validationOptionsConfig);
