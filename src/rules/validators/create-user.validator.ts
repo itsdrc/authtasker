@@ -6,12 +6,13 @@ import { toLowerCase } from "./helpers/to-lowercase.helper";
 import { plainToInstance, Transform } from "class-transformer";
 import { validationOptionsConfig } from "./config/validation.config";
 import { ValidationResult } from "./types/validation-result.type";
+import { USER_VALIDATION_CONSTANTS } from "../constants/user.constants";
 
 export class CreateUserValidator implements Omit<UserInterface, 'id' | 'createdAt'> {
 
     @IsDefined()
     @IsString()
-    @MaxLength(15)
+    @MaxLength(USER_VALIDATION_CONSTANTS.MAX_NAME_LENGTH)
     @Transform(toLowerCase)
     name!: string;
 
@@ -21,7 +22,7 @@ export class CreateUserValidator implements Omit<UserInterface, 'id' | 'createdA
 
     @IsDefined()
     @IsString()
-    @MaxLength(20)
+    @MaxLength(USER_VALIDATION_CONSTANTS.MAX_PASSWORD_LENGTH)
     password!: string;
 
     @IsDefined()
