@@ -1,2 +1,11 @@
-node_modules/
+#vscode
 .vscode/
+
+# folders
+node_modules/
+
+# db
+/mongo
+
+# files
+.env
