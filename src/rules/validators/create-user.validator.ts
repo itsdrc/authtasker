@@ -1,4 +1,4 @@
-import { IsDefined, IsEmail, IsIn, IsString, MaxLength, validate, validateOrReject } from "class-validator";
+import { IsDefined, IsEmail, IsIn, IsString, MaxLength, MinLength, validate, validateOrReject } from "class-validator";
 import { UserInterface } from "../../interfaces/user.interface";
 import { Roles, validRoles } from "../../types/roles.type";
 import { getErrors } from "./helpers/get-errors.helper";
@@ -13,6 +13,7 @@ export class CreateUserValidator implements Omit<UserInterface, 'id' | 'createdA
     @IsDefined()
     @IsString()
     @MaxLength(USER_VALIDATION_CONSTANTS.MAX_NAME_LENGTH)
+    @MinLength(USER_VALIDATION_CONSTANTS.MIN_NAME_LENGTH)
     @Transform(toLowerCase)
     name!: string;
 
@@ -23,6 +24,7 @@ export class CreateUserValidator implements Omit<UserInterface, 'id' | 'createdA
     @IsDefined()
     @IsString()
     @MaxLength(USER_VALIDATION_CONSTANTS.MAX_PASSWORD_LENGTH)
+    @MinLength(USER_VALIDATION_CONSTANTS.MIN_PASSWORD_LENGTH)
     password!: string;
 
     @IsDefined()
