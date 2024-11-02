@@ -7,8 +7,9 @@ import { plainToInstance, Transform } from "class-transformer";
 import { validationOptionsConfig } from "./config/validation.config";
 import { ValidationResult } from "./types/validation-result.type";
 import { USER_VALIDATION_CONSTANTS } from "../constants/user.constants";
+import { UserCreationData } from "../../types/create-user-data.type";
 
-export class CreateUserValidator implements Omit<UserInterface, 'id' | 'createdAt'> {
+export class CreateUserValidator implements UserCreationData {
 
     @IsDefined()
     @IsString()
