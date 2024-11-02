@@ -1,5 +1,4 @@
-import { IsDefined, IsEmail, IsIn, IsString, MaxLength, MinLength, validate, validateOrReject } from "class-validator";
-import { UserInterface } from "../../interfaces/user.interface";
+import { IsDefined, IsEmail, IsIn, IsString, MaxLength, MinLength, validate } from "class-validator";
 import { Roles, validRoles } from "../../types/roles.type";
 import { getErrors } from "./helpers/get-errors.helper";
 import { toLowerCase } from "./helpers/to-lowercase.helper";
