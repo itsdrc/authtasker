@@ -1,14 +1,14 @@
 import { IsDefined, IsEmail, IsIn, IsString, MaxLength, MinLength, validate } from "class-validator";
-import { Roles, validRoles } from "../../types/roles.type";
+import { UserRoles, validRoles } from "../../types/user/user-roles.type";
 import { getErrors } from "./helpers/get-errors.helper";
 import { toLowerCase } from "./helpers/to-lowercase.helper";
 import { plainToInstance, Transform } from "class-transformer";
 import { validationOptionsConfig } from "./config/validation.config";
 import { ValidationResult } from "./types/validation-result.type";
 import { USER_VALIDATION_CONSTANTS } from "../constants/user.constants";
-import { UserCreationData } from "../../types/user-creation-data.type";
+import { UserRequest } from "../../types/user/user-request.type";
 
-export class CreateUserValidator implements UserCreationData {
+export class CreateUserValidator implements UserRequest {
 
     @IsDefined()
     @IsString()
@@ -30,7 +30,7 @@ export class CreateUserValidator implements UserCreationData {
     @IsDefined()
     @IsString()
     @IsIn(validRoles)
-    role!: Roles;
+    role!: UserRoles;
 
     // returns the object with validation and transformation applied
     static async create(body: object): ValidationResult<CreateUserValidator> {

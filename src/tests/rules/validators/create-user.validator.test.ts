@@ -1,6 +1,6 @@
 import { USER_VALIDATION_CONSTANTS } from "../../../rules/constants/user.constants";
 import { CreateUserValidator } from "../../../rules/validators/create-user.validator";
-import { validRoles } from "../../../types/roles.type";
+import { validRoles } from "../../../types/user/user-roles.type";
 import { createString } from "../../helpers/string-creator.helper";
 
 describe('CreateUserValidator', () => {
