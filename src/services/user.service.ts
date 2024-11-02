@@ -9,6 +9,7 @@ export class UserService {
         private readonly userModel: Model<UserRequest>
     ){}
 
+    // TODO: hash password, validate email and return token
     async create(user: CreateUserValidator): Promise<UserRequest>{
         try {
             const created = await this.userModel.create(user);
