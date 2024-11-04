@@ -33,7 +33,7 @@ export class CreateUserValidator implements UserRequest {
     role!: UserRoles;
 
     // returns the object with validation and transformation applied
-    static async create(body: object): ValidationResult<CreateUserValidator> {
+    static async validateAndTransform(body: object): ValidationResult<CreateUserValidator> {
         const user = new CreateUserValidator();
         Object.assign(user, body);
         const errors = await validate(user, validationOptionsConfig);
