@@ -3,7 +3,7 @@ import { HttpError } from "../rules/errors/http.error";
 import { Model } from "mongoose";
 import { UserRequest } from "../types/user/user-request.type";
 import { HashingService } from "./hashing.service";
-import { JwtService } from "./jwt-token.service";
+import { JwtService } from "./jwt.service";
 import { LoginUserValidator } from "../rules/validators/login-user.validator";
 
 export class UserService {

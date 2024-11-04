@@ -4,7 +4,7 @@ import { UserController } from "../controllers/user.controller";
 import { UserModel } from "../databases/mongo/schemas/user.schema";
 import { HashingService } from "../services/hashing.service";
 import { ENVS } from "../config/envs.config";
-import { JwtService } from "../services/jwt-token.service";
+import { JwtService } from "../services/jwt.service";
 
 export class UserRoutes {
 
