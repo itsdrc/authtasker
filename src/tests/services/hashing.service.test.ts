@@ -18,11 +18,9 @@ describe('HashingService', () => {
             const genSaltSyncResult = 'test-result';
             jest.spyOn(bcrypt, 'genSaltSync')
                 .mockReturnValue(genSaltSyncResult);
-
-            // needed, otherwise throws an error due an invalid salt
+            // needed, otherwise throws an error due to an invalid salt
             const hashMock = jest.spyOn(bcrypt, 'hash')
                 .mockImplementationOnce(() => {});
-
             hashingService.hash(data);
             expect(hashMock).toHaveBeenCalledWith(data, genSaltSyncResult);
         });
