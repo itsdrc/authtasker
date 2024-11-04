@@ -13,13 +13,13 @@ describe('CreateUserValidator', () => {
 
     describe('validation successful', () => {
         it('should validate the user successfully', async () => {
-            const [error, userValidated] = await CreateUserValidator.create(user);
+            const [error, userValidated] = await CreateUserValidator.validateAndTransform(user);
             expect(error).toBeUndefined();
             expect(userValidated).toBeDefined();
         });
 
         it('should transform the name to lowercase and trim it', async () => {
-            const [, userValidated] = await CreateUserValidator.create(user);
+            const [, userValidated] = await CreateUserValidator.validateAndTransform(user);
             expect(userValidated?.name).toBe(user.name.toLowerCase().trim());
         });
     });
@@ -33,7 +33,7 @@ describe('CreateUserValidator', () => {
         it(`should fail if name length is greater than ${maxNameLength}`, async () => {
             const invalidUser: CreateUserValidator = structuredClone(user);
             invalidUser.name = createString(maxNameLength + 1);
-            const [error] = await CreateUserValidator.create(invalidUser);
+            const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
             expect(error).toBeDefined();
             expect(error).toStrictEqual([`name must be shorter than or equal to ${maxNameLength} characters`]);
         });
@@ -41,7 +41,7 @@ describe('CreateUserValidator', () => {
         it(`should fail if name length is less than ${minNameLength}`, async () => {
             const invalidUser: CreateUserValidator = structuredClone(user);
             invalidUser.name = createString(minNameLength - 1);
-            const [error] = await CreateUserValidator.create(invalidUser);
+            const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
             expect(error).toBeDefined();
             expect(error).toStrictEqual([`name must be longer than or equal to ${minNameLength} characters`]);
         });
@@ -49,7 +49,7 @@ describe('CreateUserValidator', () => {
         it(`should fail if email is not a valid email`, async () => {
             const invalidUser: CreateUserValidator = structuredClone(user);
             invalidUser.email = "invalid-email";
-            const [error] = await CreateUserValidator.create(invalidUser);
+            const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
             expect(error).toBeDefined();
             expect(error).toStrictEqual(['email must be an email']);
         });
@@ -57,7 +57,7 @@ describe('CreateUserValidator', () => {
         it(`should fail if password length is greater than ${maxPasswordLength}`, async () => {
             const invalidUser: CreateUserValidator = structuredClone(user);
             invalidUser.password = createString(maxPasswordLength + 1);
-            const [error] = await CreateUserValidator.create(invalidUser);
+            const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
             expect(error).toBeDefined();
             expect(error).toStrictEqual([`password must be shorter than or equal to ${maxPasswordLength} characters`]);
         });
@@ -65,7 +65,7 @@ describe('CreateUserValidator', () => {
         it(`should fail if password length is less than ${minPasswordLength}`, async () => {
             const invalidUser: CreateUserValidator = structuredClone(user);
             invalidUser.password = createString(minPasswordLength - 1);
-            const [error] = await CreateUserValidator.create(invalidUser);
+            const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
             expect(error).toBeDefined();
             expect(error).toStrictEqual([`password must be longer than or equal to ${minPasswordLength} characters`]);
         });
@@ -73,7 +73,7 @@ describe('CreateUserValidator', () => {
         it(`should fail if role is not a valid role`, async () => {
             const invalidUser: CreateUserValidator = structuredClone(user);
             invalidUser.role = 'new-role' as any;
-            const [error] = await CreateUserValidator.create(invalidUser);
+            const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
             expect(error).toBeDefined();            
             expect(error).toStrictEqual([`role must be one of the following values: ${validRoles.join(', ')}`]);
         });
@@ -82,7 +82,7 @@ describe('CreateUserValidator', () => {
             const newProperty = 'unknownProperty';
             const invalidUser: any= structuredClone(user);
             invalidUser[newProperty] = 10;            
-            const [error] = await CreateUserValidator.create(invalidUser);
+            const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
             expect(error).toBeDefined();  
             expect(error).toStrictEqual([`property ${newProperty} should not exist`]);
         });
