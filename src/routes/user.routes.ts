@@ -19,7 +19,7 @@ export class UserRoutes {
             jwtService,
         );
         const controller = new UserController(service);
-        router.post('/', controller.create);
+        router.post('/create', controller.create);
         router.post('/login', controller.login);
         return router;
     }
