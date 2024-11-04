@@ -15,7 +15,7 @@ describe('CreateUserValidator', () => {
         it('should validate the user successfully', async () => {
             const [error, userValidated] = await CreateUserValidator.validateAndTransform(user);
             expect(error).toBeUndefined();
-            expect(userValidated).toBeDefined();
+            expect(Object.keys(user)).toStrictEqual(Object.keys(userValidated as object));
         });
 
         it('should transform the name to lowercase and trim it', async () => {
