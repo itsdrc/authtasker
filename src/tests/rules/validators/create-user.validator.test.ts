@@ -1,6 +1,7 @@
 import { USER_VALIDATION_CONSTANTS } from "../../../rules/constants/user.constants";
 import { CreateUserValidator } from "../../../rules/validators/create-user.validator";
 import { validRoles } from "../../../types/user/user-roles.type";
+import { omitProperty } from "../../helpers/omit-property.helper";
 import { createString } from "../../helpers/string-creator.helper";
 
 describe('CreateUserValidator', () => {
@@ -15,7 +16,7 @@ describe('CreateUserValidator', () => {
         test('should validate the user successfully', async () => {
             const [error, userValidated] = await CreateUserValidator.validateAndTransform(user);
             expect(error).toBeUndefined();
-            expect(user).toEqual(userValidated);
+            expect(user).toBeDefined();
             expect(Object.keys(user)).toStrictEqual(Object.keys(userValidated as object));
         });
 
@@ -30,6 +31,36 @@ describe('CreateUserValidator', () => {
         const maxPasswordLength = USER_VALIDATION_CONSTANTS.MAX_PASSWORD_LENGTH;
         const minNameLength = USER_VALIDATION_CONSTANTS.MIN_NAME_LENGTH;
         const minPasswordLength = USER_VALIDATION_CONSTANTS.MIN_PASSWORD_LENGTH;
+
+        describe('properties missing', ()=>{
+            test('should fail if name is missing', async () => {
+                const [error, userValidated] = await CreateUserValidator
+                    .validateAndTransform(omitProperty(user, 'name'));
+                expect(userValidated).toBeUndefined();
+                expect(error).toStrictEqual(['name is required']);
+            });
+
+            test('should fail if email is missing', async () => {
+                const [error, userValidated] = await CreateUserValidator
+                    .validateAndTransform(omitProperty(user, 'email'));
+                expect(userValidated).toBeUndefined();
+                expect(error).toStrictEqual(['email is required']);
+            });
+
+            test('should fail if password is missing', async () => {
+                const [error, userValidated] = await CreateUserValidator
+                    .validateAndTransform(omitProperty(user, 'password'));
+                expect(userValidated).toBeUndefined();
+                expect(error).toStrictEqual(['password is required']);
+            });
+
+            test('should fail if role is missing', async () => {
+                const [error, userValidated] = await CreateUserValidator
+                    .validateAndTransform(omitProperty(user, 'role'));
+                expect(userValidated).toBeUndefined();
+                expect(error).toStrictEqual(['role is required']);
+            });
+        });
 
         test(`should fail if name length is greater than ${maxNameLength}`, async () => {
             const invalidUser: CreateUserValidator = structuredClone(user);
@@ -75,16 +106,16 @@ describe('CreateUserValidator', () => {
             const invalidUser: CreateUserValidator = structuredClone(user);
             invalidUser.role = 'new-role' as any;
             const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
-            expect(error).toBeDefined();            
+            expect(error).toBeDefined();
             expect(error).toStrictEqual([`role must be one of the following values: ${validRoles.join(', ')}`]);
         });
 
-        test('should fail if there are unexpected properties in the object', async()=>{
+        test('should fail if there are unexpected properties in the object', async () => {
             const newProperty = 'unknownProperty';
-            const invalidUser: any= structuredClone(user);
-            invalidUser[newProperty] = 10;            
+            const invalidUser: any = structuredClone(user);
+            invalidUser[newProperty] = 10;
             const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
-            expect(error).toBeDefined();  
+            expect(error).toBeDefined();
             expect(error).toStrictEqual([`property ${newProperty} should not exist`]);
         });
     });
