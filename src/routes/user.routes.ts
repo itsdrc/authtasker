@@ -20,6 +20,7 @@ export class UserRoutes {
         );
         const controller = new UserController(service);
         router.post('/', controller.create);
+        router.post('/login', controller.login);
         return router;
     }
 }
