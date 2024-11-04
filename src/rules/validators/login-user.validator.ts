@@ -5,11 +5,11 @@ import { validationOptionsConfig } from "./config/validation.config";
 
 export class LoginUserValidator {
 
-    @IsDefined()
+    @IsDefined({message: 'email is required'})
     @IsEmail()
     email!: string;
 
-    @IsDefined()
+    @IsDefined({message: 'password is required'})
     @IsString()
     password!: string;
 
