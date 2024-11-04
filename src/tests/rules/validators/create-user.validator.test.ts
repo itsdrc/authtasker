@@ -78,7 +78,7 @@ describe('CreateUserValidator', () => {
             expect(error).toStrictEqual([`role must be one of the following values: ${validRoles.join(', ')}`]);
         });
 
-        it('should fail if more properties there are unexpected properties in the object', async()=>{
+        it('should fail if there are unexpected properties in the object', async()=>{
             const newProperty = 'unknownProperty';
             const invalidUser: any= structuredClone(user);
             invalidUser[newProperty] = 10;            
