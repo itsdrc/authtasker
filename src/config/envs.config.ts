@@ -17,4 +17,16 @@ export const ENVS = {
     JWT_PRIVATE_KEY: env.get('JWT_PRIVATE_KEY')
         .required()
         .asString(),
+    MAIL_SERVICE_HOST: env.get('MAIL_SERVICE_HOST')
+        .required()
+        .asString(),
+    MAIL_SERVICE_PORT: env.get('MAIL_SERVICE_PORT')
+        .required()
+        .asPortNumber(),
+    MAIL_SERVICE_USER: env.get('MAIL_SERVICE_USER')
+        .required()
+        .asString(),
+    MAIL_SERVICE_PASS: env.get('MAIL_SERVICE_PASS')
+        .required()
+        .asString(),
 }
