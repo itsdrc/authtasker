@@ -3,25 +3,31 @@ import { HttpError } from "../rules/errors/http.error";
 import { Model } from "mongoose";
 import { UserRequest } from "../types/user/user-request.type";
 import { HashingService } from "./hashing.service";
+import { JwtService } from "./jwt-token.service";
 
 export class UserService {
 
     constructor(
         private readonly userModel: Model<UserRequest>,
         private readonly hashingService: HashingService,
-    ){}
+        private readonly jwtService: JwtService,
+    ) {}
 
-    // TODO: hash password, validate email and return token
-    async create(user: CreateUserValidator): Promise<UserRequest>{
+    // TODO: validate email
+    async create(user: CreateUserValidator): Promise<{ user: UserRequest, token: string }> {
         try {
             const passwordHash = await this.hashingService.hash(user.password);
 
             user.password = passwordHash;
 
             const created = await this.userModel.create(user);
-            
-            return created;
-        } catch (error: any) {            
+            const token = this.jwtService.generate({ id: created.id });
+
+            return {
+                user: created,
+                token,
+            };
+        } catch (error: any) {
             if (error.code == 11000)
                 throw HttpError.badRequest(`user with name ${user.name} already exists`);
             else {
