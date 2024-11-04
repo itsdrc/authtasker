@@ -2,14 +2,15 @@ import { IsDefined, IsEmail, IsString, validate } from "class-validator";
 import { ValidationResult } from "./types/validation-result.type";
 import { getErrors } from "./helpers/get-errors.helper";
 import { validationOptionsConfig } from "./config/validation.config";
+import { missingPropertyMssg } from "./messages/missing-property.message";
 
 export class LoginUserValidator {
 
-    @IsDefined({message: 'email is required'})
+    @IsDefined({ message: missingPropertyMssg('email') })
     @IsEmail()
     email!: string;
 
-    @IsDefined({message: 'password is required'})
+    @IsDefined({ message: missingPropertyMssg('password') })
     @IsString()
     password!: string;
 
