@@ -8,4 +8,5 @@ export type User = {
     createdAt: Date;
     updatedAt: Date;
     role: UserRoles;
+    emailValidated: boolean;
 }
