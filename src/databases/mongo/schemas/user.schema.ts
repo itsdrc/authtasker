@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 import { validRoles } from "../../../types/user/user-roles.type";
-import { UserRequest } from "../../../types/user/user-request.type";
+import { UserInDb } from "../../../types/user/user-db.type";
+import { User } from "../../../types/user/user.type";
 
 // you will see an error here if properties don't match the type
-const schema: { [prop in keyof UserRequest]: object } = {
+const schema: UserInDb = {
     name: {
         type: String,
         required: true,
@@ -26,9 +27,14 @@ const schema: { [prop in keyof UserRequest]: object } = {
         required: true,
         enum: validRoles
     },
+
+    emailValidated: {
+        type: Boolean,
+        default: false,
+    }
 };
 
-const userSchema = new mongoose.Schema<UserRequest>(schema, {
+const userSchema = new mongoose.Schema<User>(schema, {
     timestamps: true,
     toJSON: {
         virtuals: true,
@@ -41,4 +47,4 @@ const userSchema = new mongoose.Schema<UserRequest>(schema, {
     }
 });
 
-export const UserModel = mongoose.model<UserRequest>('user', userSchema);
+export const UserModel = mongoose.model<User>('user', userSchema);
