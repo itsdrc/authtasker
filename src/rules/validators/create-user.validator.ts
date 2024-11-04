@@ -7,27 +7,28 @@ import { validationOptionsConfig } from "./config/validation.config";
 import { ValidationResult } from "./types/validation-result.type";
 import { USER_VALIDATION_CONSTANTS } from "../constants/user.constants";
 import { UserRequest } from "../../types/user/user-request.type";
+import { missingPropertyMssg } from "./messages/missing-property.message";
 
 export class CreateUserValidator implements UserRequest {
 
-    @IsDefined()
+    @IsDefined({message: missingPropertyMssg('name')})
     @IsString()
     @MaxLength(USER_VALIDATION_CONSTANTS.MAX_NAME_LENGTH)
     @MinLength(USER_VALIDATION_CONSTANTS.MIN_NAME_LENGTH)
     @Transform(toLowerCase)
     name!: string;
 
-    @IsDefined()
+    @IsDefined({ message: missingPropertyMssg('email') })
     @IsEmail()
     email!: string;
 
-    @IsDefined()
+    @IsDefined({ message: missingPropertyMssg('password') })
     @IsString()
     @MaxLength(USER_VALIDATION_CONSTANTS.MAX_PASSWORD_LENGTH)
     @MinLength(USER_VALIDATION_CONSTANTS.MIN_PASSWORD_LENGTH)
     password!: string;
 
-    @IsDefined()
+    @IsDefined({ message: missingPropertyMssg('role') })
     @IsString()
     @IsIn(validRoles)
     role!: UserRoles;
