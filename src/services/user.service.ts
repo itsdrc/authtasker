@@ -1,21 +1,22 @@
 import { CreateUserValidator } from "../rules/validators/create-user.validator";
 import { HttpError } from "../rules/errors/http.error";
 import { Model } from "mongoose";
-import { UserRequest } from "../types/user/user-request.type";
 import { HashingService } from "./hashing.service";
 import { JwtService } from "./jwt.service";
 import { LoginUserValidator } from "../rules/validators/login-user.validator";
+import { UserResponse } from "../types/user/user-response.type";
+import { User } from "../types/user/user.type";
 
 export class UserService {
 
     constructor(
-        private readonly userModel: Model<UserRequest>,
+        private readonly userModel: Model<User>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
     ) {}
 
     // TODO: validate email
-    async create(user: CreateUserValidator): Promise<{ user: UserRequest, token: string }> {
+    async create(user: CreateUserValidator): Promise<{ user: UserResponse, token: string }> {
         try {
             const passwordHash = await this.hashingService.hash(user.password);
 
@@ -39,7 +40,7 @@ export class UserService {
         }
     }
 
-    async login(userToLogin: LoginUserValidator): Promise<{ user: UserRequest, token: string }> {
+    async login(userToLogin: LoginUserValidator): Promise<{ user: UserResponse, token: string }> {
 
         const userDb = await this.userModel.findOne({
             email: userToLogin.email
