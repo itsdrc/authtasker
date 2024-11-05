@@ -19,50 +19,63 @@ export class UserService {
     ) {}
 
     private async sendEmailValidationLink(email: string): Promise<void> {
+        // Generate a token with email
         const token = this.jwtService.generate({ email });
+
+        // Create a link based on token
         const link = `${ENVS.WEB_URL}/api/users/validate-email/${token}`;
-        const html = `
-        <h1> Validate your email </h1>
-        <p> Click below to validate your email </p>
-        <a href= "${link}"> Validate your email ${email} </a>`
+
+        // Send
         await this.emailService.sendMail({
             to: email,
             subject: 'Email validation',
-            html,
+            html: `
+            <h1> Validate your email </h1>
+            <p> Click below to validate your email </p>
+            <a href= "${link}"> Validate your email ${email} </a>`,
         });
     }
 
     async validateEmail(token: string): Promise<void> {
+        // Check if token is a valid token
         const payload = this.jwtService.verify(token);
         if (!payload)
             throw HttpError.badRequest('Invalid token')
 
+        // Email should be in token
         const { email } = payload as { email: string };
         if (!email)
             throw HttpError.internalServer('Email not in token');
 
+        // Check if user email exists in db
         const user = await this.userModel.findOne({ email });
         if (!user)
             throw HttpError.notFound('User not found');
 
+        // Update user data
         user.emailValidated = true;
         await user.save();
     }
 
     async create(user: CreateUserValidator): Promise<{ user: UserResponse, token: string }> {
         try {
+            // Hash password before saving
             const passwordHash = await this.hashingService.hash(user.password);
             user.password = passwordHash;
-
             const created = await this.userModel.create(user);
 
+            // Generate token with id
             const token = this.jwtService.generate({ id: created.id });
+
+            // Email validation
             await this.sendEmailValidationLink(user.email);
 
+            // Return user and token
             return {
                 user: created,
                 token,
             };
+
         } catch (error: any) {
             if (error.code == 11000)
                 throw HttpError.badRequest(`user with name ${user.name} already exists`);
@@ -73,23 +86,23 @@ export class UserService {
 
     async login(userToLogin: LoginUserValidator): Promise<{ user: UserResponse, token: string }> {
 
-        const userDb = await this.userModel.findOne({
-            email: userToLogin.email
-        });
-
+        // Check user existence
+        const userDb = await this.userModel.findOne({ email: userToLogin.email });
         if (!userDb)
             throw HttpError.badRequest(`User with email ${userToLogin.email} not found`);
 
+        // Check password matching
         const passwordOk = await this.hashingService.compare(
             userToLogin.password,
             userDb.password
         );
-
         if (!passwordOk)
             throw HttpError.badRequest('Incorrect password');
 
+        // Generate token with id
         const token = this.jwtService.generate({ id: userDb.id });
 
+        // Return user and token
         return {
             user: userDb,
             token,
