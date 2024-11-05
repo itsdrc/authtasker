@@ -29,4 +29,7 @@ export const ENVS = {
     MAIL_SERVICE_PASS: env.get('MAIL_SERVICE_PASS')
         .required()
         .asString(),
+    WEB_URL: env.get('WEB_URL')
+        .required()
+        .asUrlString(),
 }
