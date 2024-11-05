@@ -15,8 +15,12 @@ export class JwtService {
         return token;
     }
 
-    verify(token: string): object | string{
-        const payload = jwt.verify(token, this.privateKey);
-        return payload;
+    verify(token: string): object | string | undefined {
+        try {
+            const payload = jwt.verify(token, this.privateKey);
+            return payload;
+        } catch (error) {
+            return undefined;
+        }
     }
 }
