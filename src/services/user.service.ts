@@ -6,6 +6,8 @@ import { JwtService } from "./jwt.service";
 import { LoginUserValidator } from "../rules/validators/login-user.validator";
 import { UserResponse } from "../types/user/user-response.type";
 import { User } from "../types/user/user.type";
+import { EmailService } from "./email.service";
+import { ENVS } from "../config/envs.config";
 
 export class UserService {
 
@@ -13,9 +15,38 @@ export class UserService {
         private readonly userModel: Model<User>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
-    ) {}
+        private readonly emailService: EmailService,
+    ) { }
 
-    // TODO: validate email
+    private async sendEmailValidationLink(email: string) {
+        const token = this.jwtService.generate({ email });
+        const link = `${ENVS.WEB_URL}/api/users/validate-email/${token}`;
+        const html = `
+        <h1> Validate your email </h1>
+        <p> Click below to validate your email </p>
+        <a href= "${link}"> Validate your email ${email} </a>`
+        await this.emailService.sendMail({
+            to: email,
+            subject: 'Email validation',
+            html,
+        });
+    }
+
+    async validateEmail(token: string): Promise<void> {
+        const payload = this.jwtService.verify(token);
+
+        const { email } = payload as { email: string };
+        if (!email)
+            throw HttpError.internalServer('Email not in token');
+
+        const user = await this.userModel.findOne({email});
+        if (!user)
+            throw HttpError.notFound('User not found');
+
+        user.emailValidated = true;
+        await user.save();
+    }
+    
     async create(user: CreateUserValidator): Promise<{ user: UserResponse, token: string }> {
         try {
             const passwordHash = await this.hashingService.hash(user.password);
@@ -24,6 +55,8 @@ export class UserService {
 
             const created = await this.userModel.create(user);
             const token = this.jwtService.generate({ id: created.id });
+
+            await this.sendEmailValidationLink(user.email);
 
             return {
                 user: created,

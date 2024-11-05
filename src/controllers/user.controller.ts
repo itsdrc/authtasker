@@ -46,4 +46,14 @@ export class UserController {
             handleError(res, error);
         }
     }
+
+    readonly validateEmail = async (req: Request, res: Response): Promise<void> => {
+        const token = req.params.token;
+        try {
+            await this.userService.validateEmail(token);
+            res.status(200).send('Email validated');
+        } catch (error) {
+            handleError(res, error);
+        }
+    }
 }
