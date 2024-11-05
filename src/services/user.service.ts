@@ -18,7 +18,7 @@ export class UserService {
         private readonly emailService: EmailService,
     ) {}
 
-    private async sendEmailValidationLink(email: string) {
+    private async sendEmailValidationLink(email: string): Promise<void> {
         const token = this.jwtService.generate({ email });
         const link = `${ENVS.WEB_URL}/api/users/validate-email/${token}`;
         const html = `
