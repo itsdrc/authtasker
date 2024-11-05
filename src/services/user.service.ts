@@ -66,9 +66,8 @@ export class UserService {
         } catch (error: any) {
             if (error.code == 11000)
                 throw HttpError.badRequest(`user with name ${user.name} already exists`);
-            else {                
-                throw HttpError.internalServer(`Unexpected error`);
-            }
+            else
+                throw error;
         }
     }
 
