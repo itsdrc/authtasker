@@ -32,4 +32,7 @@ export const ENVS = {
     WEB_URL: env.get('WEB_URL')
         .required()
         .asUrlString(),
+    MAIL_SERVICE: env.get('MAIL_SERVICE')
+        .required()
+        .asBool()
 }

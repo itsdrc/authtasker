@@ -68,7 +68,8 @@ export class UserService {
             const token = this.jwtService.generate({ id: created.id });
 
             // Email validation
-            await this.sendEmailValidationLink(user.email);
+            if (ENVS.MAIL_SERVICE)
+                await this.sendEmailValidationLink(user.email);
 
             // Return user and token
             return {
