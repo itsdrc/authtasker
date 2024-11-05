@@ -16,7 +16,7 @@ export class UserService {
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
         private readonly emailService: EmailService,
-    ) { }
+    ) {}
 
     private async sendEmailValidationLink(email: string) {
         const token = this.jwtService.generate({ email });
@@ -39,29 +39,28 @@ export class UserService {
         if (!email)
             throw HttpError.internalServer('Email not in token');
 
-        const user = await this.userModel.findOne({email});
+        const user = await this.userModel.findOne({ email });
         if (!user)
             throw HttpError.notFound('User not found');
 
         user.emailValidated = true;
         await user.save();
     }
-    
+
     async create(user: CreateUserValidator): Promise<{ user: UserResponse, token: string }> {
         try {
             const passwordHash = await this.hashingService.hash(user.password);
-
             user.password = passwordHash;
 
             const created = await this.userModel.create(user);
-            const token = this.jwtService.generate({ id: created.id });
 
+            const token = this.jwtService.generate({ id: created.id });
             await this.sendEmailValidationLink(user.email);
 
             return {
                 user: created,
                 token,
-            };
+            };            
         } catch (error: any) {
             if (error.code == 11000)
                 throw HttpError.badRequest(`user with name ${user.name} already exists`);
@@ -87,10 +86,10 @@ export class UserService {
             userDb.password
         );
 
-        if(!passwordOk)
+        if (!passwordOk)
             throw HttpError.badRequest('Incorrect password');
 
-        const token = this.jwtService.generate({id: userDb.id});
+        const token = this.jwtService.generate({ id: userDb.id });
 
         return {
             user: userDb,
