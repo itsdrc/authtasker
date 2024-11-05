@@ -34,6 +34,8 @@ export class UserService {
 
     async validateEmail(token: string): Promise<void> {
         const payload = this.jwtService.verify(token);
+        if (!payload)
+            throw HttpError.badRequest('Invalid token')
 
         const { email } = payload as { email: string };
         if (!email)
@@ -60,13 +62,11 @@ export class UserService {
             return {
                 user: created,
                 token,
-            };            
+            };
         } catch (error: any) {
             if (error.code == 11000)
                 throw HttpError.badRequest(`user with name ${user.name} already exists`);
-            else {
-                // TODO: logs-service
-                console.log(error.message);
+            else {                
                 throw HttpError.internalServer(`Unexpected error`);
             }
         }
