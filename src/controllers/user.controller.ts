@@ -1,7 +1,6 @@
 import { Request, Response } from "express"
 import { UserService } from "../services/user.service"
 import { CreateUserValidator } from "../rules/validators/create-user.validator";
-import { HttpError } from "../rules/errors/http.error";
 import { handleError } from "./helpers/handle-error.helper";
 import { LoginUserValidator } from "../rules/validators/login-user.validator";
 
