@@ -11,6 +11,7 @@ describe('UserController', () => {
         create: jest.SpyInstance,
         login: jest.SpyInstance,
         validateEmail: jest.SpyInstance,
+        findOne: jest.SpyInstance,
     };
 
     // user expected in body
@@ -20,9 +21,13 @@ describe('UserController', () => {
     // user returned by userService.create
     const createdUser = 'user-created-test';
     // user returned by userService.login
-    const loggedUser = 'user-logged-test'
+    const loggedUser = 'user-logged-test';
+    // user returned by userService.findOne
+    const userFound = 'test-user-found';
     // fake token for req.params.token
     const token = '123';
+    // fake id for req.params.id
+    const id = '123express';
 
     // res.status(...).json() mock
     let responseJsonMock = jest.fn();
@@ -36,7 +41,7 @@ describe('UserController', () => {
     // fake Request object
     const request = {
         body: user,
-        params: { token },
+        params: { token, id },
     } as const;
 
     let handleErrorSpy: jest.SpyInstance;
@@ -46,6 +51,7 @@ describe('UserController', () => {
             create: jest.fn().mockResolvedValue(createdUser),
             login: jest.fn().mockResolvedValue(loggedUser),
             validateEmail: jest.fn(),
+            findOne: jest.fn().mockResolvedValue(userFound),
         };
         userController = new UserController(userService as unknown as UserService);
 
@@ -111,7 +117,7 @@ describe('UserController', () => {
                 expect(responseJsonMock).toHaveBeenCalledWith({ errors: errorsExpected });
             });
 
-            test('handleError should be called with response and error if create fails', async () => {                
+            test('handleError should be called with response and error if create fails', async () => {
                 const error = 'test-error';
                 userService.create.mockRejectedValue(error);
                 await callCreate();
@@ -170,7 +176,7 @@ describe('UserController', () => {
                 expect(responseJsonMock).toHaveBeenCalledWith({ errors: errorsExpected });
             });
 
-            test('handleError should be called with response and error if login fails', async () => {                
+            test('handleError should be called with response and error if login fails', async () => {
                 const error = 'test-error';
                 userService.login.mockRejectedValue(error);
                 await callLogin();
@@ -180,7 +186,7 @@ describe('UserController', () => {
     });
 
     describe('validateEmail', () => {
-        const callValidateEmail = async ()=> {
+        const callValidateEmail = async () => {
             await userController.validateEmail(request as unknown as Request, response as unknown as Response);
         }
 
@@ -208,7 +214,40 @@ describe('UserController', () => {
                 const error = 'test-error';
                 userService.validateEmail.mockRejectedValue(error);
                 await callValidateEmail();
-                expect(handleErrorSpy).toHaveBeenCalledWith(response,error);
+                expect(handleErrorSpy).toHaveBeenCalledWith(response, error);
+            });
+        });
+    });
+
+    describe('findOne', () => {
+        const callFindOne = async () => {
+            await userController.findOne(request as unknown as Request, response as unknown as Response);
+        }
+
+        describe('successful', () => {
+            test('findOne should be called with the id obtained from req.params.id', async () => {
+                await callFindOne();
+                expect(userService.findOne).toHaveBeenCalledWith(id);
+            });
+
+            test('should response the user found as json', async () => {
+                await callFindOne();
+                expect(responseJsonMock).toHaveBeenCalledWith(userFound);
+            });
+
+            test('should response status 200', async () => {
+                const expectedStatus = 200;
+                await callFindOne();
+                expect(response.status).toHaveBeenCalledWith(expectedStatus);
+            });
+        });
+
+        describe('failed', () => {
+            test('handleError should be called with response and error if findOne fails', async () => {
+                const error = 'test-error';
+                userService.findOne.mockRejectedValue(error);
+                await callFindOne();
+                expect(handleErrorSpy).toHaveBeenCalledWith(response, error);
             });
         });
     });
