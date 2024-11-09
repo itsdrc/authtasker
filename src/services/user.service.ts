@@ -109,4 +109,11 @@ export class UserService {
             token,
         }
     }
+
+    async findOne(id: string): Promise<UserResponse>{
+        const userDb = await this.userModel.findById(id).exec();
+        if(!userDb)
+            throw HttpError.badRequest(`User with id ${id} not found`);
+        return userDb;
+    }
 }

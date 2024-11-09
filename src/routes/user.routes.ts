@@ -30,6 +30,7 @@ export class UserRoutes {
         router.post('/create', controller.create);
         router.post('/login', controller.login);
         router.get('/validate-email/:token', controller.validateEmail);
+        router.get('/:id', controller.findOne);
         return router;
     }
 }

@@ -54,4 +54,14 @@ export class UserController {
             handleError(res, error);
         }
     }
+
+    readonly findOne = async (req: Request, res: Response): Promise<void> => {
+        const id = req.params.id; 
+        try {
+            const userFound = await this.userService.findOne(id);
+            res.status(HTTP_STATUS_CODES.OK).json(userFound);
+        } catch (error) {
+            handleError(res,error);
+        }
+    }
 }
