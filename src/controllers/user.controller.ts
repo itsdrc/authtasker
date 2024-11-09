@@ -22,7 +22,7 @@ export class UserController {
 
         try {
             const created = await this.userService.create(validatedUser);
-            res.status(HTTP_STATUS_CODES.OK).json(created);
+            res.status(HTTP_STATUS_CODES.CREATED).json(created);
         } catch (error) {
             handleError(res, error);
         }

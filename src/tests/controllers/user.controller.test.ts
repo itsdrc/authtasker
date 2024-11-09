@@ -84,8 +84,8 @@ describe('UserController', () => {
                 expect(userService.create).toHaveBeenCalledWith(validatedUser);
             });
 
-            test('should response status 200', async () => {
-                const expectedStatus = 200;
+            test('should response status 201', async () => {
+                const expectedStatus = 201;
                 await callCreate();
                 expect(response.status).toHaveBeenCalledWith(expectedStatus);
             });
