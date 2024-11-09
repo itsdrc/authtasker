@@ -1,0 +1,9 @@
+
+export const HTTP_STATUS_CODES = {
+    BADREQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOTFOUND: 404,
+    INTERNALSERVER: 500,
+    OK: 200,
+} as const;
