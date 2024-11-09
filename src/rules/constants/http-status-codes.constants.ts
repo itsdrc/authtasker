@@ -6,4 +6,5 @@ export const HTTP_STATUS_CODES = {
     NOTFOUND: 404,
     INTERNALSERVER: 500,
     OK: 200,
+    CREATED: 201,
 } as const;
