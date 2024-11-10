@@ -13,6 +13,7 @@ describe('UserController', () => {
         login: jest.SpyInstance,
         validateEmail: jest.SpyInstance,
         findOne: jest.SpyInstance,
+        findAll: jest.SpyInstance,
     };
 
     // res.status(...).json() mock
@@ -32,6 +33,7 @@ describe('UserController', () => {
             login: jest.fn().mockResolvedValue(Mocks.loggedUser),
             validateEmail: jest.fn(),
             findOne: jest.fn().mockResolvedValue(Mocks.userFound),
+            findAll: jest.fn().mockResolvedValue(Mocks.usersFound),
         };
         userController = new UserController(userService as unknown as UserService);
 
@@ -232,6 +234,45 @@ describe('UserController', () => {
                 userService.findOne.mockRejectedValue(error);
                 await callFindOne();
                 expect(handleErrorSpy).toHaveBeenCalledWith(response, error);
+            });
+        });
+    });
+    
+    describe('findAll', () => {
+        const callFindAll = async () => {
+            await userController.findAll(Mocks.request as unknown as Request, response as unknown as Response);
+        };
+
+        describe('successful', () => {
+            test('findAll should be called with limit and page found in req.query as numbers', async () => {
+                await callFindAll();
+                expect(userService.findAll).toHaveBeenCalledWith(parseInt(Mocks.limit), parseInt(Mocks.page));
+            });
+
+            test('should response the users found as json', async () => {
+                await callFindAll();
+                expect(responseJsonMock).toHaveBeenCalledWith(Mocks.usersFound);
+            });
+
+            test('should response status 200', async () => {
+                const expectedStatus = 200;
+                await callFindAll();
+                expect(response.status).toHaveBeenCalledWith(expectedStatus);
+            });
+        });
+
+        describe('failed', () => {
+            describe('findAll service function fails', () => {
+                const findAllError = 'test-error';
+
+                beforeEach(async () => {
+                    userService.findAll.mockRejectedValue(findAllError);
+                    await callFindAll();
+                });
+
+                test('handleError should be called with the response and the error thrown by findAll', async () => {
+                    expect(handleErrorSpy).toHaveBeenCalledWith(response, findAllError);
+                });
             });
         });
     });
