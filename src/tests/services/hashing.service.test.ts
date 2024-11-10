@@ -1,5 +1,5 @@
 import { HashingService } from "../../services/hashing.service";
-import bcrypt, { compare } from "bcryptjs";
+import bcrypt from "bcryptjs";
 
 describe('HashingService', () => {
     const saltRounds = 7;
@@ -21,12 +21,12 @@ describe('HashingService', () => {
     });
 
     describe('hash', () => {        
-        test('genSaltSync (bcrypt) should be called with salt rounds', () => {
+        test('bcrypt.genSaltSync should be called with salt rounds', () => {
             hashingService.hash(data);
             expect(genSaltSyncSpy).toHaveBeenCalledWith(saltRounds);
         });
 
-        test('hash (bcrypt) should be called with the resulting salt', () => {
+        test('bcrypt.hash should be called with the resulting salt', () => {
             const genSaltSyncResult = 'test-result';
             genSaltSyncSpy.mockReturnValue(genSaltSyncResult);
             hashingService.hash(data);
@@ -43,13 +43,13 @@ describe('HashingService', () => {
     });
 
     describe('compare', () => {
-        test('compare (bcrypt) should be called with hash and data', () => {
+        test('bcrypt.compare should be called with hash and data', () => {
             const hashTest = '123';
             hashingService.compare(data, hashTest);
             expect(compareSpy).toHaveBeenCalledWith(data, hashTest);
         });
 
-        test('compare should return the compare (bcrypt) result', () => {
+        test('compare should return the bcrypt.compare result', () => {
             const result = true;
             compareSpy.mockReturnValue(result);
             expect(hashingService.compare(data, 'foo'))
