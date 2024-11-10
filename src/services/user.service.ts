@@ -8,6 +8,7 @@ import { UserResponse } from "../types/user/user-response.type";
 import { User } from "../types/user/user.type";
 import { EmailService } from "./email.service";
 import { ConfigService } from "./config.service";
+import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 
 export class UserService {
 
@@ -118,7 +119,18 @@ export class UserService {
         return userDb;
     }
 
-    async findAll(): Promise<UserResponse[]> {
-        return this.userModel.find().exec();
+    async findAll(limit?: number, page?: number): Promise<UserResponse[]> {         
+        if (!limit)
+            limit = PAGINATION_SETTINGS.DEFAULT_LIMIT;
+
+        if (!page)
+            page = PAGINATION_SETTINGS.DEFAULT_PAGE;
+
+        const offset = (page - 1) * limit;
+
+        return this.userModel.find()
+            .skip(offset)
+            .limit(limit)
+            .exec();
     }
 }

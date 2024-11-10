@@ -64,11 +64,13 @@ export class UserController {
             handleError(res,error);
         }
     }
-
-    // TODO: pagination
+    
     readonly findAll = async (req: Request, res: Response): Promise<void> => {
+        const limit = (req.query.limit) ? +req.query.limit : undefined;
+        const page = (req.query.page) ? +req.query.page : undefined;
+
         try {
-            const usersFound = await this.userService.findAll();
+            const usersFound = await this.userService.findAll(limit, page);
             res.status(HTTP_STATUS_CODE.OK).json(usersFound);
         } catch (error) {
             handleError(res, error);
