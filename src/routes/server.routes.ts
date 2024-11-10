@@ -5,6 +5,7 @@ import { HashingService } from "../services/hashing.service";
 import { JwtService } from "../services/jwt.service";
 import { EmailService } from "../services/email.service";
 import { UserModel } from "../databases/mongo/schemas/user.schema";
+import { SeedRoutes } from "../seed/routes/seed.routes";
 
 export class AppRoutes {
 
@@ -37,7 +38,15 @@ export class AppRoutes {
         );
 
         const router = Router();
-        router.use('/api/users', userRoutes.routes);
+        router.use('/api/users', userRoutes.routes);        
+
+        if (this.configService.NODE_ENV != 'production') {
+            const seedRoutes = new SeedRoutes(
+                UserModel,
+                hashingService
+            );
+            router.use('/api/seed', seedRoutes.routes);
+        }
 
         return router;
     }
