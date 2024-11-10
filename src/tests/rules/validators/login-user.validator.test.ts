@@ -21,18 +21,20 @@ describe('LoginUserValidator', () => {
     });
 
     describe('validation failed', () => {
-        test('should fail if password is missing', async () => {
-            const userNoPassword = omitProperty(userToLogin, 'password');
-            const [error, userValidated] = await LoginUserValidator.validate(userNoPassword);
-            expect(userValidated).toBeUndefined();
-            expect(error).toStrictEqual(['password is required']);
-        });
+        describe('missing properties', ()=> {
+            test('should fail if password is missing', async () => {
+                const userNoPassword = omitProperty(userToLogin, 'password');
+                const [error, userValidated] = await LoginUserValidator.validate(userNoPassword);
+                expect(userValidated).toBeUndefined();
+                expect(error).toStrictEqual(['password is required']);
+            });
 
-        test('should fail if email is missing', async () => {
-            const userNoEmail = omitProperty(userToLogin, 'email');
-            const [error, userValidated] = await LoginUserValidator.validate(userNoEmail);
-            expect(userValidated).toBeUndefined();
-            expect(error).toStrictEqual(['email is required']);
+            test('should fail if email is missing', async () => {
+                const userNoEmail = omitProperty(userToLogin, 'email');
+                const [error, userValidated] = await LoginUserValidator.validate(userNoEmail);
+                expect(userValidated).toBeUndefined();
+                expect(error).toStrictEqual(['email is required']);
+            });
         });
     });
 });
