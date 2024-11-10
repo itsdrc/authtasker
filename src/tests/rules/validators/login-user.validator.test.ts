@@ -21,7 +21,7 @@ describe('LoginUserValidator', () => {
     });
 
     describe('validation failed', () => {
-        describe('missing properties', ()=> {
+        describe('missing properties', () => {
             test('should fail if password is missing', async () => {
                 const userNoPassword = omitProperty(userToLogin, 'password');
                 const [error, userValidated] = await LoginUserValidator.validate(userNoPassword);
@@ -34,6 +34,16 @@ describe('LoginUserValidator', () => {
                 const [error, userValidated] = await LoginUserValidator.validate(userNoEmail);
                 expect(userValidated).toBeUndefined();
                 expect(error).toStrictEqual(['email is required']);
+            });
+        });
+
+        describe('invalid properties', () => {
+            test(`should fail if email is not a valid email`, async () => {
+                const invalidUser: LoginUserValidator = structuredClone(userToLogin);
+                invalidUser.email = "invalid-email";
+                const [error] = await LoginUserValidator.validate(invalidUser);
+                expect(error).toBeDefined();
+                expect(error).toStrictEqual(['email must be an email']);
             });
         });
     });
