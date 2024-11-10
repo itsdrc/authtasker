@@ -19,7 +19,7 @@ describe('JwtService', () => {
     });
 
     describe('generate', () => {
-        test('generate (jwt) should be called with payload, privateKey and expirationTime', () => {
+        test('jwt.generate should be called with payload, privateKey and expirationTime', () => {
             jwtService.generate(payload);
             expect(signSpy).toHaveBeenCalledWith(
                 payload,
@@ -28,7 +28,7 @@ describe('JwtService', () => {
             );
         });
 
-        test('should return the generate (jwt) result', () => {
+        test('should return the jwt.generate result', () => {
             const testResult = "token test 123";
             signSpy.mockReturnValue(testResult);
             const token = jwtService.generate(payload);
@@ -37,7 +37,7 @@ describe('JwtService', () => {
     });
 
     describe('verify', () => {
-        test('verify (jwt) should be called with token and private key', () => {
+        test('jwt.verify should be called with token and private key', () => {
             const token = '12345';
             jwtService.verify(token);
             expect(verifySpy).toHaveBeenLastCalledWith(token, privateKey);
