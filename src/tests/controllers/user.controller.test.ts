@@ -1,7 +1,7 @@
 import { UserController } from "../../controllers/user.controller";
 import { CreateUserValidator } from "../../rules/validators/create-user.validator";
 import { UserService } from "../../services/user.service";
-import { Request, Response } from "express"
+import { Request, Response } from "express";
 import * as ErrorHandler from "../../controllers/helpers/handle-error.helper";
 import { LoginUserValidator } from "../../rules/validators/login-user.validator";
 import * as Mocks from "./mocks/user.controller.test.mocks";
@@ -66,48 +66,64 @@ describe('UserController', () => {
         }
 
         describe('successful', () => {
-            test('validateAndTransform should be called with the user obtained in body', async () => {
+            beforeEach(async () => {
                 await callCreate();
-                expect(validateAndTransformMock).toHaveBeenCalledWith(Mocks.user);
             });
 
-            test('create should be called with the validated user', async () => {
-                await callCreate();
-                expect(userService.create).toHaveBeenCalledWith(Mocks.validatedUser);
+            describe('validation', () => {
+                test('should be called with the user obtained in body', async () => {
+                    expect(validateAndTransformMock).toHaveBeenCalledWith(Mocks.user);
+                });
             });
 
-            test('should response status 201', async () => {
-                const expectedStatus = 201;
-                await callCreate();
-                expect(response.status).toHaveBeenCalledWith(expectedStatus);
+            describe('userService.create', () => {
+                test('should be called with the validated user', async () => {
+                    expect(userService.create).toHaveBeenCalledWith(Mocks.validatedUser);
+                });
             });
 
-            test('should response the created user as json', async () => {
-                await callCreate();
-                expect(responseJsonMock).toHaveBeenCalledWith(Mocks.createdUser);
+            describe('response', () => {
+                test('should return status 201', async () => {
+                    const expectedStatus = 201;
+                    expect(response.status).toHaveBeenCalledWith(expectedStatus);
+                });
+
+                test('should return created user as json', async () => {
+                    expect(responseJsonMock).toHaveBeenCalledWith(Mocks.createdUser);
+                });
             });
         });
 
         describe('failed', () => {
-            test('should response status 400 if validation fails', async () => {
-                const expectedStatus = 400;
-                validateAndTransformMock.mockReturnValue([[], undefined]);
-                await callCreate();
-                expect(response.status).toHaveBeenCalledWith(expectedStatus);
+            describe('validation', () => {
+                const validationError = ['err1', 'err2'];
+
+                beforeEach(async () => {
+                    validateAndTransformMock.mockReturnValue([validationError, undefined]);
+                    await callCreate();
+                });
+
+                test('should response status 400', async () => {
+                    const expectedStatus = 400;
+                    expect(response.status).toHaveBeenCalledWith(expectedStatus);
+                });
+
+                test('should response the errors as json', async () => {
+                    expect(responseJsonMock).toHaveBeenCalledWith({ errors: validationError });
+                });
             });
 
-            test('should response the errors as json if validator fails', async () => {
-                const errorsExpected = ['err1', 'err2'];
-                validateAndTransformMock.mockReturnValue([errorsExpected, undefined]);
-                await callCreate();
-                expect(responseJsonMock).toHaveBeenCalledWith({ errors: errorsExpected });
-            });
+            describe('userService.create', () => {
+                const createError = 'create-error-test';
 
-            test('handleError should be called with response and error if create fails', async () => {
-                const error = 'test-error';
-                userService.create.mockRejectedValue(error);
-                await callCreate();
-                expect(handleErrorSpy).toHaveBeenCalledWith(response, error);
+                beforeEach(async () => {
+                    userService.create.mockRejectedValue(createError);
+                    await callCreate();
+                });
+
+                test('handleError should be called with response and the error', async () => {
+                    expect(handleErrorSpy).toHaveBeenCalledWith(response, createError);
+                });
             });
         });
     });
@@ -115,58 +131,75 @@ describe('UserController', () => {
     describe('login', () => {
         let validateMock: jest.SpyInstance;
 
-        const callLogin = async () => {
-            await userController.login(Mocks.request as unknown as Request, response as unknown as Response);
-        }
-
         beforeEach(() => {
+            // always validate the user for login
             validateMock = jest.spyOn(LoginUserValidator, 'validate')
                 .mockImplementation(() => Promise.resolve([undefined, Mocks.validatedUser as unknown as LoginUserValidator]));
         });
 
+        const callLogin = async () => {
+            await userController.login(Mocks.request as unknown as Request, response as unknown as Response);
+        }
+
         describe('successful', () => {
-            test('validate should be called with the user obtained body', async () => {
+            beforeEach(async () => {
                 await callLogin();
-                expect(validateMock).toHaveBeenCalledWith(Mocks.user);
             });
 
-            test('login should be called with the validated user', async () => {
-                await callLogin();
-                expect(userService.login).toHaveBeenCalledWith(Mocks.validatedUser);
+            describe('validation', () => {
+                test('should be called with the user obtained body', async () => {
+                    expect(validateMock).toHaveBeenCalledWith(Mocks.user);
+                });
             });
 
-            test('should response status 200', async () => {
-                const expectedStatus = 200;
-                await callLogin();
-                expect(response.status).toHaveBeenCalledWith(expectedStatus);
+            describe('userService.login', () => {
+                test('should be called with the validated user', async () => {
+                    expect(userService.login).toHaveBeenCalledWith(Mocks.validatedUser);
+                });
             });
 
-            test('should response the logged user as json', async () => {
-                await callLogin();
-                expect(responseJsonMock).toHaveBeenCalledWith(Mocks.loggedUser);
+            describe('response', () => {
+                test('should return status 200', async () => {
+                    const expectedStatus = 200;
+                    expect(response.status).toHaveBeenCalledWith(expectedStatus);
+                });
+
+                test('should return logged user as json', async () => {
+                    expect(responseJsonMock).toHaveBeenCalledWith(Mocks.loggedUser);
+                });
             });
         });
 
         describe('failed', () => {
-            test('should response status 400 if validation fails', async () => {
-                const expectedStatus = 400;
-                validateMock.mockReturnValue([[], undefined]);
-                await callLogin();
-                expect(response.status).toHaveBeenCalledWith(expectedStatus);
+            describe('validation', () => {
+                const validationError = ['err1', 'err2'];
+
+                beforeEach(async () => {
+                    validateMock.mockReturnValue([validationError, undefined]);
+                    await callLogin();
+                });
+
+                test('should response status 400', async () => {
+                    const expectedStatus = 400;
+                    expect(response.status).toHaveBeenCalledWith(expectedStatus);
+                });
+
+                test('should response the errors as json', async () => {
+                    expect(responseJsonMock).toHaveBeenCalledWith({ errors: validationError });
+                });
             });
 
-            test('should response the errors as json if validator fails', async () => {
-                const errorsExpected = ['err1', 'err2'];
-                validateMock.mockReturnValue([errorsExpected, undefined]);
-                await callLogin();
-                expect(responseJsonMock).toHaveBeenCalledWith({ errors: errorsExpected });
-            });
+            describe('userService.login', () => {
+                const loginError = 'login-error-test';
 
-            test('handleError should be called with response and error if login fails', async () => {
-                const error = 'test-error';
-                userService.login.mockRejectedValue(error);
-                await callLogin();
-                expect(handleErrorSpy).toHaveBeenCalledWith(response, error);
+                beforeEach(async () => {
+                    userService.login.mockRejectedValue(loginError);
+                    await callLogin();
+                });
+
+                test('handleError should be called with response and the error thrown', async () => {
+                    expect(handleErrorSpy).toHaveBeenCalledWith(response, loginError);
+                });
             });
         });
     });
@@ -177,30 +210,43 @@ describe('UserController', () => {
         }
 
         describe('succesful', () => {
-            test('validateEmail should be called with the token obtained from req.params.token', async () => {
+            beforeEach(async () => {
                 await callValidateEmail();
-                expect(userService.validateEmail).toHaveBeenCalledWith(Mocks.token);
             });
 
-            test('should return status 200', async () => {
-                const expectedStatus = 200;
-                await callValidateEmail();
-                expect(response.status).toHaveBeenCalledWith(expectedStatus);
+            describe('userService.validateEmail', () => {
+                test('validateEmail should be called with the token obtained from req.params.token', async () => {
+                    expect(userService.validateEmail).toHaveBeenCalledWith(Mocks.token);
+                });
             });
 
-            test('should response a message', async () => {
-                const message = 'Email validated';
-                await callValidateEmail();
-                expect(responseSendMock).toHaveBeenCalledWith(message);
+            describe('response', () => {
+                test('should return status 200', async () => {
+                    const expectedStatus = 200;
+                    await callValidateEmail();
+                    expect(response.status).toHaveBeenCalledWith(expectedStatus);
+                });
+
+                test('should response a message', async () => {
+                    const message = 'Email validated';
+                    await callValidateEmail();
+                    expect(responseSendMock).toHaveBeenCalledWith(message);
+                });
             });
         });
 
         describe('failed', () => {
-            test('handleError should be called with response and error if validateEmail fails', async () => {
-                const error = 'test-error';
-                userService.validateEmail.mockRejectedValue(error);
-                await callValidateEmail();
-                expect(handleErrorSpy).toHaveBeenCalledWith(response, error);
+            describe('userService.validateEmail', () => {
+                const validateEmailError = 'validate-email-error-test';
+
+                beforeEach(async () => {
+                    userService.validateEmail.mockRejectedValue(validateEmailError);
+                    await callValidateEmail();
+                });
+
+                test('handleError should be called with response and the error thrown', async () => {
+                    expect(handleErrorSpy).toHaveBeenCalledWith(response, validateEmailError);
+                });
             });
         });
     });
@@ -211,58 +257,74 @@ describe('UserController', () => {
         }
 
         describe('successful', () => {
-            test('findOne should be called with the id obtained from req.params.id', async () => {
+            beforeEach(async () => {
                 await callFindOne();
-                expect(userService.findOne).toHaveBeenCalledWith(Mocks.id);
             });
 
-            test('should response the user found as json', async () => {
-                await callFindOne();
-                expect(responseJsonMock).toHaveBeenCalledWith(Mocks.userFound);
+            describe('userService.findOne', () => {
+                test('should be called with the id obtained from req.params.id', async () => {
+                    expect(userService.findOne).toHaveBeenCalledWith(Mocks.id);
+                });
             });
 
-            test('should response status 200', async () => {
-                const expectedStatus = 200;
-                await callFindOne();
-                expect(response.status).toHaveBeenCalledWith(expectedStatus);
-            });
+            describe('response', ()=> {
+                test('should return status 200', async () => {
+                    const expectedStatus = 200;
+                    expect(response.status).toHaveBeenCalledWith(expectedStatus);
+                });
+
+                test('should return the user found as json', async () => {
+                    expect(responseJsonMock).toHaveBeenCalledWith(Mocks.userFound);
+                });
+            });            
         });
 
         describe('failed', () => {
-            test('handleError should be called with response and error if findOne fails', async () => {
-                const error = 'test-error';
-                userService.findOne.mockRejectedValue(error);
-                await callFindOne();
-                expect(handleErrorSpy).toHaveBeenCalledWith(response, error);
+            describe('userService.findOne', () => {
+                const findOneError = 'find-one-error-test';
+
+                beforeEach(async () => {
+                    userService.findOne.mockRejectedValue(findOneError);
+                    await callFindOne();
+                });
+
+                test('handleError should be called with response and the error thrown', async () => {
+                    expect(handleErrorSpy).toHaveBeenCalledWith(response, findOneError);
+                });
             });
         });
     });
-    
+
     describe('findAll', () => {
         const callFindAll = async () => {
             await userController.findAll(Mocks.request as unknown as Request, response as unknown as Response);
-        };
+        };        
 
         describe('successful', () => {
-            test('findAll should be called with limit and page found in req.query as numbers', async () => {
+            beforeEach(async ()=> {
                 await callFindAll();
-                expect(userService.findAll).toHaveBeenCalledWith(parseInt(Mocks.limit), parseInt(Mocks.page));
             });
 
-            test('should response the users found as json', async () => {
-                await callFindAll();
-                expect(responseJsonMock).toHaveBeenCalledWith(Mocks.usersFound);
-            });
+            describe('userService.findAll',()=> {
+                test('should be called with limit and page found in req.query as numbers', async () => {                    
+                    expect(userService.findAll).toHaveBeenCalledWith(parseInt(Mocks.limit), parseInt(Mocks.page));
+                });
+            });    
+            
+            describe('response',()=> {
+                test('should return the users found as json', async () => {
+                    expect(responseJsonMock).toHaveBeenCalledWith(Mocks.usersFound);
+                });
 
-            test('should response status 200', async () => {
-                const expectedStatus = 200;
-                await callFindAll();
-                expect(response.status).toHaveBeenCalledWith(expectedStatus);
+                test('should return status 200', async () => {
+                    const expectedStatus = 200;
+                    expect(response.status).toHaveBeenCalledWith(expectedStatus);
+                });
             });
         });
 
         describe('failed', () => {
-            describe('findAll service function fails', () => {
+            describe('userService.findAll', () => {
                 const findAllError = 'test-error';
 
                 beforeEach(async () => {
@@ -270,7 +332,7 @@ describe('UserController', () => {
                     await callFindAll();
                 });
 
-                test('handleError should be called with the response and the error thrown by findAll', async () => {
+                test('handleError should be called with response and the error thrown', async () => {
                     expect(handleErrorSpy).toHaveBeenCalledWith(response, findAllError);
                 });
             });
