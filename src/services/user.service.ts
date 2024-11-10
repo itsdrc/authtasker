@@ -117,4 +117,8 @@ export class UserService {
             throw HttpError.badRequest(`User with id ${id} not found`);
         return userDb;
     }
+
+    async findAll(): Promise<UserResponse[]> {
+        return this.userModel.find().exec();
+    }
 }

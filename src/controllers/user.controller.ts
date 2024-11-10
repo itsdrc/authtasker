@@ -64,4 +64,14 @@ export class UserController {
             handleError(res,error);
         }
     }
+
+    // TODO: pagination
+    readonly findAll = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const usersFound = await this.userService.findAll();
+            res.status(HTTP_STATUS_CODE.OK).json(usersFound);
+        } catch (error) {
+            handleError(res, error);
+        }
+    }
 }
