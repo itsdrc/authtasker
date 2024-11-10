@@ -1,30 +1,31 @@
 import { Router } from "express";
 import { UserService } from "../services/user.service";
 import { UserController } from "../controllers/user.controller";
-import { UserModel } from "../databases/mongo/schemas/user.schema";
 import { HashingService } from "../services/hashing.service";
-import { ENVS } from "../config/envs.config";
 import { JwtService } from "../services/jwt.service";
 import { EmailService } from "../services/email.service";
+import { User } from "../types/user/user.type";
+import { Model } from "mongoose";
+import { ConfigService } from "../services/config.service";
 
 export class UserRoutes {
 
-    // TODO: use only a single service instance for all routes across the application
-    static get routes(): Router {
+    constructor(
+        private readonly configService: ConfigService,
+        private readonly userModel: Model<User>,
+        private readonly hashingService: HashingService,
+        private readonly jwtService: JwtService,
+        private readonly emailService: EmailService,
+    ) {}
+
+    get routes(): Router {
         const router = Router();
-        const hashingService = new HashingService(ENVS.BCRYPT_SALT_ROUNDS);
-        const jwtService = new JwtService(ENVS.JWT_EXPIRATION_TIME, ENVS.JWT_PRIVATE_KEY);        
-        const emailService = new EmailService({
-            host: ENVS.MAIL_SERVICE_HOST,
-            port: ENVS.MAIL_SERVICE_PORT,
-            user: ENVS.MAIL_SERVICE_USER,
-            pass: ENVS.MAIL_SERVICE_PASS,
-        });
         const service = new UserService(
-            UserModel,
-            hashingService,
-            jwtService,
-            emailService,
+            this.configService,
+            this.userModel,
+            this.hashingService,
+            this.jwtService,
+            this.emailService
         );
         const controller = new UserController(service);
         router.post('/create', controller.create);

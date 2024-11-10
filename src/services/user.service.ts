@@ -7,11 +7,12 @@ import { LoginUserValidator } from "../rules/validators/login-user.validator";
 import { UserResponse } from "../types/user/user-response.type";
 import { User } from "../types/user/user.type";
 import { EmailService } from "./email.service";
-import { ENVS } from "../config/envs.config";
+import { ConfigService } from "./config.service";
 
 export class UserService {
 
     constructor(
+        private readonly configService: ConfigService,
         private readonly userModel: Model<User>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
@@ -23,7 +24,7 @@ export class UserService {
         const token = this.jwtService.generate({ email });
 
         // Create a link based on token
-        const link = `${ENVS.WEB_URL}/api/users/validate-email/${token}`;
+        const link = `${this.configService.WEB_URL}/api/users/validate-email/${token}`;
 
         // Send
         await this.emailService.sendMail({
@@ -68,7 +69,7 @@ export class UserService {
             const token = this.jwtService.generate({ id: created.id });
 
             // Email validation
-            if (ENVS.MAIL_SERVICE)
+            if (this.configService.MAIL_SERVICE)
                 await this.sendEmailValidationLink(user.email);
 
             // Return user and token
@@ -110,9 +111,9 @@ export class UserService {
         }
     }
 
-    async findOne(id: string): Promise<UserResponse>{
+    async findOne(id: string): Promise<UserResponse> {
         const userDb = await this.userModel.findById(id).exec();
-        if(!userDb)
+        if (!userDb)
             throw HttpError.badRequest(`User with id ${id} not found`);
         return userDb;
     }
