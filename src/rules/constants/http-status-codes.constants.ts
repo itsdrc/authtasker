@@ -1,5 +1,5 @@
 
-export const HTTP_STATUS_CODES = {
+export const HTTP_STATUS_CODE = {
     BADREQUEST: 400,
     UNAUTHORIZED: 401,
     FORBIDDEN: 403,

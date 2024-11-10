@@ -3,7 +3,7 @@ import { UserService } from "../services/user.service"
 import { CreateUserValidator } from "../rules/validators/create-user.validator";
 import { handleError } from "./helpers/handle-error.helper";
 import { LoginUserValidator } from "../rules/validators/login-user.validator";
-import { HTTP_STATUS_CODES } from "../rules/constants/http-status-codes.constants";
+import { HTTP_STATUS_CODE } from "../rules/constants/http-status-codes.constants";
 
 export class UserController {
 
@@ -16,13 +16,13 @@ export class UserController {
         const [errors, validatedUser] = await CreateUserValidator.validateAndTransform(user);
 
         if (errors) {
-            res.status(HTTP_STATUS_CODES.BADREQUEST).json({ errors });
+            res.status(HTTP_STATUS_CODE.BADREQUEST).json({ errors });
             return;
         }
 
         try {
             const created = await this.userService.create(validatedUser);
-            res.status(HTTP_STATUS_CODES.CREATED).json(created);
+            res.status(HTTP_STATUS_CODE.CREATED).json(created);
         } catch (error) {
             handleError(res, error);
         }
@@ -33,13 +33,13 @@ export class UserController {
         const [errors, validatedUser] = await LoginUserValidator.validate(user);
 
         if (errors) {
-            res.status(HTTP_STATUS_CODES.BADREQUEST).json({ errors });
+            res.status(HTTP_STATUS_CODE.BADREQUEST).json({ errors });
             return;
         }
 
         try {
             const loggedIn = await this.userService.login(validatedUser);
-            res.status(HTTP_STATUS_CODES.OK).json(loggedIn);
+            res.status(HTTP_STATUS_CODE.OK).json(loggedIn);
         } catch (error) {
             handleError(res, error);
         }
@@ -49,7 +49,7 @@ export class UserController {
         const token = req.params.token;
         try {
             await this.userService.validateEmail(token);
-            res.status(HTTP_STATUS_CODES.OK).send('Email validated');
+            res.status(HTTP_STATUS_CODE.OK).send('Email validated');
         } catch (error) {
             handleError(res, error);
         }
@@ -59,7 +59,7 @@ export class UserController {
         const id = req.params.id; 
         try {
             const userFound = await this.userService.findOne(id);
-            res.status(HTTP_STATUS_CODES.OK).json(userFound);
+            res.status(HTTP_STATUS_CODE.OK).json(userFound);
         } catch (error) {
             handleError(res,error);
         }
