@@ -3,6 +3,10 @@ import * as env from "env-var";
 
 export class ConfigService {
 
+    public readonly NODE_ENV = env.get('NODE_ENV')
+        .required()
+        .asEnum(['development', 'testing', 'production'])
+
     public readonly MONGO_URI = env.get('MONGO_URI')
         .required()
         .asUrlString();
@@ -42,7 +46,7 @@ export class ConfigService {
     public readonly WEB_URL = env.get('WEB_URL')
         .required()
         .asUrlString();
-        
+
     public readonly MAIL_SERVICE = env.get('MAIL_SERVICE')
         .required()
         .asBool()
