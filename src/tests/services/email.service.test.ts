@@ -18,7 +18,7 @@ describe('EmailService', () => {
     });
 
     describe('constructor', () => {
-        test('expect nodemailer.createTransporert should be called with the options', () => {
+        test('nodemailer.createTransport should be called with the options', () => {
             const createTransportSpy = jest.spyOn(nodemailer, 'createTransport');
             new EmailService(transporterOptions);
             expect(createTransportSpy).toHaveBeenCalledWith({
