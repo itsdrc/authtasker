@@ -4,6 +4,7 @@ import { UserService } from "../../services/user.service";
 import { Request, Response } from "express"
 import * as ErrorHandler from "../../controllers/helpers/handle-error.helper";
 import { LoginUserValidator } from "../../rules/validators/login-user.validator";
+import * as Mocks from "./mocks/user.controller.test.mocks";
 
 describe('UserController', () => {
     let userController: UserController;
@@ -14,21 +15,6 @@ describe('UserController', () => {
         findOne: jest.SpyInstance,
     };
 
-    // user expected in body
-    const user = 'user-test';
-    // user returned by validator
-    const validatedUser = 'user-validated-test';
-    // user returned by userService.create
-    const createdUser = 'user-created-test';
-    // user returned by userService.login
-    const loggedUser = 'user-logged-test';
-    // user returned by userService.findOne
-    const userFound = 'test-user-found';
-    // fake token for req.params.token
-    const token = '123';
-    // fake id for req.params.id
-    const id = '123express';
-
     // res.status(...).json() mock
     let responseJsonMock = jest.fn();
 
@@ -38,20 +24,14 @@ describe('UserController', () => {
     // res.status() mock
     let response: { status: jest.SpyInstance };
 
-    // fake Request object
-    const request = {
-        body: user,
-        params: { token, id },
-    } as const;
-
     let handleErrorSpy: jest.SpyInstance;
 
     beforeEach(() => {
         userService = {
-            create: jest.fn().mockResolvedValue(createdUser),
-            login: jest.fn().mockResolvedValue(loggedUser),
+            create: jest.fn().mockResolvedValue(Mocks.createdUser),
+            login: jest.fn().mockResolvedValue(Mocks.loggedUser),
             validateEmail: jest.fn(),
-            findOne: jest.fn().mockResolvedValue(userFound),
+            findOne: jest.fn().mockResolvedValue(Mocks.userFound),
         };
         userController = new UserController(userService as unknown as UserService);
 
@@ -64,6 +44,10 @@ describe('UserController', () => {
         };
 
         handleErrorSpy = jest.spyOn(ErrorHandler, 'handleError');
+
+        // disables console.error()
+        jest.spyOn(console, 'error')
+            .mockImplementation(() => {});
     });
 
     describe('create', () => {
@@ -72,22 +56,22 @@ describe('UserController', () => {
         beforeEach(() => {
             // always validate the "user"
             validateAndTransformMock = jest.spyOn(CreateUserValidator, 'validateAndTransform')
-                .mockImplementation(() => Promise.resolve([undefined, validatedUser as unknown as CreateUserValidator]));
+                .mockImplementation(() => Promise.resolve([undefined, Mocks.validatedUser as unknown as CreateUserValidator]));
         });
 
         const callCreate = async () => {
-            await userController.create(request as unknown as Request, response as unknown as Response);
+            await userController.create(Mocks.request as unknown as Request, response as unknown as Response);
         }
 
         describe('successful', () => {
             test('validateAndTransform should be called with the user obtained in body', async () => {
                 await callCreate();
-                expect(validateAndTransformMock).toHaveBeenCalledWith(user);
+                expect(validateAndTransformMock).toHaveBeenCalledWith(Mocks.user);
             });
 
             test('create should be called with the validated user', async () => {
                 await callCreate();
-                expect(userService.create).toHaveBeenCalledWith(validatedUser);
+                expect(userService.create).toHaveBeenCalledWith(Mocks.validatedUser);
             });
 
             test('should response status 201', async () => {
@@ -98,7 +82,7 @@ describe('UserController', () => {
 
             test('should response the created user as json', async () => {
                 await callCreate();
-                expect(responseJsonMock).toHaveBeenCalledWith(createdUser);
+                expect(responseJsonMock).toHaveBeenCalledWith(Mocks.createdUser);
             });
         });
 
@@ -130,23 +114,23 @@ describe('UserController', () => {
         let validateMock: jest.SpyInstance;
 
         const callLogin = async () => {
-            await userController.login(request as unknown as Request, response as unknown as Response);
+            await userController.login(Mocks.request as unknown as Request, response as unknown as Response);
         }
 
         beforeEach(() => {
             validateMock = jest.spyOn(LoginUserValidator, 'validate')
-                .mockImplementation(() => Promise.resolve([undefined, validatedUser as unknown as LoginUserValidator]));
+                .mockImplementation(() => Promise.resolve([undefined, Mocks.validatedUser as unknown as LoginUserValidator]));
         });
 
         describe('successful', () => {
             test('validate should be called with the user obtained body', async () => {
                 await callLogin();
-                expect(validateMock).toHaveBeenCalledWith(user);
+                expect(validateMock).toHaveBeenCalledWith(Mocks.user);
             });
 
             test('login should be called with the validated user', async () => {
                 await callLogin();
-                expect(userService.login).toHaveBeenCalledWith(validatedUser);
+                expect(userService.login).toHaveBeenCalledWith(Mocks.validatedUser);
             });
 
             test('should response status 200', async () => {
@@ -157,7 +141,7 @@ describe('UserController', () => {
 
             test('should response the logged user as json', async () => {
                 await callLogin();
-                expect(responseJsonMock).toHaveBeenCalledWith(loggedUser);
+                expect(responseJsonMock).toHaveBeenCalledWith(Mocks.loggedUser);
             });
         });
 
@@ -187,13 +171,13 @@ describe('UserController', () => {
 
     describe('validateEmail', () => {
         const callValidateEmail = async () => {
-            await userController.validateEmail(request as unknown as Request, response as unknown as Response);
+            await userController.validateEmail(Mocks.request as unknown as Request, response as unknown as Response);
         }
 
         describe('succesful', () => {
             test('validateEmail should be called with the token obtained from req.params.token', async () => {
                 await callValidateEmail();
-                expect(userService.validateEmail).toHaveBeenCalledWith(token);
+                expect(userService.validateEmail).toHaveBeenCalledWith(Mocks.token);
             });
 
             test('should return status 200', async () => {
@@ -221,18 +205,18 @@ describe('UserController', () => {
 
     describe('findOne', () => {
         const callFindOne = async () => {
-            await userController.findOne(request as unknown as Request, response as unknown as Response);
+            await userController.findOne(Mocks.request as unknown as Request, response as unknown as Response);
         }
 
         describe('successful', () => {
             test('findOne should be called with the id obtained from req.params.id', async () => {
                 await callFindOne();
-                expect(userService.findOne).toHaveBeenCalledWith(id);
+                expect(userService.findOne).toHaveBeenCalledWith(Mocks.id);
             });
 
             test('should response the user found as json', async () => {
                 await callFindOne();
-                expect(responseJsonMock).toHaveBeenCalledWith(userFound);
+                expect(responseJsonMock).toHaveBeenCalledWith(Mocks.userFound);
             });
 
             test('should response status 200', async () => {
