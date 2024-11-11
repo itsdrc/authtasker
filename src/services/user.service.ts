@@ -17,10 +17,15 @@ export class UserService {
         private readonly userModel: Model<User>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
-        private readonly emailService: EmailService,
+        private readonly emailService?: EmailService,
     ) {}
 
     private async sendEmailValidationLink(email: string): Promise<void> {
+        if(!this.emailService)        {
+            console.error('Email service should be injected to use this feature');
+            throw HttpError.internalServer('Email can not be validated due to a server error');
+        }
+
         // Generate a token with email
         const token = this.jwtService.generate({ email });
 
@@ -70,7 +75,7 @@ export class UserService {
             const token = this.jwtService.generate({ id: created.id });
 
             // Email validation
-            if (this.configService.MAIL_SERVICE)
+            if (this.configService.mailServiceIsDefined())
                 await this.sendEmailValidationLink(user.email);
 
             // Return user and token

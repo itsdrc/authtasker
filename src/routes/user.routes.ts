@@ -15,7 +15,7 @@ export class UserRoutes {
         private readonly userModel: Model<User>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
-        private readonly emailService: EmailService,
+        private readonly emailService?: EmailService,
     ) {}
 
     get routes(): Router {

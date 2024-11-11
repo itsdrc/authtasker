@@ -13,12 +13,16 @@ export class AppRoutes {
 
     get routes(): Router {
         // common services
-        const emailService = new EmailService({
-            host: this.configService.MAIL_SERVICE_HOST,
-            port: this.configService.MAIL_SERVICE_PORT,
-            user: this.configService.MAIL_SERVICE_USER,
-            pass: this.configService.MAIL_SERVICE_PASS,
-        });
+        
+        let emailService: EmailService | undefined ;
+        if(this.configService.mailServiceIsDefined()){
+            emailService = new EmailService({
+                host: this.configService.MAIL_SERVICE_HOST,
+                port: this.configService.MAIL_SERVICE_PORT,
+                user: this.configService.MAIL_SERVICE_USER,
+                pass: this.configService.MAIL_SERVICE_PASS,
+            });
+        }
 
         const jwtService = new JwtService(
             this.configService.JWT_EXPIRATION_TIME,
@@ -34,7 +38,7 @@ export class AppRoutes {
             UserModel,
             hashingService,
             jwtService,
-            emailService
+            emailService,
         );
 
         const router = Router();
