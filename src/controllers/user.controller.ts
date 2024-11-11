@@ -56,15 +56,15 @@ export class UserController {
     }
 
     readonly findOne = async (req: Request, res: Response): Promise<void> => {
-        const id = req.params.id; 
+        const id = req.params.id;
         try {
             const userFound = await this.userService.findOne(id);
             res.status(HTTP_STATUS_CODE.OK).json(userFound);
         } catch (error) {
-            handleError(res,error);
+            handleError(res, error);
         }
     }
-    
+
     readonly findAll = async (req: Request, res: Response): Promise<void> => {
         const limit = (req.query.limit) ? +req.query.limit : undefined;
         const page = (req.query.page) ? +req.query.page : undefined;
@@ -72,6 +72,16 @@ export class UserController {
         try {
             const usersFound = await this.userService.findAll(limit, page);
             res.status(HTTP_STATUS_CODE.OK).json(usersFound);
+        } catch (error) {
+            handleError(res, error);
+        }
+    }
+
+    readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
+        const id = req.params.id;
+        try {
+            await this.userService.deleteOne(id);
+            res.status(HTTP_STATUS_CODE.NO_CONTENT);
         } catch (error) {
             handleError(res, error);
         }

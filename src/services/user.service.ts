@@ -119,7 +119,7 @@ export class UserService {
         return userDb;
     }
 
-    async findAll(limit?: number, page?: number): Promise<UserResponse[]> {         
+    async findAll(limit?: number, page?: number): Promise<UserResponse[]> {
         if (!limit)
             limit = PAGINATION_SETTINGS.DEFAULT_LIMIT;
 
@@ -132,5 +132,11 @@ export class UserService {
             .skip(offset)
             .limit(limit)
             .exec();
+    }
+
+    async deleteOne(id: string): Promise<void> {
+        const res = await this.userModel.deleteOne({ _id: id });
+        if (res.deletedCount < 1)
+            throw HttpError.badRequest(`User with id ${id} not found`);
     }
 }
