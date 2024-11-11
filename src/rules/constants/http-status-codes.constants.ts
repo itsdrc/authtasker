@@ -7,4 +7,5 @@ export const HTTP_STATUS_CODE = {
     INTERNALSERVER: 500,
     OK: 200,
     CREATED: 201,
+    NO_CONTENT: 204,
 } as const;
