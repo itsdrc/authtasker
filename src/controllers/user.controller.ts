@@ -81,7 +81,7 @@ export class UserController {
         const id = req.params.id;
         try {
             await this.userService.deleteOne(id);
-            res.status(HTTP_STATUS_CODE.NO_CONTENT);
+            res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
         } catch (error) {
             handleError(res, error);
         }
