@@ -32,7 +32,7 @@ describe('CreateUserValidator', () => {
         const minNameLength = USER_VALIDATION_CONSTANTS.MIN_NAME_LENGTH;
         const minPasswordLength = USER_VALIDATION_CONSTANTS.MIN_PASSWORD_LENGTH;
 
-        describe('missing properties', ()=>{
+        describe('missing properties', () => {
             test('should fail if name is missing', async () => {
                 const [error, userValidated] = await CreateUserValidator
                     .validateAndTransform(omitProperty(user, 'name'));
@@ -62,7 +62,7 @@ describe('CreateUserValidator', () => {
             });
         });
 
-        describe('invalid properties', ()=> {
+        describe('invalid properties', () => {
             test(`should fail if name length is greater than ${maxNameLength}`, async () => {
                 const invalidUser: CreateUserValidator = structuredClone(user);
                 invalidUser.name = createString(maxNameLength + 1);
@@ -112,7 +112,7 @@ describe('CreateUserValidator', () => {
             });
         });
 
-        describe('unexpected properties', ()=> {
+        describe('unexpected properties', () => {
             test('should fail if there are unexpected properties in the object', async () => {
                 const newProperty = 'unknownProperty';
                 const invalidUser: any = structuredClone(user);
@@ -121,6 +121,6 @@ describe('CreateUserValidator', () => {
                 expect(error).toBeDefined();
                 expect(error).toStrictEqual([`property ${newProperty} should not exist`]);
             });
-        });        
+        });
     });
 }); 

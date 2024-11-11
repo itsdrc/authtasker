@@ -20,7 +20,7 @@ describe('HashingService', () => {
             .mockImplementation(() => {});
     });
 
-    describe('hash', () => {        
+    describe('hash', () => {
         test('bcrypt.genSaltSync should be called with salt rounds', () => {
             hashingService.hash(data);
             expect(genSaltSyncSpy).toHaveBeenCalledWith(saltRounds);

@@ -15,7 +15,7 @@ describe('MongoDatabase', () => {
 
     describe('disconnect', () => {
         test('disconnect (mongoose) should be called', async () => {
-            const disconnectSpy = jest.spyOn(mongoose, 'disconnect');                
+            const disconnectSpy = jest.spyOn(mongoose, 'disconnect');
             await MongoDatabase.disconnect();
             expect(disconnectSpy).toHaveBeenCalledTimes(1);
         });

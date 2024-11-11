@@ -12,9 +12,9 @@ describe('EmailService', () => {
     const emailService = new EmailService(transporterOptions);
     let sendMailMock: jest.SpyInstance;
 
-    beforeEach(()=> {
-        sendMailMock = jest.spyOn(emailService['transporter'],'sendMail')
-        .mockImplementation(()=> Promise.resolve())        
+    beforeEach(() => {
+        sendMailMock = jest.spyOn(emailService['transporter'], 'sendMail')
+            .mockImplementation(() => Promise.resolve())
     });
 
     describe('constructor', () => {
