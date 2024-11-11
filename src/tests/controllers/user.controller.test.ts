@@ -5,7 +5,6 @@ import { Request, Response } from "express";
 import * as ErrorHandler from "../../controllers/helpers/handle-error.helper";
 import { LoginUserValidator } from "../../rules/validators/login-user.validator";
 import * as Mocks from "./mocks/user.controller.test.mocks";
-import { timeStamp } from "console";
 
 describe('UserController', () => {
     let userController: UserController;
