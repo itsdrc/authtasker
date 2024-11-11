@@ -32,7 +32,8 @@ export class UserRoutes {
         router.post('/login', controller.login);
         router.get('/validate-email/:token', controller.validateEmail);
         router.get('/:id', controller.findOne);
-        router.get('/',controller.findAll);                
+        router.get('/',controller.findAll);    
+        router.delete('/:id', controller.deleteOne);            
         return router;
     }
 }
