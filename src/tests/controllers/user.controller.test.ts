@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 import * as ErrorHandler from "../../controllers/helpers/handle-error.helper";
 import { LoginUserValidator } from "../../rules/validators/login-user.validator";
 import * as Mocks from "./mocks/user.controller.test.mocks";
+import { timeStamp } from "console";
 
 describe('UserController', () => {
     let userController: UserController;
@@ -14,6 +15,7 @@ describe('UserController', () => {
         validateEmail: jest.SpyInstance,
         findOne: jest.SpyInstance,
         findAll: jest.SpyInstance,
+        deleteOne: jest.SpyInstance,
     };
 
     // res.status(...).json() mock
@@ -21,6 +23,9 @@ describe('UserController', () => {
 
     // res.status(...).send() mock
     let responseSendMock = jest.fn();
+
+    // res.status(...).end() mock
+    let responseEndMock = jest.fn();
 
     // res.status() mock
     let response: { status: jest.SpyInstance };
@@ -34,6 +39,7 @@ describe('UserController', () => {
             validateEmail: jest.fn(),
             findOne: jest.fn().mockResolvedValue(Mocks.userFound),
             findAll: jest.fn().mockResolvedValue(Mocks.usersFound),
+            deleteOne: jest.fn(),
         };
         userController = new UserController(userService as unknown as UserService);
 
@@ -41,7 +47,8 @@ describe('UserController', () => {
         response = {
             status: jest.fn().mockReturnValue({
                 json: responseJsonMock,
-                send: responseSendMock
+                send: responseSendMock,
+                end: responseEndMock,
             })
         };
 
@@ -267,7 +274,7 @@ describe('UserController', () => {
                 });
             });
 
-            describe('response', ()=> {
+            describe('response', () => {
                 test('should return status 200', async () => {
                     const expectedStatus = 200;
                     expect(response.status).toHaveBeenCalledWith(expectedStatus);
@@ -276,7 +283,7 @@ describe('UserController', () => {
                 test('should return the user found as json', async () => {
                     expect(responseJsonMock).toHaveBeenCalledWith(Mocks.userFound);
                 });
-            });            
+            });
         });
 
         describe('failed', () => {
@@ -298,20 +305,20 @@ describe('UserController', () => {
     describe('findAll', () => {
         const callFindAll = async () => {
             await userController.findAll(Mocks.request as unknown as Request, response as unknown as Response);
-        };        
+        };
 
         describe('successful', () => {
-            beforeEach(async ()=> {
+            beforeEach(async () => {
                 await callFindAll();
             });
 
-            describe('userService.findAll',()=> {
-                test('should be called with limit and page found in req.query as numbers', async () => {                    
+            describe('userService.findAll', () => {
+                test('should be called with limit and page found in req.query as numbers', async () => {
                     expect(userService.findAll).toHaveBeenCalledWith(parseInt(Mocks.limit), parseInt(Mocks.page));
                 });
-            });    
-            
-            describe('response',()=> {
+            });
+
+            describe('response', () => {
                 test('should return the users found as json', async () => {
                     expect(responseJsonMock).toHaveBeenCalledWith(Mocks.usersFound);
                 });
@@ -334,6 +341,50 @@ describe('UserController', () => {
 
                 test('handleError should be called with response and the error thrown', async () => {
                     expect(handleErrorSpy).toHaveBeenCalledWith(response, findAllError);
+                });
+            });
+        });
+    });
+
+    describe('deleteOne', () => {
+        const callDeleteOne = async () => {
+            await userController.deleteOne(Mocks.request as unknown as Request, response as unknown as Response);
+        };
+
+        describe('sucessful', () => {
+            beforeEach(async () => {
+                await callDeleteOne();
+            });
+
+            describe('userService.deleteOne', () => {
+                test('should be called with the id found in req.params.id', async () => {
+                    expect(userService.deleteOne).toHaveBeenCalledWith(Mocks.id);
+                });
+            });
+
+            describe('response', () => {
+                test('should return status 204', async () => {
+                    const expectedStatus = 204;
+                    expect(response.status).toHaveBeenCalledWith(expectedStatus);
+                });
+
+                test('should ending the response after set the status', async () => {
+                    expect(responseEndMock).toHaveBeenCalledTimes(1);
+                });
+            });
+        });
+
+        describe('failed', () => {
+            describe('userService.deleteOne', () => {
+                const findOneError = 'test-error';
+
+                beforeEach(async () => {
+                    userService.deleteOne.mockRejectedValue(findOneError);
+                    await callDeleteOne();
+                });
+
+                test('handleError should be called with response and the error thrown', async () => {
+                    expect(handleErrorSpy).toHaveBeenCalledWith(response, findOneError);
                 });
             });
         });
