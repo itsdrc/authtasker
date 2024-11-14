@@ -1,14 +1,13 @@
-import { CreateUserValidator } from "../rules/validators/create-user.validator";
 import { HttpError } from "../rules/errors/http.error";
 import { Model } from "mongoose";
 import { HashingService } from "./hashing.service";
 import { JwtService } from "./jwt.service";
-import { LoginUserValidator } from "../rules/validators/login-user.validator";
 import { UserResponse } from "../types/user/user-response.type";
 import { User } from "../types/user/user.type";
 import { EmailService } from "./email.service";
 import { ConfigService } from "./config.service";
 import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
+import { CreateUserValidator, LoginUserValidator } from "../rules/validators/models/user";
 
 export class UserService {
 

@@ -1,4 +1,4 @@
-import { LoginUserValidator } from "../../../rules/validators/login-user.validator";
+import { LoginUserValidator } from "../../../rules/validators/models/user/login-user.validator";
 import { omitProperty } from "../../helpers/omit-property.helper";
 
 describe('LoginUserValidator', () => {

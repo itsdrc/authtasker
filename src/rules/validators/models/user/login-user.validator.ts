@@ -1,8 +1,8 @@
 import { IsDefined, IsEmail, IsString, validate } from "class-validator";
-import { ValidationResult } from "./types/validation-result.type";
-import { getErrors } from "./helpers/get-errors.helper";
-import { validationOptionsConfig } from "./config/validation.config";
-import { missingPropertyMssg } from "./messages/missing-property.message";
+import { missingPropertyMssg } from "../../messages/missing-property.message";
+import { ValidationResult } from "../../types/validation-result.type";
+import { validationOptionsConfig } from "../../config/validation.config";
+import { getErrors } from "../../helpers/get-errors.helper";
 
 export class LoginUserValidator {
 

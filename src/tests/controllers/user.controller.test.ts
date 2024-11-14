@@ -1,9 +1,9 @@
 import { UserController } from "../../controllers/user.controller";
-import { CreateUserValidator } from "../../rules/validators/create-user.validator";
+import { CreateUserValidator } from "../../rules/validators/models/user/create-user.validator";
 import { UserService } from "../../services/user.service";
 import { Request, Response } from "express";
 import * as ErrorHandler from "../../controllers/helpers/handle-error.helper";
-import { LoginUserValidator } from "../../rules/validators/login-user.validator";
+import { LoginUserValidator } from "../../rules/validators/models/user/login-user.validator";
 import * as Mocks from "./mocks/user.controller.test.mocks";
 
 describe('UserController', () => {

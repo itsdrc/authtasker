@@ -1,8 +1,7 @@
 import { Request, Response } from "express"
 import { UserService } from "../services/user.service"
-import { CreateUserValidator } from "../rules/validators/create-user.validator";
+import { CreateUserValidator, LoginUserValidator } from "../rules/validators/models/user";
 import { handleError } from "./helpers/handle-error.helper";
-import { LoginUserValidator } from "../rules/validators/login-user.validator";
 import { HTTP_STATUS_CODE } from "../rules/constants/http-status-codes.constants";
 
 export class UserController {

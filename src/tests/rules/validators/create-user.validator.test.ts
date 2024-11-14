@@ -1,5 +1,5 @@
 import { USER_VALIDATION_CONSTANTS } from "../../../rules/constants/user.constants";
-import { CreateUserValidator } from "../../../rules/validators/create-user.validator";
+import { CreateUserValidator } from "../../../rules/validators/models/user/create-user.validator";
 import { validRoles } from "../../../types/user/user-roles.type";
 import { omitProperty } from "../../helpers/omit-property.helper";
 import { createString } from "../../helpers/string-creator.helper";
