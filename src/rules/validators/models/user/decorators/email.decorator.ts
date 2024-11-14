@@ -1,9 +1,7 @@
 import {
     registerDecorator,
     ValidationOptions,
-    ValidationArguments,
-    isDefined,
-    isEmail
+    ValidationArguments, isEmail
 } from 'class-validator';
 import { missingPropertyMssg } from '../../../messages/missing-property.message';
 
@@ -15,12 +13,11 @@ export function Email(validationOptions?: ValidationOptions & { optional: boolea
             propertyName: propertyName,
             options: validationOptions,
             validator: {
-                validate(value: string, args: ValidationArguments) {
-                    if (isDefined(value)) {
-                        switch (false) {
-                            case isEmail(value):
-                                throw new Error('email must be an email');
-                        }
+                validate(value: string | undefined, args: ValidationArguments) {
+                    if (value) {
+                        if (!isEmail(value))
+                            throw new Error('email must be an email');
+
                     } else {
                         if (!validationOptions?.optional)
                             throw new Error(missingPropertyMssg('email'));

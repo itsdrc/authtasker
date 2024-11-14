@@ -1,8 +1,7 @@
 import {
     registerDecorator,
     ValidationOptions,
-    ValidationArguments,
-    isDefined,
+    ValidationArguments,    
     isString, maxLength,
     minLength
 } from 'class-validator';
@@ -19,21 +18,20 @@ export function Password(validationOptions?: ValidationOptions & { optional: boo
             propertyName: propertyName,
             options: validationOptions,
             validator: {
-                validate(value: string, args: ValidationArguments) {
+                validate(value: string | undefined, args: ValidationArguments) {
                     const maxLengthExpected = USER_VALIDATION_CONSTANTS.MAX_PASSWORD_LENGTH;
                     const minLengthExpected = USER_VALIDATION_CONSTANTS.MIN_PASSWORD_LENGTH;
 
-                    if (isDefined(value)) {
-                        switch (false) {
-                            case isString(value):
-                                throw new Error('password must be an string');
+                    if (value) {
+                        if (!isString(value))
+                            throw new Error('password must be an string');
 
-                            case maxLength(value, maxLengthExpected):
-                                throw new Error(maxLengthErrorMessage('password', maxLengthExpected));
+                        if (!maxLength(value, maxLengthExpected))
+                            throw new Error(maxLengthErrorMessage('password', maxLengthExpected));
 
-                            case minLength(value, minLengthExpected):
-                                throw new Error(minLengthErrorMessage('password', minLengthExpected));
-                        }
+                        if (!minLength(value, minLengthExpected))
+                            throw new Error(minLengthErrorMessage('password', minLengthExpected));
+
                     } else {
                         if (!validationOptions?.optional)
                             throw new Error(missingPropertyMssg('password'));

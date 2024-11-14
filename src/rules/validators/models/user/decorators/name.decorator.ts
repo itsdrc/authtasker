@@ -1,8 +1,7 @@
 import {
     registerDecorator,
     ValidationOptions,
-    ValidationArguments,
-    isDefined,
+    ValidationArguments,    
     isString,
     maxLength,
     minLength
@@ -20,21 +19,19 @@ export function Name(validationOptions?: ValidationOptions & { optional: boolean
             propertyName: propertyName,
             options: validationOptions,
             validator: {
-                validate(value: string, args: ValidationArguments) {
+                validate(value: string | undefined, args: ValidationArguments) {
                     const maxLengthExpected = USER_VALIDATION_CONSTANTS.MAX_NAME_LENGTH;
                     const minLengthExpected = USER_VALIDATION_CONSTANTS.MIN_NAME_LENGTH;
 
-                    if (isDefined(value)) {
-                        switch (false) {
-                            case isString(value):
-                                throw new Error('name must be an string');
+                    if (value) {
+                        if (!isString(value))
+                            throw new Error('name must be an string');
 
-                            case maxLength(value, maxLengthExpected):
-                                throw new Error(maxLengthErrorMessage('name', maxLengthExpected));
+                        if (!maxLength(value, maxLengthExpected))
+                            throw new Error(maxLengthErrorMessage('name', maxLengthExpected));
 
-                            case minLength(value, minLengthExpected):
-                                throw new Error(minLengthErrorMessage('name', minLengthExpected));
-                        }
+                        if (!minLength(value, minLengthExpected))
+                            throw new Error(minLengthErrorMessage('name', minLengthExpected));
 
                         // apply lowercase and trim
                         (args.object as any).name = value.toLowerCase().trim();

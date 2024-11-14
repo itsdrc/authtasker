@@ -1,8 +1,7 @@
 import {
     registerDecorator,
     ValidationOptions,
-    ValidationArguments,
-    isDefined,
+    ValidationArguments,    
     isString,
     isIn
 } from 'class-validator';
@@ -17,15 +16,14 @@ export function Role(validationOptions?: ValidationOptions & { optional: boolean
             propertyName: propertyName,
             options: validationOptions,
             validator: {
-                validate(value: string, args: ValidationArguments) {
-                    if (isDefined(value)) {
-                        switch (false) {
-                            case isString(value):
-                                throw new Error('role must be an string');
-                                
-                            case isIn(value, validRoles):
-                                throw new Error(`role must be one of the following values: ${validRoles.join(', ')}`)
-                        }
+                validate(value: string | undefined, args: ValidationArguments) {
+                    if (value) {
+                        if (!isString(value))
+                            throw new Error('role must be an string');
+
+                        if (!isIn(value, validRoles))
+                            throw new Error(`role must be one of the following values: ${validRoles.join(', ')}`)
+
                     } else {
                         if (!validationOptions?.optional)
                             throw new Error(missingPropertyMssg('role'));
