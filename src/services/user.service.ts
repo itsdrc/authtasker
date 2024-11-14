@@ -20,7 +20,7 @@ export class UserService {
     ) {}
 
     private async sendEmailValidationLink(email: string): Promise<void> {
-        if(!this.emailService)        {
+        if (!this.emailService) {
             console.error('Email service should be injected to use this feature');
             throw HttpError.internalServer('Email can not be validated due to a server error');
         }
@@ -84,8 +84,8 @@ export class UserService {
             };
 
         } catch (error: any) {
-            if (error.code == 11000)
-                throw HttpError.badRequest(`user with name ${user.name} already exists`);
+            if (error.code == 11000) // duplicate key error
+                throw HttpError.badRequest(`${Object.values(error.keyValue).join(', ')} already exists`);
             else
                 throw error;
         }
