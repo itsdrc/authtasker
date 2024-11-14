@@ -9,22 +9,22 @@ import { Role } from "./decorators/role.decorator";
 import { Password } from "./decorators/password.decorator";
 import { Email } from "./decorators/email.decorator";
 
-export class UpdateUserValidatorClass implements Partial<UserRequest> {
+export class UpdateUserValidator implements Partial<UserRequest> {
 
     @Name({ optional: true })
-    name!: string;
+    name?: string;
 
     @Email({ optional: true })
-    email!: string;
+    email?: string;
 
     @Password({ optional: true })
-    password!: string;
+    password?: string;
 
     @Role({ optional: true })
-    role!: UserRoles;
+    role?: UserRoles;
 
-    static async validateAndTransform(body: any): ValidationResult<UpdateUserValidatorClass> {
-        const user = new UpdateUserValidatorClass();
+    static async validateAndTransform(body: any): ValidationResult<UpdateUserValidator> {
+        const user = new UpdateUserValidator();
         Object.assign(user, body);
 
         // at least one property is required for updating
