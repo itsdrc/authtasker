@@ -8,5 +8,14 @@ export const getError = (errors: ValidationError[]): string => {
         for (let msg of messages)
             errsArray.push(msg);
     }
-    return errsArray.at(0)!;
+
+    if (errsArray.length > 1) {
+        throw new Error('More than one error was found, which was not expected')
+    }
+    else {
+        if (errsArray[0])
+            return errsArray[0];
+        else
+            throw new Error('Cannot identify the validation error');
+    }
 }
