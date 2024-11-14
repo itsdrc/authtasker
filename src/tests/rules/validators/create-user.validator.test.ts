@@ -37,28 +37,28 @@ describe('CreateUserValidator', () => {
                 const [error, userValidated] = await CreateUserValidator
                     .validateAndTransform(omitProperty(user, 'name'));
                 expect(userValidated).toBeUndefined();
-                expect(error).toStrictEqual(['name is required']);
+                expect(error).toBe('name is required');
             });
 
             test('should fail if email is missing', async () => {
                 const [error, userValidated] = await CreateUserValidator
                     .validateAndTransform(omitProperty(user, 'email'));
                 expect(userValidated).toBeUndefined();
-                expect(error).toStrictEqual(['email is required']);
+                expect(error).toBe('email is required');
             });
 
             test('should fail if password is missing', async () => {
                 const [error, userValidated] = await CreateUserValidator
                     .validateAndTransform(omitProperty(user, 'password'));
                 expect(userValidated).toBeUndefined();
-                expect(error).toStrictEqual(['password is required']);
+                expect(error).toBe('password is required');
             });
 
             test('should fail if role is missing', async () => {
                 const [error, userValidated] = await CreateUserValidator
                     .validateAndTransform(omitProperty(user, 'role'));
                 expect(userValidated).toBeUndefined();
-                expect(error).toStrictEqual(['role is required']);
+                expect(error).toBe('role is required');
             });
         });
 
@@ -68,7 +68,7 @@ describe('CreateUserValidator', () => {
                 invalidUser.name = createString(maxNameLength + 1);
                 const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
                 expect(error).toBeDefined();
-                expect(error).toStrictEqual([`name must be shorter than or equal to ${maxNameLength} characters`]);
+                expect(error).toBe(`name must be shorter than or equal to ${maxNameLength} characters`);
             });
 
             test(`should fail if name length is less than ${minNameLength}`, async () => {
@@ -76,7 +76,7 @@ describe('CreateUserValidator', () => {
                 invalidUser.name = createString(minNameLength - 1);
                 const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
                 expect(error).toBeDefined();
-                expect(error).toStrictEqual([`name must be longer than or equal to ${minNameLength} characters`]);
+                expect(error).toBe(`name must be longer than or equal to ${minNameLength} characters`);
             });
 
             test(`should fail if email is not a valid email`, async () => {
@@ -84,7 +84,7 @@ describe('CreateUserValidator', () => {
                 invalidUser.email = "invalid-email";
                 const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
                 expect(error).toBeDefined();
-                expect(error).toStrictEqual(['email must be an email']);
+                expect(error).toBe('email must be an email');
             });
 
             test(`should fail if password length is greater than ${maxPasswordLength}`, async () => {
@@ -92,7 +92,7 @@ describe('CreateUserValidator', () => {
                 invalidUser.password = createString(maxPasswordLength + 1);
                 const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
                 expect(error).toBeDefined();
-                expect(error).toStrictEqual([`password must be shorter than or equal to ${maxPasswordLength} characters`]);
+                expect(error).toBe(`password must be shorter than or equal to ${maxPasswordLength} characters`);
             });
 
             test(`should fail if password length is less than ${minPasswordLength}`, async () => {
@@ -100,7 +100,7 @@ describe('CreateUserValidator', () => {
                 invalidUser.password = createString(minPasswordLength - 1);
                 const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
                 expect(error).toBeDefined();
-                expect(error).toStrictEqual([`password must be longer than or equal to ${minPasswordLength} characters`]);
+                expect(error).toBe(`password must be longer than or equal to ${minPasswordLength} characters`);
             });
 
             test(`should fail if role is not a valid role`, async () => {
@@ -108,7 +108,7 @@ describe('CreateUserValidator', () => {
                 invalidUser.role = 'new-role' as any;
                 const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
                 expect(error).toBeDefined();
-                expect(error).toStrictEqual([`role must be one of the following values: ${validRoles.join(', ')}`]);
+                expect(error).toBe(`role must be one of the following values: ${validRoles.join(', ')}`);
             });
         });
 
@@ -119,7 +119,7 @@ describe('CreateUserValidator', () => {
                 invalidUser[newProperty] = 10;
                 const [error] = await CreateUserValidator.validateAndTransform(invalidUser);
                 expect(error).toBeDefined();
-                expect(error).toStrictEqual([`property ${newProperty} should not exist`]);
+                expect(error).toStrictEqual(`property ${newProperty} should not exist`);
             });
         });
     });

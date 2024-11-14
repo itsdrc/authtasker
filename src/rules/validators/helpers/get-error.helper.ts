@@ -1,6 +1,6 @@
 import { ValidationError } from "class-validator";
 
-export const getErrors = (errors: ValidationError[]): string[] => {
+export const getError = (errors: ValidationError[]): string => {
     let errsArray: Array<string> = [];
     for (let errObj of errors) {
         const constraints = errObj.constraints;
@@ -8,5 +8,5 @@ export const getErrors = (errors: ValidationError[]): string[] => {
         for (let msg of messages)
             errsArray.push(msg);
     }
-    return errsArray;
+    return errsArray.at(0)!;
 }

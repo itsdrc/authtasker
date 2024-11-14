@@ -26,14 +26,14 @@ describe('LoginUserValidator', () => {
                 const userNoPassword = omitProperty(userToLogin, 'password');
                 const [error, userValidated] = await LoginUserValidator.validate(userNoPassword);
                 expect(userValidated).toBeUndefined();
-                expect(error).toStrictEqual(['password is required']);
+                expect(error).toBe('password is required');
             });
 
             test('should fail if email is missing', async () => {
                 const userNoEmail = omitProperty(userToLogin, 'email');
                 const [error, userValidated] = await LoginUserValidator.validate(userNoEmail);
                 expect(userValidated).toBeUndefined();
-                expect(error).toStrictEqual(['email is required']);
+                expect(error).toBe('email is required');
             });
         });
 
@@ -43,7 +43,7 @@ describe('LoginUserValidator', () => {
                 invalidUser.email = "invalid-email";
                 const [error] = await LoginUserValidator.validate(invalidUser);
                 expect(error).toBeDefined();
-                expect(error).toStrictEqual(['email must be an email']);
+                expect(error).toBe('email must be an email');
             });
         });
     });

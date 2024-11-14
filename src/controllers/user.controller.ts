@@ -14,16 +14,16 @@ export class UserController {
         const user = req.body;
         const [errors, validatedUser] = await CreateUserValidator.validateAndTransform(user);
 
-        if (errors) {
+        if (validatedUser){
+            try {
+                const created = await this.userService.create(validatedUser);
+                res.status(HTTP_STATUS_CODE.CREATED).json(created);
+            } catch (error) {
+                handleError(res, error);
+            }            
+        } else {
             res.status(HTTP_STATUS_CODE.BADREQUEST).json({ errors });
             return;
-        }
-
-        try {
-            const created = await this.userService.create(validatedUser);
-            res.status(HTTP_STATUS_CODE.CREATED).json(created);
-        } catch (error) {
-            handleError(res, error);
         }
     }
 
@@ -31,16 +31,16 @@ export class UserController {
         const user = req.body;
         const [errors, validatedUser] = await LoginUserValidator.validate(user);
 
-        if (errors) {
+        if (validatedUser) {
+            try {
+                const loggedIn = await this.userService.login(validatedUser);
+                res.status(HTTP_STATUS_CODE.OK).json(loggedIn);
+            } catch (error) {
+                handleError(res, error);
+            }
+        } else {
             res.status(HTTP_STATUS_CODE.BADREQUEST).json({ errors });
             return;
-        }
-
-        try {
-            const loggedIn = await this.userService.login(validatedUser);
-            res.status(HTTP_STATUS_CODE.OK).json(loggedIn);
-        } catch (error) {
-            handleError(res, error);
         }
     }
 

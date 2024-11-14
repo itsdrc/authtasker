@@ -1,7 +1,7 @@
 import { validate } from "class-validator";
 import { ValidationResult } from "../../types/validation-result.type";
 import { validationOptionsConfig } from "../../config/validation.config";
-import { getErrors } from "../../helpers/get-errors.helper";
+import { getError } from "../../helpers/get-error.helper";
 import { plainToInstance } from "class-transformer";
 import { UserRoles } from "../../../../types/user/user-roles.type";
 import { UserRequest } from "../../../../types/user/user-request.type";
@@ -31,12 +31,12 @@ export class CreateUserValidator implements UserRequest {
         try {
             const errors = await validate(user, validationOptionsConfig);
             if (errors.length > 0) {
-                return [getErrors(errors), undefined];
+                return [getError(errors), undefined];
             }
             return [undefined, plainToInstance(CreateUserValidator, user)];
         } catch (error) {
             const decoratorValidationError: Error = error as Error;
-            return [[decoratorValidationError.message], undefined];
+            return [decoratorValidationError.message, undefined];
         }
     }
 }
