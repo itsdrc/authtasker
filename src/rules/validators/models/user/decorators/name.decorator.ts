@@ -1,10 +1,18 @@
-import { registerDecorator, ValidationOptions, ValidationArguments, isDefined, isString, maxLength, minLength } from 'class-validator';
+import {
+    registerDecorator,
+    ValidationOptions,
+    ValidationArguments,
+    isDefined,
+    isString,
+    maxLength,
+    minLength
+} from 'class-validator';
 import { missingPropertyMssg } from '../../../messages/missing-property.message';
 import { USER_VALIDATION_CONSTANTS } from '../../../../constants/user.constants';
 import { maxLengthErrorMessage } from '../../../messages/max-length-error.message';
 import { minLengthErrorMessage } from '../../../messages/min-length-error.message';
 
-export function Name(validationOptions?: ValidationOptions) {
+export function Name(validationOptions?: ValidationOptions & { optional: boolean }) {
     return function (object: Object, propertyName: string) {
         registerDecorator({
             name: 'user-name',
@@ -12,22 +20,30 @@ export function Name(validationOptions?: ValidationOptions) {
             propertyName: propertyName,
             options: validationOptions,
             validator: {
-                validate(value: string, args: ValidationArguments) {                    
+                validate(value: string, args: ValidationArguments) {
                     const maxLengthExpected = USER_VALIDATION_CONSTANTS.MAX_NAME_LENGTH;
                     const minLengthExpected = USER_VALIDATION_CONSTANTS.MIN_NAME_LENGTH;
 
-                    switch (false) {
-                        case isDefined(value):
-                            throw new Error(missingPropertyMssg('name'));
-                        case isString(value):
-                            throw new Error('name must be an string');
-                        case maxLength(value, maxLengthExpected):
-                            throw new Error(maxLengthErrorMessage('name', maxLengthExpected));
-                        case minLength(value, minLengthExpected):
-                            throw new Error(minLengthErrorMessage('name', minLengthExpected));                        
-                    }                    
+                    if (isDefined(value)) {
+                        switch (false) {
+                            case isString(value):
+                                throw new Error('name must be an string');
 
-                    (args.object as any).name = value.toLowerCase().trim();
+                            case maxLength(value, maxLengthExpected):
+                                throw new Error(maxLengthErrorMessage('name', maxLengthExpected));
+
+                            case minLength(value, minLengthExpected):
+                                throw new Error(minLengthErrorMessage('name', minLengthExpected));
+                        }
+
+                        // apply lowercase and trim
+                        (args.object as any).name = value.toLowerCase().trim();
+
+                    } else {
+                        if (!validationOptions?.optional)
+                            throw new Error(missingPropertyMssg('name'));
+                    }
+
                     return true;
                 },
             },
