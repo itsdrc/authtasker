@@ -34,6 +34,7 @@ export class UserRoutes {
         router.get('/:id', controller.findOne);
         router.get('/',controller.findAll);    
         router.delete('/:id', controller.deleteOne);            
+        router.patch('/:id', controller.updateOne);
         return router;
     }
 }

@@ -8,6 +8,7 @@ import { EmailService } from "./email.service";
 import { ConfigService } from "./config.service";
 import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { CreateUserValidator, LoginUserValidator } from "../rules/validators/models/user";
+import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 
 export class UserService {
 
@@ -142,5 +143,13 @@ export class UserService {
         const res = await this.userModel.deleteOne({ _id: id });
         if (res.deletedCount < 1)
             throw HttpError.badRequest(`User with id ${id} not found`);
+    }
+
+    async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<UserResponse> {
+        const user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated);
+        if (!user)
+            throw HttpError.badRequest(`User with id ${id} not found`);
+        Object.assign(user, propertiesUpdated);
+        return user;
     }
 }

@@ -3,6 +3,7 @@ import { UserService } from "../services/user.service"
 import { CreateUserValidator, LoginUserValidator } from "../rules/validators/models/user";
 import { handleError } from "./helpers/handle-error.helper";
 import { HTTP_STATUS_CODE } from "../rules/constants/http-status-codes.constants";
+import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 
 export class UserController {
 
@@ -83,6 +84,24 @@ export class UserController {
             res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
         } catch (error) {
             handleError(res, error);
+        }
+    }
+
+    readonly updateOne = async (req: Request, res: Response): Promise<void> => {
+        const id = req.params.id;
+        const propertiesToUpdate = req.body;
+        const [error, validatedProperties] = await UpdateUserValidator.validateAndTransform(propertiesToUpdate);
+
+        if (validatedProperties) {
+            try {
+                const userUpdated = await this.userService.updateOne(id, validatedProperties);
+                res.status(HTTP_STATUS_CODE.OK).json(userUpdated);
+            } catch (error) {
+                handleError(res, error);
+            }
+        } else {
+            res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
+            return;
         }
     }
 }
