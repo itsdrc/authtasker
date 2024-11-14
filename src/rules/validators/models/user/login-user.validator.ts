@@ -3,8 +3,9 @@ import { missingPropertyMssg } from "../../messages/missing-property.message";
 import { ValidationResult } from "../../types/validation-result.type";
 import { validationOptionsConfig } from "../../config/validation.config";
 import { getErrors } from "../../helpers/get-errors.helper";
+import { CreateUserValidator } from "./create-user.validator";
 
-export class LoginUserValidator {
+export class LoginUserValidator implements Pick<CreateUserValidator, 'email' | 'password'> {
 
     @IsDefined({ message: missingPropertyMssg('email') })
     @IsEmail()
