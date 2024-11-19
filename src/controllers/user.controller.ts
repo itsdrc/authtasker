@@ -12,42 +12,43 @@ export class UserController {
     ) {}
 
     readonly create = async (req: Request, res: Response): Promise<void> => {
-        const user = req.body;
-        const [errors, validatedUser] = await CreateUserValidator.validateAndTransform(user);
+        try {
+            const user = req.body;
+            const [errors, validatedUser] = await CreateUserValidator.validateAndTransform(user);
 
-        if (validatedUser){
-            try {
+            if (validatedUser) {
                 const created = await this.userService.create(validatedUser);
                 res.status(HTTP_STATUS_CODE.CREATED).json(created);
-            } catch (error) {
-                handleError(res, error);
-            }            
-        } else {
-            res.status(HTTP_STATUS_CODE.BADREQUEST).json({ errors });
-            return;
+            } else {
+                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ errors });
+                return;
+            }
+
+        } catch (error) {
+            handleError(res, error);
         }
     }
 
     readonly login = async (req: Request, res: Response): Promise<void> => {
-        const user = req.body;
-        const [errors, validatedUser] = await LoginUserValidator.validate(user);
+        try {
+            const user = req.body;
+            const [errors, validatedUser] = await LoginUserValidator.validate(user);
 
-        if (validatedUser) {
-            try {
+            if (validatedUser) {
                 const loggedIn = await this.userService.login(validatedUser);
                 res.status(HTTP_STATUS_CODE.OK).json(loggedIn);
-            } catch (error) {
-                handleError(res, error);
+            } else {
+                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ errors });
+                return;
             }
-        } else {
-            res.status(HTTP_STATUS_CODE.BADREQUEST).json({ errors });
-            return;
+        } catch (error) {
+            handleError(res, error);
         }
     }
 
     readonly validateEmail = async (req: Request, res: Response): Promise<void> => {
-        const token = req.params.token;
         try {
+            const token = req.params.token;
             await this.userService.validateEmail(token);
             res.status(HTTP_STATUS_CODE.OK).send('Email validated');
         } catch (error) {
@@ -56,8 +57,8 @@ export class UserController {
     }
 
     readonly findOne = async (req: Request, res: Response): Promise<void> => {
-        const id = req.params.id;
         try {
+            const id = req.params.id;
             const userFound = await this.userService.findOne(id);
             res.status(HTTP_STATUS_CODE.OK).json(userFound);
         } catch (error) {
@@ -66,10 +67,9 @@ export class UserController {
     }
 
     readonly findAll = async (req: Request, res: Response): Promise<void> => {
-        const limit = (req.query.limit) ? +req.query.limit : undefined;
-        const page = (req.query.page) ? +req.query.page : undefined;
-
         try {
+            const limit = (req.query.limit) ? +req.query.limit : undefined;
+            const page = (req.query.page) ? +req.query.page : undefined;
             const usersFound = await this.userService.findAll(limit, page);
             res.status(HTTP_STATUS_CODE.OK).json(usersFound);
         } catch (error) {
@@ -78,8 +78,8 @@ export class UserController {
     }
 
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
-        const id = req.params.id;
         try {
+            const id = req.params.id;
             await this.userService.deleteOne(id);
             res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
         } catch (error) {
@@ -88,20 +88,20 @@ export class UserController {
     }
 
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
-        const id = req.params.id;
-        const propertiesToUpdate = req.body;
-        const [error, validatedProperties] = await UpdateUserValidator.validateAndTransform(propertiesToUpdate);
+        try {
+            const id = req.params.id;
+            const propertiesToUpdate = req.body;
+            const [error, validatedProperties] = await UpdateUserValidator.validateAndTransform(propertiesToUpdate);
 
-        if (validatedProperties) {
-            try {
+            if (validatedProperties) {
                 const userUpdated = await this.userService.updateOne(id, validatedProperties);
                 res.status(HTTP_STATUS_CODE.OK).json(userUpdated);
-            } catch (error) {
-                handleError(res, error);
+            } else {
+                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
+                return;
             }
-        } else {
-            res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
-            return;
+        } catch (error) {
+            handleError(res, error);
         }
     }
 }
