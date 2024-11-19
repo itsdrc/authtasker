@@ -1,4 +1,4 @@
-import { validate } from "class-validator";
+import { validateOrReject } from "class-validator";
 import { ValidationResult } from "../../types/validation-result.type";
 import { validationOptionsConfig } from "../../config/validation.config";
 import { getError } from "../../helpers/get-error.helper";
@@ -28,15 +28,13 @@ export class CreateUserValidator implements UserRequest {
     static async validateAndTransform(body: object): ValidationResult<CreateUserValidator> {
         const user = new CreateUserValidator();
         Object.assign(user, body);
+        
         try {
-            const errors = await validate(user, validationOptionsConfig);
-            if (errors.length > 0) {
-                return [getError(errors), undefined];
-            }
+            await validateOrReject(user, validationOptionsConfig);
             return [undefined, plainToInstance(CreateUserValidator, user)];
         } catch (error) {
-            const decoratorValidationError: Error = error as Error;
-            return [decoratorValidationError.message, undefined];
+            const errorMessage = Array.isArray(error) ? getError(error) : (error as Error).message;
+            return [errorMessage, undefined];
         }
     }
 }

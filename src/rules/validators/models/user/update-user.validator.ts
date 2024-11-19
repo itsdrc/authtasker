@@ -1,4 +1,4 @@
-import { validate } from "class-validator";
+import { validateOrReject } from "class-validator";
 import { UserRequest } from "../../../../types/user/user-request.type";
 import { Name } from "./decorators/name.decorator";
 import { validationOptionsConfig } from "../../config/validation.config";
@@ -28,23 +28,16 @@ export class UpdateUserValidator implements Partial<UserRequest> {
         Object.assign(user, body);
 
         // at least one property is required for updating
-        if (Object.keys(body).length === 0) {
+        if (Object.keys(body).length === 0)
             return ['At least one property is required', undefined];
-        }
 
         try {
-            const error = await validate(user, validationOptionsConfig);
-
-            // if additional properties are detected
-            if (error.length > 0)
-                return [getError(error), undefined];
-
+            await validateOrReject(user, validationOptionsConfig);
             return [undefined, user];
 
         } catch (error) {
-            // validation errors
-            const decoratorValidationError: Error = error as Error;
-            return [decoratorValidationError.message, undefined];
+            const errorMessage = Array.isArray(error) ? getError(error) : (error as Error).message;
+            return [errorMessage, undefined];
         }
     }
 }
