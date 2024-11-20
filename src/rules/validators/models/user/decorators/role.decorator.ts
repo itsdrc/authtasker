@@ -8,9 +8,9 @@ import {
 import {
     generateInvalidStringErrorMessage,
     generateMissingPropertyMessage
-} from 'src/rules/validators/messages/generators';
-import { validRoles } from '../../../../../types/user/user-roles.type';
-import { INVALID_ROLE_MESSAGE } from 'src/rules/validators/messages/constants/invalid-role.message.constant';
+} from '@root/rules/validators/messages/generators';
+import { validRoles } from '@root/types/user/user-roles.type';
+import { INVALID_ROLE_MESSAGE } from '@root/rules/validators/messages/constants/invalid-role.message.constant';
 
 export function Role(validationOptions?: ValidationOptions & { optional: boolean }) {
     return function (object: Object, propertyName: string) {

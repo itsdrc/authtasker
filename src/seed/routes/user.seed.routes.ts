@@ -1,8 +1,9 @@
 import { Model } from "mongoose";
-import { User } from "../../types/user/user.type";
 import { Router } from "express";
+
+import { User } from "@root/types/user/user.type";
+import { HashingService } from "@root/services/hashing.service";
 import { UserSeedService } from "../services/user.seed.service";
-import { HashingService } from "../../services/hashing.service";
 import { UserSeedController } from "../controllers/user.seed.controller";
 
 export class UserSeedRoutes {

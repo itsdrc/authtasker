@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
+
 import { UserSeedService } from "../services/user.seed.service";
-import { HTTP_STATUS_CODE } from "../../rules/constants/http-status-codes.constants";
+import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 
 export class UserSeedController {
 

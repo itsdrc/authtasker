@@ -1,11 +1,11 @@
+import { ConfigService } from "@root/services/config.service";
+import { EmailService } from "@root/services/email.service";
+import { HashingService } from "@root/services/hashing.service";
+import { JwtService } from "@root/services/jwt.service";
 import { Router } from "express";
 import { UserRoutes } from "./user.routes";
-import { ConfigService } from "../services/config.service";
-import { HashingService } from "../services/hashing.service";
-import { JwtService } from "../services/jwt.service";
-import { EmailService } from "../services/email.service";
-import { UserModel } from "../databases/mongo/schemas/user.schema";
-import { SeedRoutes } from "../seed/routes/seed.routes";
+import { UserModel } from "@root/databases/mongo/schemas/user.schema";
+import { SeedRoutes } from "@root/seed/routes/seed.routes";
 
 export class AppRoutes {
 

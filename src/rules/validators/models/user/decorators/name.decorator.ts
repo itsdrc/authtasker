@@ -11,8 +11,8 @@ import {
     generateMaxLengthErrorMessage,
     generateMinLengthErrorMessage,
     generateMissingPropertyMessage
-} from 'src/rules/validators/messages/generators';
-import { USER_VALIDATION_CONSTANTS } from '../../../../constants/user.constants';
+} from '@root/rules/validators/messages/generators';
+import { USER_VALIDATION_CONSTANTS } from '@root/rules/constants/user.constants';
 
 export function Name(validationOptions?: ValidationOptions & { optional: boolean }) {
     return function (object: Object, propertyName: string) {

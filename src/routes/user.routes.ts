@@ -1,12 +1,12 @@
-import { Router } from "express";
-import { UserService } from "../services/user.service";
-import { UserController } from "../controllers/user.controller";
-import { HashingService } from "../services/hashing.service";
-import { JwtService } from "../services/jwt.service";
-import { EmailService } from "../services/email.service";
-import { User } from "../types/user/user.type";
 import { Model } from "mongoose";
-import { ConfigService } from "../services/config.service";
+import { Router } from "express";
+import { ConfigService } from "@root/services/config.service";
+import { User } from "@root/types/user/user.type";
+import { HashingService } from "@root/services/hashing.service";
+import { JwtService } from "@root/services/jwt.service";
+import { EmailService } from "@root/services/email.service";
+import { UserService } from "@root/services/user.service";
+import { UserController } from "@root/controllers/user.controller";
 
 export class UserRoutes {
 

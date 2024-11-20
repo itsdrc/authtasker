@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import { validRoles } from "../../../types/user/user-roles.type";
-import { UserInDb } from "../../../types/user/user-db.type";
-import { User } from "../../../types/user/user.type";
+import { UserInDb } from "@root/types/user/user-db.type";
+import { validRoles } from "@root/types/user/user-roles.type";
+import { User } from "@root/types/user/user.type";
 
 // you will see an error here if properties don't match the type
 const schema: UserInDb = {

@@ -1,8 +1,8 @@
 import { Model } from "mongoose";
-import { User } from "../../types/user/user.type";
-import { HashingService } from "../../services/hashing.service";
-import { UserRequest } from "../../types/user/user-request.type";
 import { faker } from '@faker-js/faker';
+import { User } from "@root/types/user/user.type";
+import { HashingService } from "@root/services/hashing.service";
+import { UserRequest } from "@root/types/user/user-request.type";
 
 export class UserSeedService {
 

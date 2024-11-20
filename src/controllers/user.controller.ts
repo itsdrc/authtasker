@@ -1,9 +1,9 @@
-import { Request, Response } from "express"
-import { UserService } from "../services/user.service"
-import { CreateUserValidator, LoginUserValidator } from "../rules/validators/models/user";
+import {Request, Response } from "express";
+import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
+import { CreateUserValidator, LoginUserValidator } from "@root/rules/validators/models/user";
+import { UserService } from "@root/services/user.service";
 import { handleError } from "./helpers/handle-error.helper";
-import { HTTP_STATUS_CODE } from "../rules/constants/http-status-codes.constants";
-import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
+import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
 
 export class UserController {
 
@@ -11,7 +11,7 @@ export class UserController {
         private readonly userService: UserService
     ) {}
 
-    readonly create = async (req: Request, res: Response): Promise<void> => {
+    private readonly _create = async (req: Request, res: Response): Promise<void> => {
         try {
             const user = req.body;
             const [errors, validatedUser] = await CreateUserValidator.validateAndTransform(user);
@@ -27,6 +27,9 @@ export class UserController {
         } catch (error) {
             handleError(res, error);
         }
+    };
+    public get create() {
+        return this._create;
     }
 
     readonly login = async (req: Request, res: Response): Promise<void> => {

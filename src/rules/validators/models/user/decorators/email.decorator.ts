@@ -3,8 +3,9 @@ import {
     ValidationOptions,
     ValidationArguments, isEmail
 } from 'class-validator';
-import { INVALID_EMAIL_MESSAGE } from 'src/rules/validators/messages/constants/invalid-email.message.constant';
-import { generateMissingPropertyMessage } from 'src/rules/validators/messages/generators';
+import { INVALID_EMAIL_MESSAGE } from '@root/rules/validators/messages/constants/invalid-email.message.constant';
+import { generateMissingPropertyMessage } from '@root/rules/validators/messages/generators';
+
 
 export function Email(validationOptions?: ValidationOptions & { optional: boolean }) {
     return function (object: Object, propertyName: string) {
