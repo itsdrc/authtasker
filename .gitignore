@@ -4,6 +4,7 @@
 # folders
 node_modules/
 /coverage/
+/dist/
 
 # db
 /mongo
