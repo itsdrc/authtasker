@@ -1,14 +1,18 @@
 import {
     registerDecorator,
     ValidationOptions,
-    ValidationArguments,    
+    ValidationArguments,
     isString, maxLength,
     minLength
 } from 'class-validator';
-import { missingPropertyMssg } from '../../../messages/missing-property.message';
+import {
+    generateInvalidStringErrorMessage,
+    generateMaxLengthErrorMessage,
+    generateMinLengthErrorMessage,
+    generateMissingPropertyMessage
+} from 'src/rules/validators/messages/generators';
 import { USER_VALIDATION_CONSTANTS } from '../../../../constants/user.constants';
-import { maxLengthErrorMessage } from '../../../messages/max-length-error.message';
-import { minLengthErrorMessage } from '../../../messages/min-length-error.message';
+
 
 export function Password(validationOptions?: ValidationOptions & { optional: boolean }) {
     return function (object: Object, propertyName: string) {
@@ -24,17 +28,17 @@ export function Password(validationOptions?: ValidationOptions & { optional: boo
 
                     if (value) {
                         if (!isString(value))
-                            throw new Error('password must be an string');
+                            throw new Error(generateInvalidStringErrorMessage('password'));
 
                         if (!maxLength(value, maxLengthExpected))
-                            throw new Error(maxLengthErrorMessage('password', maxLengthExpected));
+                            throw new Error(generateMaxLengthErrorMessage('password', maxLengthExpected));
 
                         if (!minLength(value, minLengthExpected))
-                            throw new Error(minLengthErrorMessage('password', minLengthExpected));
+                            throw new Error(generateMinLengthErrorMessage('password', minLengthExpected));
 
                     } else {
                         if (!validationOptions?.optional)
-                            throw new Error(missingPropertyMssg('password'));
+                            throw new Error(generateMissingPropertyMessage('password'));
                     }
 
                     return true;

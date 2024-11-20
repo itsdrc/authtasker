@@ -1,15 +1,18 @@
 import {
     registerDecorator,
     ValidationOptions,
-    ValidationArguments,    
+    ValidationArguments,
     isString,
     maxLength,
     minLength
 } from 'class-validator';
-import { missingPropertyMssg } from '../../../messages/missing-property.message';
+import {
+    generateInvalidStringErrorMessage,
+    generateMaxLengthErrorMessage,
+    generateMinLengthErrorMessage,
+    generateMissingPropertyMessage
+} from 'src/rules/validators/messages/generators';
 import { USER_VALIDATION_CONSTANTS } from '../../../../constants/user.constants';
-import { maxLengthErrorMessage } from '../../../messages/max-length-error.message';
-import { minLengthErrorMessage } from '../../../messages/min-length-error.message';
 
 export function Name(validationOptions?: ValidationOptions & { optional: boolean }) {
     return function (object: Object, propertyName: string) {
@@ -25,20 +28,20 @@ export function Name(validationOptions?: ValidationOptions & { optional: boolean
 
                     if (value) {
                         if (!isString(value))
-                            throw new Error('name must be an string');
+                            throw new Error(generateInvalidStringErrorMessage('name'));
 
                         if (!maxLength(value, maxLengthExpected))
-                            throw new Error(maxLengthErrorMessage('name', maxLengthExpected));
+                            throw new Error(generateMaxLengthErrorMessage('name', maxLengthExpected));
 
                         if (!minLength(value, minLengthExpected))
-                            throw new Error(minLengthErrorMessage('name', minLengthExpected));
+                            throw new Error(generateMinLengthErrorMessage('name', minLengthExpected));
 
                         // apply lowercase and trim
                         (args.object as any).name = value.toLowerCase().trim();
 
                     } else {
                         if (!validationOptions?.optional)
-                            throw new Error(missingPropertyMssg('name'));
+                            throw new Error(generateMissingPropertyMessage('name'));
                     }
 
                     return true;
