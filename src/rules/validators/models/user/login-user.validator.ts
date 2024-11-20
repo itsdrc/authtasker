@@ -1,17 +1,17 @@
 import { IsDefined, IsEmail, IsString, validate } from "class-validator";
-import { missingPropertyMssg } from "../../messages/missing-property.message";
 import { ValidationResult } from "../../types/validation-result.type";
 import { validationOptionsConfig } from "../../config/validation.config";
 import { getError } from "../../helpers/get-error.helper";
 import { CreateUserValidator } from "./create-user.validator";
+import { generateMissingPropertyMessage } from "../../messages/generators";
 
 export class LoginUserValidator implements Pick<CreateUserValidator, 'email' | 'password'> {
 
-    @IsDefined({ message: missingPropertyMssg('email') })
+    @IsDefined({ message: generateMissingPropertyMessage('email') })
     @IsEmail()
     email!: string;
 
-    @IsDefined({ message: missingPropertyMssg('password') })
+    @IsDefined({ message: generateMissingPropertyMessage('password') })
     @IsString()
     password!: string;
 
