@@ -1,2 +1,2 @@
 
-const INVALID_EMAIL_MESSAGE = 'property email is not a valid email';
+export const INVALID_EMAIL_MESSAGE = 'property email is not a valid email';
