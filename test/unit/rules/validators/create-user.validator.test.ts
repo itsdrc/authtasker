@@ -76,6 +76,24 @@ describe('CreateUserValidator', () => {
         });
     });
 
+    describe('given an object with only invalid properties', () => {
+        test('should stop at first error', async () => {
+            const user = {
+                name: 10,
+                email: faker.food.meat(),
+                password: 10,
+                role: faker.food.vegetable(),
+            };
+
+            const [error, validatedUser] = await CreateUserValidator
+                .validateAndTransform(user);
+
+            expect(validatedUser).not.toBeDefined();
+            // assuming "name" is the first property validated
+            expect(error).toBe(generateInvalidStringErrorMessage('name'));
+        });
+    });
+
     describe('given an object with unexpected properties', () => {
         test('should return an error and undefined user', async () => {
             const newProperty = 'version';
@@ -278,7 +296,6 @@ describe('CreateUserValidator', () => {
                     expect(error).toBe(generateInvalidStringErrorMessage('role'));
                 });
             });
-
 
             describe('role is not a defined role', () => {
                 test('should return an error and undefined user', async () => {
