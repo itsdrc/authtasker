@@ -33,6 +33,10 @@ export class CreateUserValidator implements UserRequest {
             await validateOrReject(user, validationOptionsConfig);
             return [undefined, plainToInstance(CreateUserValidator, user)];
         } catch (error) {
+            // custom decorator throws an error when property is invalid or missing
+            // so we always get a single error. On the other hand, when an error is generated
+            // by class-validator (for example, when the object contains extra properties) getError
+            // function is needed.
             const errorMessage = Array.isArray(error) ? getError(error) : (error as Error).message;
             return [errorMessage, undefined];
         }
