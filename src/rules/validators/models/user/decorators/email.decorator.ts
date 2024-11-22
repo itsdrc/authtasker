@@ -4,10 +4,10 @@ import {
     ValidationArguments, isEmail
 } from 'class-validator';
 import { INVALID_EMAIL_MESSAGE } from '@root/rules/validators/messages/constants/invalid-email.message.constant';
-import { generateMissingPropertyMessage } from '@root/rules/validators/messages/generators';
+import { generateGenericError, generateMissingPropertyMessage } from '@root/rules/validators/messages/generators';
+import { CustomOptions } from './interfaces/custom-options.interface';
 
-
-export function Email(validationOptions?: ValidationOptions & { optional: boolean }) {
+export function Email(validationOptions?: ValidationOptions & CustomOptions) {
     return function (object: Object, propertyName: string) {
         registerDecorator({
             name: 'user-email',
@@ -17,8 +17,12 @@ export function Email(validationOptions?: ValidationOptions & { optional: boolea
             validator: {
                 validate(value: string | undefined, args: ValidationArguments) {
                     if (value) {
-                        if (!isEmail(value))
-                            throw new Error(INVALID_EMAIL_MESSAGE);
+                        if (!isEmail(value)) {
+                            if (validationOptions?.hideErrors)
+                                throw new Error(generateGenericError('email'))
+                            else
+                                throw new Error(INVALID_EMAIL_MESSAGE);
+                        }
 
                     } else {
                         if (!validationOptions?.optional)
