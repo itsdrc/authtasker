@@ -14,13 +14,13 @@ export class UserController {
     readonly create = async (req: Request, res: Response): Promise<void> => {
         try {
             const user = req.body;
-            const [errors, validatedUser] = await CreateUserValidator.validateAndTransform(user);
+            const [error, validatedUser] = await CreateUserValidator.validateAndTransform(user);
 
             if (validatedUser) {
                 const created = await this.userService.create(validatedUser);
                 res.status(HTTP_STATUS_CODE.CREATED).json(created);
             } else {
-                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ errors });
+                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
 
@@ -32,13 +32,13 @@ export class UserController {
     readonly login = async (req: Request, res: Response): Promise<void> => {
         try {
             const user = req.body;
-            const [errors, validatedUser] = await LoginUserValidator.validate(user);
+            const [error, validatedUser] = await LoginUserValidator.validate(user);
 
             if (validatedUser) {
                 const loggedIn = await this.userService.login(validatedUser);
                 res.status(HTTP_STATUS_CODE.OK).json(loggedIn);
             } else {
-                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ errors });
+                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
         } catch (error) {
