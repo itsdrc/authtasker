@@ -11,7 +11,7 @@ export class UserController {
         private readonly userService: UserService
     ) {}
 
-    private readonly _create = async (req: Request, res: Response): Promise<void> => {
+    readonly create = async (req: Request, res: Response): Promise<void> => {
         try {
             const user = req.body;
             const [errors, validatedUser] = await CreateUserValidator.validateAndTransform(user);
@@ -28,9 +28,6 @@ export class UserController {
             handleError(res, error);
         }
     };
-    public get create() {
-        return this._create;
-    }
 
     readonly login = async (req: Request, res: Response): Promise<void> => {
         try {
