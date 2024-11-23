@@ -197,6 +197,48 @@ describe('CreateUserValidator', () => {
                     expect(error).toBe(generateInvalidStringErrorMessage('name'));
                 });
             });
+
+            describe('name does not meet the minimum length', () => {
+                test('should return an error and undefined user', async () => {
+                    const invalidLength = CONSTS.MIN_NAME_LENGTH - 1;
+                    const user = {
+                        name: faker.string.alpha({ length: invalidLength }),
+                        email: faker.internet.email(),
+                        password: faker.internet.password({ length: CONSTS.MIN_PASSWORD_LENGTH }),
+                        role: validRoles[0],
+                    };
+
+                    const [error, validatedUser] = await CreateUserValidator
+                        .validateAndTransform(user);
+
+                    expect(validatedUser).not.toBeDefined();
+                    expect(error).toBe(generateMinLengthErrorMessage(
+                        'name',
+                        CONSTS.MIN_NAME_LENGTH
+                    ));
+                });
+            });
+
+            describe('name does not meet the maximum length', ()=> {
+                test('should return an error and undefined user', async () => {
+                    const invalidLength = CONSTS.MAX_NAME_LENGTH + 1;
+                    const user = {
+                        name: faker.string.alpha({ length: invalidLength }),
+                        email: faker.internet.email(),
+                        password: faker.internet.password({ length: CONSTS.MIN_PASSWORD_LENGTH }),
+                        role: validRoles[0],
+                    };
+
+                    const [error, validatedUser] = await CreateUserValidator
+                        .validateAndTransform(user);
+
+                    expect(validatedUser).not.toBeDefined();
+                    expect(error).toBe(generateMaxLengthErrorMessage(
+                        'name',
+                        CONSTS.MAX_NAME_LENGTH
+                    ));
+                });
+            });
         });
 
         describe('invalid email', () => {
