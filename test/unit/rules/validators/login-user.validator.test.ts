@@ -51,7 +51,8 @@ describe('LoginUserValidator', () => {
             const userForLogging = {
                 email: faker.internet.email(),
                 password: faker.internet.password({ length: CONSTS.MIN_PASSWORD_LENGTH }),
-                [newProperty]: 'earth'
+                [newProperty]: 'earth',
+                anotherProperty: 100,
             };
 
             const [error, validated] = await LoginUserValidator.validate(userForLogging);

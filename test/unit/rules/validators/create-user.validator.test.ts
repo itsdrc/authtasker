@@ -103,6 +103,7 @@ describe('CreateUserValidator', () => {
                 password: faker.internet.password({ length: CONSTS.MIN_PASSWORD_LENGTH }),
                 role: validRoles[0],
                 [newProperty]: '1.0.0',
+                anotherProperty: 100,
             };
 
             const [error, validatedUser] = await CreateUserValidator
@@ -219,7 +220,7 @@ describe('CreateUserValidator', () => {
                 });
             });
 
-            describe('name does not meet the maximum length', ()=> {
+            describe('name does not meet the maximum length', () => {
                 test('should return an error and undefined user', async () => {
                     const invalidLength = CONSTS.MAX_NAME_LENGTH + 1;
                     const user = {

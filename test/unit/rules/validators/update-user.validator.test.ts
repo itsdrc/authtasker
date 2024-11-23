@@ -56,6 +56,7 @@ describe('UpdateUserValidator', () => {
                 email: faker.internet.email(),
                 role: validRoles[0],
                 [newProperty]: 0,
+                anotherProperty: 100,
             };
 
             const [error, validated] = await UpdateUserValidator.
