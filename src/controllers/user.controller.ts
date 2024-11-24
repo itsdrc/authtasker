@@ -50,7 +50,7 @@ export class UserController {
         try {
             const token = req.params.token;
             await this.userService.validateEmail(token);
-            res.status(HTTP_STATUS_CODE.OK).send('Email validated');
+            res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
         } catch (error) {
             handleError(res, error);
         }
