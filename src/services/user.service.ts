@@ -133,7 +133,7 @@ export class UserService {
 
         const offset = (page - 1) * limit;
 
-        return this.userModel.find()
+        return await this.userModel.find()
             .skip(offset)
             .limit(limit)
             .exec();
