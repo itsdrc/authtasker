@@ -55,7 +55,7 @@ export class UserService {
             throw HttpError.internalServer('Email not in token');
 
         // Check if user email exists in db
-        const user = await this.userModel.findOne({ email });
+        const user = await this.userModel.findOne({ email }).exec();        
         if (!user)
             throw HttpError.notFound('User not found');
 
@@ -95,7 +95,7 @@ export class UserService {
     async login(userToLogin: LoginUserValidator): Promise<{ user: UserResponse, token: string }> {
 
         // Check user existence
-        const userDb = await this.userModel.findOne({ email: userToLogin.email });
+        const userDb = await this.userModel.findOne({ email: userToLogin.email }).exec();
         if (!userDb)
             throw HttpError.badRequest(`User with email ${userToLogin.email} not found`);
 
@@ -140,13 +140,13 @@ export class UserService {
     }
 
     async deleteOne(id: string): Promise<void> {
-        const res = await this.userModel.deleteOne({ _id: id });
+        const res = await this.userModel.deleteOne({ _id: id }).exec();
         if (res.deletedCount < 1)
             throw HttpError.badRequest(`User with id ${id} not found`);
     }
 
     async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<UserResponse> {
-        const user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated);
+        const user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
         if (!user)
             throw HttpError.badRequest(`User with id ${id} not found`);
         Object.assign(user, propertiesUpdated);
