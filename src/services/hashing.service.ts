@@ -7,7 +7,7 @@ export class HashingService {
     ) {}
 
     async hash(data: string): Promise<string> {
-        const salt = bcrypt.genSaltSync(this.saltRounds);
+        const salt = await bcrypt.genSalt(this.saltRounds);
         const hash = await bcrypt.hash(data, salt);
         return hash;
     }
