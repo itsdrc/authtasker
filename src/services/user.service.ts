@@ -1,5 +1,5 @@
 import { HttpError } from "../rules/errors/http.error";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { HashingService } from "./hashing.service";
 import { JwtService } from "./jwt.service";
 import { UserResponse } from "../types/user/user-response.type";
@@ -55,7 +55,7 @@ export class UserService {
             throw HttpError.internalServer('Email not in token');
 
         // Check if user email exists in db
-        const user = await this.userModel.findOne({ email }).exec();        
+        const user = await this.userModel.findOne({ email }).exec();
         if (!user)
             throw HttpError.notFound('User not found');
 
@@ -118,7 +118,12 @@ export class UserService {
     }
 
     async findOne(id: string): Promise<UserResponse> {
-        const userDb = await this.userModel.findById(id).exec();
+        let userDb;
+        // avoids the error throwing when id is not a mongo id
+        // otherwise is easy to know that we are using mongo as db
+        if (Types.ObjectId.isValid(id))
+            userDb = await this.userModel.findById(id).exec();
+
         if (!userDb)
             throw HttpError.badRequest(`User with id ${id} not found`);
         return userDb;
@@ -140,15 +145,22 @@ export class UserService {
     }
 
     async deleteOne(id: string): Promise<void> {
-        const res = await this.userModel.deleteOne({ _id: id }).exec();
-        if (res.deletedCount < 1)
+        let deleted;
+        if (Types.ObjectId.isValid(id))
+            deleted = await this.userModel.findByIdAndDelete(id).exec();
+
+        if (!deleted)
             throw HttpError.badRequest(`User with id ${id} not found`);
     }
 
     async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<UserResponse> {
-        const user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
+        let user;
+        if (Types.ObjectId.isValid(id))
+            user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
+
         if (!user)
             throw HttpError.badRequest(`User with id ${id} not found`);
+
         Object.assign(user, propertiesUpdated);
         return user;
     }
