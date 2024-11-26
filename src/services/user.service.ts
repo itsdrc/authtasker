@@ -1,8 +1,7 @@
 import { HttpError } from "../rules/errors/http.error";
-import { Model, Types } from "mongoose";
+import { HydratedDocument, Model, Types } from "mongoose";
 import { HashingService } from "./hashing.service";
 import { JwtService } from "./jwt.service";
-import { UserResponse } from "../types/user/user-response.type";
 import { User } from "../types/user/user.type";
 import { EmailService } from "./email.service";
 import { ConfigService } from "./config.service";
@@ -64,7 +63,7 @@ export class UserService {
         await user.save();
     }
 
-    async create(user: CreateUserValidator): Promise<{ user: UserResponse, token: string }> {
+    async create(user: CreateUserValidator): Promise<{ user: HydratedDocument<User>, token: string }> {
         try {
             // Hash password before saving
             const passwordHash = await this.hashingService.hash(user.password);
@@ -92,7 +91,7 @@ export class UserService {
         }
     }
 
-    async login(userToLogin: LoginUserValidator): Promise<{ user: UserResponse, token: string }> {
+    async login(userToLogin: LoginUserValidator): Promise<{ user: HydratedDocument<User>, token: string }> {
 
         // Check user existence
         const userDb = await this.userModel.findOne({ email: userToLogin.email }).exec();
@@ -117,7 +116,7 @@ export class UserService {
         }
     }
 
-    async findOne(id: string): Promise<UserResponse> {
+    async findOne(id: string): Promise<HydratedDocument<User>> {
         let userDb;
         // avoids the error throwing when id is not a mongo id
         // otherwise is easy to know that we are using mongo as db
@@ -129,7 +128,7 @@ export class UserService {
         return userDb;
     }
 
-    async findAll(limit?: number, page?: number): Promise<UserResponse[]> {
+    async findAll(limit?: number, page?: number): Promise<HydratedDocument<User>[]> {
         if (!limit)
             limit = PAGINATION_SETTINGS.DEFAULT_LIMIT;
 
@@ -153,7 +152,7 @@ export class UserService {
             throw HttpError.badRequest(`User with id ${id} not found`);
     }
 
-    async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<UserResponse> {
+    async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<User>> {
         let user;
         if (Types.ObjectId.isValid(id))
             user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
