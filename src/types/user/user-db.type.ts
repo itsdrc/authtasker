@@ -1,4 +1,5 @@
 import { User } from "./user.type";
 
-// User data to save in db (used to define the user schema/entity)
+// Represents the data to be saved in db.
+// Used to define userSchema.
 export type UserInDb = { [prop in keyof Omit<User, 'id' | 'createdAt' | 'updatedAt'>]: object };

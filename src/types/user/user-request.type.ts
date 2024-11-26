@@ -1,4 +1,5 @@
 import { User } from "./user.type";
 
-// User expected in request
+// Represents the data expected in request.
+// Used to define validation classes.
 export type UserRequest = Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'emailValidated'>;
