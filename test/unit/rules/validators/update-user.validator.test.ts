@@ -1,248 +1,112 @@
+import * as classValidator from "class-validator";
+import * as classTransformer from "class-transformer";
 import { faker } from "@faker-js/faker/.";
-import { INVALID_EMAIL_MESSAGE } from "@root/rules/validators/messages/constants/invalid-email.message.constant";
-import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
+
 import { validRoles } from "@root/types/user/user-roles.type";
-import { USER_VALIDATION_CONSTANTS as CONSTS } from "@root/rules/constants/user.constants";
-import { generateInvalidStringErrorMessage, generateMaxLengthErrorMessage, generateMinLengthErrorMessage } from "@root/rules/validators/messages/generators";
-import { INVALID_ROLE_MESSAGE } from "@root/rules/validators/messages/constants/invalid-role.message.constant";
+import { validationOptionsConfig } from "@root/rules/validators/config/validation.config";
+import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
 
 describe('UpdateUserValidator', () => {
-    describe('given an object with no properties', () => {
-        test('should return an error and undefined user new data', async () => {
-            const update = {};
+    describe('if data does not contain properties', () => {
+        test('should return error and undefined user', async () => {
+            const [error, user] = await UpdateUserValidator
+                .validateAndTransform({} as any);
 
-            const [error, validated] = await UpdateUserValidator.
-                validateAndTransform(update);
+            expect(user).not.toBeDefined();
+            expect(error).toStrictEqual([{
+                property: expect.anything(),
+                constraints: { message: expect.any(String) }
+            }]);
+        });
 
-            expect(validated).not.toBeDefined();
-            expect(error).toBeDefined();
+        test('class-validator.validate should NOT be called', async () => {
+            // spy and disable (just in case) class-validator validate function
+            const validateSpy = jest.spyOn(classValidator, 'validate')
+                .mockImplementation(() => Promise.resolve([]));
+
+            await UpdateUserValidator.validateAndTransform({} as any);
+
+            expect(validateSpy).not.toHaveBeenCalled();
         });
     });
 
-    describe('given an object with missing properties', () => {
-        describe('if existing properties are NOT valid', () => {
-            test('should return an error and undefined user new data', async () => {
-                const update = {
-                    email: faker.food.vegetable()
-                };
+    test('class-validator.validate should be called with the user with the provided data and the validation options', async () => {
+        const testData: UpdateUserValidator = {
+            name: faker.internet.username(),
+            email: faker.internet.email(),
+            password: faker.internet.password(),
+            role: validRoles[1],
+        };
 
-                const [error, validated] = await UpdateUserValidator
-                    .validateAndTransform(update);
+        // spy and disable implementation, returns an array 
+        // to disable errors when length is called
+        const validateSpy = jest.spyOn(classValidator, 'validate')
+            .mockImplementation(() => Promise.resolve([]));
 
-                expect(validated).not.toBeDefined();
-                expect(error).toBe(INVALID_EMAIL_MESSAGE);
-            });
-        });
+        await UpdateUserValidator.validateAndTransform(testData);
 
-        describe('if existing properties are valid ', () => {
-            test('should return the user new data and undefined error', async () => {
-                const update = {
-                    email: faker.internet.email(),
-                };
-
-                const [error, validated] = await UpdateUserValidator.
-                    validateAndTransform(update);
-
-                expect(validated).toBeDefined();
-                expect(error).not.toBeDefined();
-            });
-        });
+        // assert is called with the test data and the global validation config
+        expect(validateSpy)
+            .toHaveBeenLastCalledWith(
+                testData,
+                validationOptionsConfig
+            );
     });
 
-    describe('given a valid object with unexpected properties', () => {
-        test('should return an error and undefined user new data', async () => {
-            const newProperty = 'newprop';
-            const update = {
-                email: faker.internet.email(),
-                role: validRoles[0],
-                [newProperty]: 0,
-                anotherProperty: 100,
+    describe('if class-validator.validate returns validation errors', () => {
+        test('should return the errors (only property and constraints) and undefined user', async () => {
+            // test errors
+            const validationError1 = {
+                property: faker.food.vegetable(),
+                constraints: { lengthError: faker.food.fruit() },
+                anotherProperty: faker.animal.cat(),
             };
 
-            const [error, validated] = await UpdateUserValidator.
-                validateAndTransform(update);
-
-            expect(validated).not.toBeDefined();
-            expect(error).toBe(`property ${newProperty} should not exist`)
-        });
-    });
-
-    describe('given an object with valid properties', () => {
-        test('should return the object with the same properties', async () => {
-            const update = {
-                email: faker.internet.email(),
-                role: validRoles[0],
+            const validationError2 = {
+                property: faker.food.vegetable(),
+                constraints: { lengthError: faker.food.fruit() },
+                anotherProperty: faker.animal.cat(),
             };
 
-            const [error, validated] = await UpdateUserValidator.
-                validateAndTransform(update);
+            // mock class-validator.validate to return a test errors
+            jest.spyOn(classValidator, 'validate')
+                .mockResolvedValue([validationError1, validationError2]);
 
-            expect(Object.keys(validated || {}))
-                .toStrictEqual(Object.keys(update));
-        });
+            const [errors, user] = await UpdateUserValidator
+                .validateAndTransform({propToAvoidError: undefined} as any);
 
-        test('should transform the name to lowercase and trim it', async () => {
-            const name = ` ${faker.string.alpha({ length: CONSTS.MIN_NAME_LENGTH }).toUpperCase()} `;
-            const update = { name };
-
-            const [error, validated] = await UpdateUserValidator.
-                validateAndTransform(update);
-
-            expect(validated?.name)
-                .toBe(name.toLowerCase().trim());
-        });
-    });
-
-    describe('given an object with only invalid properties', () => {
-        test('should stop at first error', async () => {
-            const update = {
-                name: 10,
-                email: faker.food.meat(),
-                password: 10,
-                role: faker.food.vegetable(),
-            };
-
-            const [error, validated] = await UpdateUserValidator.
-                validateAndTransform(update);
-
-            expect(validated).not.toBeDefined();
-            expect(error).toBe(generateInvalidStringErrorMessage('name'));
+            // assert errors are returned and only contain
+            // "property" and "constraints" properties
+            expect(user).not.toBeDefined();
+            expect(errors).toStrictEqual([
+                {
+                    property: validationError1.property,
+                    constraints: validationError1.constraints
+                },
+                {
+                    property: validationError2.property,
+                    constraints: validationError2.constraints
+                }
+            ]);
         });
     });
 
-    describe('given an object with invalid properties', () => {
-        describe('invalid name', () => {
-            describe('name is not a string', () => {
-                test('should return an error and undefined user new data', async () => {
-                    const update = {
-                        name: 10
-                    };
+    describe('if class-validator.validate does not return errors', () => {
+        test('should return the converted user and undefined errors', async () => {
+            // mock class-transformer to return a test user
+            const testUser = { name: faker.internet.username() };
+            jest.spyOn(classTransformer, 'plainToInstance')
+                .mockReturnValue(testUser);
 
-                    const [error, validated] = await UpdateUserValidator.
-                        validateAndTransform(update);
+            // returns an empty array to disable errors logic
+            jest.spyOn(classValidator, 'validate')
+                .mockImplementation(() => Promise.resolve([]));
 
-                    expect(validated).not.toBeDefined();
-                    expect(error).toBe(generateInvalidStringErrorMessage('name'));
-                });
-            });
+            const [errors, user] = await UpdateUserValidator
+                .validateAndTransform({ propToAvoidError: undefined } as any);
 
-            describe('name does not match the minimum length', () => {
-                test('should return an error and undefined user new data', async () => {
-                    const update = {
-                        name: faker.string.alpha({ length: CONSTS.MIN_NAME_LENGTH - 1 })
-                    };
-
-                    const [error, validated] = await UpdateUserValidator.
-                        validateAndTransform(update);
-
-                    expect(validated).not.toBeDefined();
-                    expect(error).toBe(generateMinLengthErrorMessage(
-                        'name',
-                        CONSTS.MIN_NAME_LENGTH
-                    ));
-                });
-            });
-
-            describe('name does not match the maximum length', () => {
-                test('should return an error and undefined user new data', async () => {
-                    const update = {
-                        name: faker.string.alpha({ length: CONSTS.MAX_NAME_LENGTH + 1 })
-                    };
-
-                    const [error, validated] = await UpdateUserValidator.
-                        validateAndTransform(update);
-
-                    expect(validated).not.toBeDefined();
-                    expect(error).toBe(generateMaxLengthErrorMessage(
-                        'name',
-                        CONSTS.MAX_NAME_LENGTH
-                    ));
-                });
-            });
-        });
-
-        describe('invalid email', () => {
-            describe('email is not a valid email', () => {
-                test('should return an error and undefined user new data', async () => {
-                    const update = {
-                        email: faker.food.ingredient()
-                    };
-
-                    const [error, validated] = await UpdateUserValidator.
-                        validateAndTransform(update);
-
-                    expect(validated).not.toBeDefined();
-                    expect(error).toBe(INVALID_EMAIL_MESSAGE);
-                });
-            });
-        });
-
-        describe('invalid password', () => {
-            describe('password is not a string', () => {
-                test('should return an error and undefined user new data', async () => {
-                    const update = {
-                        password: 123
-                    };
-
-                    const [error, validated] = await UpdateUserValidator.
-                        validateAndTransform(update);
-
-                    expect(validated).not.toBeDefined();
-                    expect(error).toBe(generateInvalidStringErrorMessage('password'));
-                });
-            });
-
-            describe('password does not meet minimum length', () => {
-                test('should return an error and undefined user new data', async () => {
-                    const invalidLength = CONSTS.MIN_PASSWORD_LENGTH - 1;
-                    const update = {
-                        password: faker.internet.password({ length: invalidLength })
-                    };
-
-                    const [error, validated] = await UpdateUserValidator.
-                        validateAndTransform(update);
-
-                    expect(validated).not.toBeDefined();
-                    expect(error).toBe(generateMinLengthErrorMessage(
-                        'password'
-                        , CONSTS.MIN_PASSWORD_LENGTH
-                    ));
-                });
-            });
-
-            describe('password does not meet the maximum length', () => {
-                test('should return an error and undefined user new data', async () => {
-                    const invalidLength = CONSTS.MAX_PASSWORD_LENGTH + 1;
-                    const update = {
-                        password: faker.internet.password({ length: invalidLength })
-                    };
-
-                    const [error, validated] = await UpdateUserValidator.
-                        validateAndTransform(update);
-
-                    expect(validated).not.toBeDefined();
-                    expect(error).toBe(generateMaxLengthErrorMessage(
-                        'password'
-                        , CONSTS.MAX_PASSWORD_LENGTH
-                    ));
-                });
-            });
-        });
-
-        describe('invalid role', () => {
-            describe('role is not a defined role', () => {
-                test('should return an error and undefined user new data', async () => {
-                    const update = {
-                        role: faker.vehicle.fuel()
-                    };
-
-                    const [error, validated] = await UpdateUserValidator.
-                        validateAndTransform(update);
-
-                    expect(validated).not.toBeDefined();
-                    expect(error).toBe(INVALID_ROLE_MESSAGE);
-                });
-            });
+            expect(errors).not.toBeDefined();
+            expect(user).toStrictEqual(testUser);
         });
     });
 });
