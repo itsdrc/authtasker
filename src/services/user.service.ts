@@ -1,13 +1,14 @@
-import { HttpError } from "../rules/errors/http.error";
 import { HydratedDocument, Model, Types } from "mongoose";
-import { HashingService } from "./hashing.service";
-import { JwtService } from "./jwt.service";
-import { User } from "../types/user/user.type";
-import { EmailService } from "./email.service";
+
 import { ConfigService } from "./config.service";
-import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { CreateUserValidator, LoginUserValidator } from "../rules/validators/models/user";
+import { EmailService } from "./email.service";
+import { HashingService } from "./hashing.service";
+import { HttpError } from "../rules/errors/http.error";
+import { JwtService } from "./jwt.service";
+import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
+import { User } from "../types/user/user.type";
 
 export class UserService {
 
@@ -20,18 +21,15 @@ export class UserService {
     ) {}
 
     private async sendEmailValidationLink(email: string): Promise<void> {
+        // this function shouldn't be called if emailService is not provided 
         if (!this.emailService) {
             console.error('Email service should be injected to use this feature');
             throw HttpError.internalServer('Email can not be validated due to a server error');
         }
-
-        // Generate a token with email
+        
         const token = this.jwtService.generate({ email });
-
-        // Create a link based on token
         const link = `${this.configService.WEB_URL}/api/users/validate-email/${token}`;
 
-        // Send
         await this.emailService.sendMail({
             to: email,
             subject: 'Email validation',
@@ -43,41 +41,39 @@ export class UserService {
     }
 
     async validateEmail(token: string): Promise<void> {
-        // Check if token is a valid token
+        // token verification
         const payload = this.jwtService.verify(token);
         if (!payload)
             throw HttpError.badRequest('Invalid token')
 
-        // Email should be in token
         const { email } = payload as { email: string };
         if (!email)
             throw HttpError.internalServer('Email not in token');
 
-        // Check if user email exists in db
+        // check user existence
         const user = await this.userModel.findOne({ email }).exec();
         if (!user)
             throw HttpError.notFound('User not found');
 
-        // Update user data
+        // update 
         user.emailValidated = true;
         await user.save();
     }
 
     async create(user: CreateUserValidator): Promise<{ user: HydratedDocument<User>, token: string }> {
         try {
-            // Hash password before saving
+            // hashing
             const passwordHash = await this.hashingService.hash(user.password);
             user.password = passwordHash;
             const created = await this.userModel.create(user);
 
-            // Generate token with id
+            // token generation
             const token = this.jwtService.generate({ id: created.id });
 
-            // Email validation
+            // email validation
             if (this.configService.mailServiceIsDefined())
                 await this.sendEmailValidationLink(user.email);
-
-            // Return user and token
+            
             return {
                 user: created,
                 token,
@@ -92,13 +88,12 @@ export class UserService {
     }
 
     async login(userToLogin: LoginUserValidator): Promise<{ user: HydratedDocument<User>, token: string }> {
-
-        // Check user existence
+        // check user existence
         const userDb = await this.userModel.findOne({ email: userToLogin.email }).exec();
         if (!userDb)
             throw HttpError.badRequest(`User with email ${userToLogin.email} not found`);
 
-        // Check password matching
+        // check password
         const passwordOk = await this.hashingService.compare(
             userToLogin.password,
             userDb.password
@@ -106,10 +101,9 @@ export class UserService {
         if (!passwordOk)
             throw HttpError.badRequest('Incorrect password');
 
-        // Generate token with id
+        // token generation
         const token = this.jwtService.generate({ id: userDb.id });
 
-        // Return user and token
         return {
             user: userDb,
             token,
