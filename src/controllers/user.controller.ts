@@ -22,22 +22,26 @@ export class UserController {
         else {
             res.status(500)
                 .json({ error: UNEXPECTED_ERROR_MESSAGE });
-        }        
-        this.loggerService.error(error.message);
+            this.loggerService.error(`Unexpected error - ${error.message}`);
+        }
     };
 
-    readonly create = async (req: Request, res: Response): Promise<void> => {        
+    readonly create = async (req: Request, res: Response): Promise<void> => {
         try {
             const user = req.body;
             const [error, validatedUser] = await CreateUserValidator.validateAndTransform(user);
 
             if (validatedUser) {
+                this.loggerService.debug(`validation for new user sucess`)
                 const created = await this.userService.create(validatedUser);
                 res.status(HTTP_STATUS_CODE.CREATED).json(created);
             } else {
+                this.loggerService.debug(`validation for new user fails`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
+
+            this.loggerService.info(`user with email ${validatedUser.email} created sucesfully`);
 
         } catch (error) {
             this.handleError(res, error as any);

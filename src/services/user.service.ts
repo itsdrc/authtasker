@@ -18,7 +18,7 @@ export class UserService {
         private readonly userModel: Model<User>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
-        private readonly loggerService: HttpLoggerService,        
+        private readonly loggerService: HttpLoggerService,
         private readonly emailService?: EmailService,
     ) {}
 
@@ -28,7 +28,7 @@ export class UserService {
             console.error('Email service should be injected to use this feature');
             throw HttpError.internalServer('Email can not be validated due to a server error');
         }
-        
+
         const token = this.jwtService.generate({ email });
         const link = `${this.configService.WEB_URL}/api/users/validate-email/${token}`;
 
@@ -63,30 +63,44 @@ export class UserService {
     }
 
     async create(user: CreateUserValidator): Promise<{ user: HydratedDocument<User>, token: string }> {
-        this.loggerService.debug('Creating User');
         try {
+            this.loggerService.info(`starting creation for user with email: ${user.email}`);
+
             // hashing
             const passwordHash = await this.hashingService.hash(user.password);
             user.password = passwordHash;
+            this.loggerService.debug(`password hashed`);
+
+            // creation in db
             const created = await this.userModel.create(user);
+            this.loggerService.debug(`user saved in db`);
 
             // token generation
             const token = this.jwtService.generate({ id: created.id });
+            this.loggerService.debug(`token generated with id ${created.id}`);
 
             // email validation
-            if (this.configService.mailServiceIsDefined())
+            if (this.configService.mailServiceIsDefined()) {
                 await this.sendEmailValidationLink(user.email);
-            
+                this.loggerService.info(`email validation link sent to: ${user.email}`);
+            } else {
+                this.loggerService.warn(`email validation is not enabled`);
+            }
+
             return {
                 user: created,
                 token,
             };
 
         } catch (error: any) {
-            if (error.code == 11000) // duplicate key error
-                throw HttpError.badRequest(`${Object.values(error.keyValue).join(', ')} already exists`);
-            else
+            if (error.code == 11000) {
+                const duplicatedKey = Object.values(error.keyValue).join(', ');
+                this.loggerService.error(`duplicated key error: ${duplicatedKey} already exists`);
+                throw HttpError.badRequest(`${duplicatedKey} already exists`);
+            }
+            else {
                 throw error;
+            }
         }
     }
 
