@@ -3,6 +3,17 @@ import winston from "winston";
 import { AsyncLocalStorageStore } from "@root/types/common/asyncLocalStorage.type";
 import { ConfigService } from "./config.service";
 
+/*  
+    WINSTON LEVELS
+    error: number;
+    warn: number;
+    info: number;
+    http: number;
+    verbose: number;
+    debug: number;
+    silly: number 
+*/
+
 export class HttpLoggerService {
 
     constructor(
@@ -10,12 +21,11 @@ export class HttpLoggerService {
         private readonly asyncLocalStorage: AsyncLocalStorage<AsyncLocalStorageStore>
     ) {}
 
-    // development: debug, info, warn and error messages
+    // development: all
     // production: no debug messages
-    private readonly level = this.configService.NODE_ENV === 'development' ? 'debug' : 'info';
 
     private readonly logger = winston.createLogger({
-        level: this.level,
+        level: this.configService.NODE_ENV === 'production' ? 'info' : 'debug',
         transports: [
             new winston.transports.Console({
                 format: winston.format.combine(
@@ -29,6 +39,7 @@ export class HttpLoggerService {
                 ),
             }),
             new winston.transports.File({
+                level: 'info',
                 filename: 'logs/http.logs.log',
             })
         ]
