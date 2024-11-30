@@ -4,9 +4,18 @@ import { AsyncLocalStorage } from 'async_hooks';
 
 export const requestContextMiddlewareFactory = (asyncLocalStorage: AsyncLocalStorage<unknown>) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        const requestId = uuidv4();
+        const originalUrl = req.originalUrl;
+        const method = req.method;
+        const route = `${method} ${originalUrl}`;
+        const requestId = uuidv4();                        
+
+        const store = {
+            requestId,
+            route,
+        };
+
         res.setHeader("Request-Id", requestId);
-        const store = { requestId };
+
         asyncLocalStorage.run(store, () => {
             next();
         });
