@@ -3,7 +3,7 @@ import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.consta
 import { CreateUserValidator, LoginUserValidator } from "@root/rules/validators/models/user";
 import { UserService } from "@root/services/user.service";
 import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
-import { LoggerService } from "@root/services/logger.service";
+import { HttpLoggerService } from "@root/services/http-logger.service";
 import { HttpError } from "@root/rules/errors/http.error";
 import { UNEXPECTED_ERROR_MESSAGE } from "./constants/unexpected-error.constant";
 
@@ -11,7 +11,7 @@ export class UserController {
 
     constructor(
         private readonly userService: UserService,
-        private readonly loggerService: LoggerService,
+        private readonly loggerService: HttpLoggerService,
     ) {}
 
     handleError(res: Response, error: Error) {
@@ -22,13 +22,11 @@ export class UserController {
         else {
             res.status(500)
                 .json({ error: UNEXPECTED_ERROR_MESSAGE });
-        }
-
-        this.loggerService.log(error.message);
+        }        
+        this.loggerService.error(error.message);
     };
 
-    readonly create = async (req: Request, res: Response): Promise<void> => {
-        this.loggerService.log('UserController called!');
+    readonly create = async (req: Request, res: Response): Promise<void> => {        
         try {
             const user = req.body;
             const [error, validatedUser] = await CreateUserValidator.validateAndTransform(user);

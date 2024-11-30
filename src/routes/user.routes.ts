@@ -7,7 +7,7 @@ import { JwtService } from "@root/services/jwt.service";
 import { EmailService } from "@root/services/email.service";
 import { UserService } from "@root/services/user.service";
 import { UserController } from "@root/controllers/user.controller";
-import { LoggerService } from "@root/services/logger.service";
+import { HttpLoggerService } from "@root/services/http-logger.service";
 
 export class UserRoutes {
 
@@ -16,7 +16,7 @@ export class UserRoutes {
         private readonly userModel: Model<User>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
-        private readonly loggerService: LoggerService,
+        private readonly loggerService: HttpLoggerService,
         private readonly emailService?: EmailService,        
     ) {}
 

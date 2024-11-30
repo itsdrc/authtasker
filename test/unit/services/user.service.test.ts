@@ -10,7 +10,7 @@ import { JwtService } from "@root/services/jwt.service";
 import { User } from "@root/types/user/user.type";
 import { UserService } from "@root/services/user.service";
 import { ConfigService } from '@root/services/config.service';
-import { LoggerService } from '@root/services/logger.service';
+import { HttpLoggerService } from '@root/services/http-logger.service';
 
 // These tests only test the most critical parts of the service:
 // validateEmail, sendEmailValidationLink, create and login
@@ -23,7 +23,7 @@ describe('UserService', () => {
     let configServiceMock: MockProxy<NoReadonly<ConfigService>>;
     let emailServiceMock: MockProxy<EmailService>;
     let userModelMock: FindMockQuery<UserModelMocked> & UserModelMocked;
-    let loggerService: MockProxy<LoggerService>;
+    let loggerService: MockProxy<HttpLoggerService>;
     let userService: UserService;
 
     // Disables console.error
@@ -35,7 +35,7 @@ describe('UserService', () => {
         userModelMock = (mockDeep<Model<User>>() as any);
         configServiceMock = mockDeep<NoReadonly<ConfigService>>();
         emailServiceMock = mockDeep<EmailService>();
-        loggerService = mock<LoggerService>();
+        loggerService = mock<HttpLoggerService>();
 
         // this allows, for example, findOne().exec() to be a mock...
         userModelMock.findOne.mockReturnValue(mock<Query<any, any>>());

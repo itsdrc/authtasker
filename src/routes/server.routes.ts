@@ -9,15 +9,16 @@ import { UserModel } from "@root/databases/mongo/schemas/user.schema";
 // TODO: import dinamically
 import { SeedRoutes } from "@root/seed/routes/seed.routes";
 
-import { LoggerService } from "@root/services/logger.service";
+import { HttpLoggerService } from "@root/services/http-logger.service";
 import { requestContextMiddlewareFactory } from "@root/middlewares/common/request-context.middleware";
 import { AsyncLocalStorage } from "async_hooks";
+import { AsyncLocalStorageStore } from "@root/types/common/asyncLocalStorage.type";
 
 export class AppRoutes {
 
     constructor(
         private readonly configService: ConfigService,
-        private readonly asyncLocalStorage: AsyncLocalStorage<{requestId: string}>
+        private readonly asyncLocalStorage: AsyncLocalStorage<AsyncLocalStorageStore>
     ) {}
 
     get routes(): Router {
@@ -42,7 +43,10 @@ export class AppRoutes {
             this.configService.BCRYPT_SALT_ROUNDS
         );
 
-        const loggerService = new LoggerService(this.asyncLocalStorage);
+        const loggerService = new HttpLoggerService(
+            this.configService,
+            this.asyncLocalStorage
+        );
 
         const userRoutes = new UserRoutes(
             this.configService,

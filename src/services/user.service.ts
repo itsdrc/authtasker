@@ -9,7 +9,7 @@ import { JwtService } from "./jwt.service";
 import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 import { User } from "../types/user/user.type";
-import { LoggerService } from "./logger.service";
+import { HttpLoggerService } from "./http-logger.service";
 
 export class UserService {
 
@@ -18,7 +18,7 @@ export class UserService {
         private readonly userModel: Model<User>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
-        private readonly loggerService: LoggerService,        
+        private readonly loggerService: HttpLoggerService,        
         private readonly emailService?: EmailService,
     ) {}
 
@@ -63,6 +63,7 @@ export class UserService {
     }
 
     async create(user: CreateUserValidator): Promise<{ user: HydratedDocument<User>, token: string }> {
+        this.loggerService.debug('Creating User');
         try {
             // hashing
             const passwordHash = await this.hashingService.hash(user.password);
