@@ -1,3 +1,4 @@
+import { SystemLoggerService } from "@root/services/system-logger.service";
 import express, { Router } from "express";
 import { Server as HttpServer } from "http";
 
@@ -17,7 +18,7 @@ export class Server {
 
         return new Promise<void>((resolve) => {
             this.server = this.app.listen(this.port, () => {
-                console.log(`Server listening on port ${this.port}`);
+                SystemLoggerService.info(`Listening on port ${this.port}`)
                 resolve();
             });
         });
@@ -28,7 +29,7 @@ export class Server {
             if (this.server) {
                 this.server.closeAllConnections();
                 this.server.close(() => {
-                    console.log('Server closed');
+                    SystemLoggerService.info('Server closed');
                     resolve();
                 });
             } else {

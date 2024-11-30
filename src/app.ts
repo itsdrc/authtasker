@@ -3,9 +3,10 @@ import { MongoDatabase } from "./databases/mongo/mongo.database";
 import { AppRoutes } from "./routes/server.routes";
 import { Server } from "./server/server.init";
 import { ConfigService } from "./services/config.service";
+import { AsyncLocalStorageStore } from "./types/common/asyncLocalStorage.type";
 
 async function main() {
-    const asyncLocalStorage = new AsyncLocalStorage<{requestId: string}>();
+    const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageStore>();
     const configService = new ConfigService();
 
     await MongoDatabase.connect(configService.MONGO_URI);
