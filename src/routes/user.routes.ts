@@ -7,6 +7,7 @@ import { JwtService } from "@root/services/jwt.service";
 import { EmailService } from "@root/services/email.service";
 import { UserService } from "@root/services/user.service";
 import { UserController } from "@root/controllers/user.controller";
+import { LoggerService } from "@root/services/logger.service";
 
 export class UserRoutes {
 
@@ -15,7 +16,8 @@ export class UserRoutes {
         private readonly userModel: Model<User>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
-        private readonly emailService?: EmailService,
+        private readonly loggerService: LoggerService,
+        private readonly emailService?: EmailService,        
     ) {}
 
     get routes(): Router {
@@ -25,9 +27,10 @@ export class UserRoutes {
             this.userModel,
             this.hashingService,
             this.jwtService,
+            this.loggerService,
             this.emailService
         );
-        const controller = new UserController(service);
+        const controller = new UserController(service, this.loggerService);        
         router.post('/create', controller.create);
         router.post('/login', controller.login);
         router.get('/validate-email/:token', controller.validateEmail);

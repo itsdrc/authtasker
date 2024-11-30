@@ -1,17 +1,34 @@
-import {Request, Response } from "express";
+import { Request, Response } from "express";
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { CreateUserValidator, LoginUserValidator } from "@root/rules/validators/models/user";
 import { UserService } from "@root/services/user.service";
-import { handleError } from "./helpers/handle-error.helper";
 import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
+import { LoggerService } from "@root/services/logger.service";
+import { HttpError } from "@root/rules/errors/http.error";
+import { UNEXPECTED_ERROR_MESSAGE } from "./constants/unexpected-error.constant";
 
 export class UserController {
 
     constructor(
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly loggerService: LoggerService,
     ) {}
 
+    handleError(res: Response, error: Error) {
+        if (error instanceof HttpError) {
+            res.status(error.statusCode)
+                .json({ error: error.message });
+        }
+        else {
+            res.status(500)
+                .json({ error: UNEXPECTED_ERROR_MESSAGE });
+        }
+
+        this.loggerService.log(error.message);
+    };
+
     readonly create = async (req: Request, res: Response): Promise<void> => {
+        this.loggerService.log('UserController called!');
         try {
             const user = req.body;
             const [error, validatedUser] = await CreateUserValidator.validateAndTransform(user);
@@ -25,7 +42,7 @@ export class UserController {
             }
 
         } catch (error) {
-            handleError(res, error);
+            this.handleError(res, error as any);
         }
     };
 
@@ -42,7 +59,7 @@ export class UserController {
                 return;
             }
         } catch (error) {
-            handleError(res, error);
+            this.handleError(res, error as any);
         }
     }
 
@@ -52,7 +69,7 @@ export class UserController {
             await this.userService.validateEmail(token);
             res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
         } catch (error) {
-            handleError(res, error);
+            this.handleError(res, error as any);
         }
     }
 
@@ -62,7 +79,7 @@ export class UserController {
             const userFound = await this.userService.findOne(id);
             res.status(HTTP_STATUS_CODE.OK).json(userFound);
         } catch (error) {
-            handleError(res, error);
+            this.handleError(res, error as any);
         }
     }
 
@@ -73,7 +90,7 @@ export class UserController {
             const usersFound = await this.userService.findAll(limit, page);
             res.status(HTTP_STATUS_CODE.OK).json(usersFound);
         } catch (error) {
-            handleError(res, error);
+            this.handleError(res, error as any);
         }
     }
 
@@ -83,7 +100,7 @@ export class UserController {
             await this.userService.deleteOne(id);
             res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
         } catch (error) {
-            handleError(res, error);
+            this.handleError(res, error as any);
         }
     }
 
@@ -101,7 +118,7 @@ export class UserController {
                 return;
             }
         } catch (error) {
-            handleError(res, error);
+            this.handleError(res, error as any);
         }
     }
 }

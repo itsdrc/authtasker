@@ -5,17 +5,26 @@ import { JwtService } from "@root/services/jwt.service";
 import { Router } from "express";
 import { UserRoutes } from "./user.routes";
 import { UserModel } from "@root/databases/mongo/schemas/user.schema";
+
+// TODO: import dinamically
 import { SeedRoutes } from "@root/seed/routes/seed.routes";
+
+import { LoggerService } from "@root/services/logger.service";
+import { requestContextMiddlewareFactory } from "@root/middlewares/common/request-context.middleware";
+import { AsyncLocalStorage } from "async_hooks";
 
 export class AppRoutes {
 
-    constructor(private readonly configService: ConfigService) {}
+    constructor(
+        private readonly configService: ConfigService,
+        private readonly asyncLocalStorage: AsyncLocalStorage<{requestId: string}>
+    ) {}
 
     get routes(): Router {
         // common services
-        
-        let emailService: EmailService | undefined ;
-        if(this.configService.mailServiceIsDefined()){
+
+        let emailService: EmailService | undefined;
+        if (this.configService.mailServiceIsDefined()) {
             emailService = new EmailService({
                 host: this.configService.MAIL_SERVICE_HOST,
                 port: this.configService.MAIL_SERVICE_PORT,
@@ -33,16 +42,24 @@ export class AppRoutes {
             this.configService.BCRYPT_SALT_ROUNDS
         );
 
+        const loggerService = new LoggerService(this.asyncLocalStorage);
+
         const userRoutes = new UserRoutes(
             this.configService,
             UserModel,
             hashingService,
             jwtService,
+            loggerService,
             emailService,
         );
 
         const router = Router();
-        router.use('/api/users', userRoutes.routes);        
+
+        // global middlewares
+        router.use(requestContextMiddlewareFactory(this.asyncLocalStorage));
+
+        // apis
+        router.use('/api/users', userRoutes.routes);
 
         if (this.configService.NODE_ENV != 'production') {
             const seedRoutes = new SeedRoutes(
