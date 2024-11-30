@@ -9,12 +9,12 @@ async function main() {
     const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageStore>();
     const configService = new ConfigService();
 
-    await MongoDatabase.connect(configService.MONGO_URI);
-
-    const appRoutes = new AppRoutes(configService, asyncLocalStorage);
-    const server = new Server(configService.PORT, appRoutes.routes);
-
-    server.start();
+    const connected = await MongoDatabase.connect(configService.MONGO_URI)
+    if (connected) {
+        const appRoutes = new AppRoutes(configService, asyncLocalStorage);
+        const server = new Server(configService.PORT, appRoutes.routes);
+        server.start();
+    }
 }
 
 main();
