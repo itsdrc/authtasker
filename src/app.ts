@@ -1,13 +1,16 @@
+import { ConfigService } from "./services/config.service";
 import { AsyncLocalStorage } from "async_hooks";
 import { MongoDatabase } from "./databases/mongo/mongo.database";
 import { AppRoutes } from "./routes/server.routes";
 import { Server } from "./server/server.init";
-import { ConfigService } from "./services/config.service";
 import { AsyncLocalStorageStore } from "./types/common/asyncLocalStorage.type";
+import { SystemLoggerService } from "./services/system-logger.service";
 
 async function main() {
+    const configService = new ConfigService();    
+    SystemLoggerService.info(`Current enviroment: ${configService.NODE_ENV}`);
+
     const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageStore>();
-    const configService = new ConfigService();
 
     const connected = await MongoDatabase.connect(configService.MONGO_URI)
     if (connected) {
