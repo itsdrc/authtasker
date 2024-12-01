@@ -1,18 +1,17 @@
+import { AsyncLocalStorage } from "async_hooks";
+import { Router } from "express";
+
+import { AsyncLocalStorageStore } from "@root/types/common/asyncLocalStorage.type";
 import { ConfigService } from "@root/services/config.service";
 import { EmailService } from "@root/services/email.service";
 import { HashingService } from "@root/services/hashing.service";
-import { JwtService } from "@root/services/jwt.service";
-import { Router } from "express";
-import { UserRoutes } from "./user.routes";
-import { UserModel } from "@root/databases/mongo/schemas/user.schema";
-
-// TODO: import dinamically
-import { SeedRoutes } from "@root/seed/routes/seed.routes";
-
 import { HttpLoggerService } from "@root/services/http-logger.service";
+import { JwtService } from "@root/services/jwt.service";
 import { requestContextMiddlewareFactory } from "@root/middlewares/common/request-context.middleware";
-import { AsyncLocalStorage } from "async_hooks";
-import { AsyncLocalStorageStore } from "@root/types/common/asyncLocalStorage.type";
+import { UserModel } from "@root/databases/mongo/schemas/user.schema";
+import { UserRoutes } from "./user.routes";
+
+import { SeedRoutes } from "@root/seed/routes/seed.routes";
 
 export class AppRoutes {
 
