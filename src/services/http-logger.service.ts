@@ -51,16 +51,18 @@ export class HttpLoggerService {
     });
 
     private log(level: 'info' | 'error' | 'debug' | 'warn', message: string): void {
-        const requestId = this.asyncLocalStorage.getStore()?.requestId || 'N/A';
-        const method = this.asyncLocalStorage.getStore()?.method || 'Unknown Route';
-        const url = this.asyncLocalStorage.getStore()?.url;
-        this.logger.log({
-            level,
-            message,
-            method,
-            url,
-            requestId,
-        });
+        if(this.configService.HTTP_LOGS){
+            const requestId = this.asyncLocalStorage.getStore()?.requestId || 'N/A';
+            const method = this.asyncLocalStorage.getStore()?.method || 'Unknown Route';
+            const url = this.asyncLocalStorage.getStore()?.url;
+            this.logger.log({
+                level,
+                message,
+                method,
+                url,
+                requestId,
+            });
+        }
     }
 
     info(message: string) {

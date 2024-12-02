@@ -14,11 +14,16 @@ export class ConfigService {
     public readonly MAIL_SERVICE_USER: string | undefined;
     public readonly MAIL_SERVICE_PASS: string | undefined;
     public readonly WEB_URL: string;
+    public readonly HTTP_LOGS: boolean;
 
     constructor() {
         this.NODE_ENV = env.get('NODE_ENV')
             .required()
             .asEnum(['development', 'testing', 'production']);
+
+        this.HTTP_LOGS = env.get('HTTP_LOGS')            
+            .default("true")
+            .asBool();       
 
         this.MONGO_URI = env.get('MONGO_URI')
             .required()
