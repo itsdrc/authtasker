@@ -31,10 +31,22 @@ export class HttpLoggerService {
                 format: winston.format.combine(
                     winston.format.colorize({ level: true }),
                     winston.format.timestamp(),
-                    winston.format.printf(({ level, message, timestamp, route, requestId }) => {
+                    winston.format.printf(({ level, message, timestamp, route, requestId, notColoredLevel }) => {                        
+                        // level is a ANSI escape sequence 
+                        // so notColoredLevel is needed to know what 
+                        // is the actual level thus the color.
+                        const color = notColoredLevel as string;
+
                         const colorizer = winston.format.colorize().colorize;
-                        const coloredMessage = colorizer('debug', (message as string).toLowerCase());
-                        return `[${timestamp}] [${level}] ${route}  [REQUEST: ${requestId}]:  ${coloredMessage}`;
+                        const upperCaseMessage = (message as string).toUpperCase();                                           
+
+                        const coloredMessage = colorizer(color, upperCaseMessage);
+                        const coloredTimestamp = colorizer(color, `[${timestamp}]`);
+                        const coloredRoute = colorizer(color, route as string);
+                        const coloredRequest = colorizer(color, `[REQUEST: ${requestId}]`);
+                        const coloredLevel = colorizer(color, `[${(notColoredLevel as string).toUpperCase()}]`);
+
+                        return `${coloredTimestamp} ${coloredRoute} ${coloredRequest} ${coloredLevel}: ${coloredMessage}`;
                     }),
                 ),
             }),
@@ -53,7 +65,8 @@ export class HttpLoggerService {
             message,
             requestId,
             route,
-        });
+            notColoredLevel: level,
+        });        
     }
 
     info(message: string) {
