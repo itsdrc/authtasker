@@ -131,7 +131,7 @@ export class UserService {
         // token generation
         const token = this.jwtService.generate({ id: userDb.id });
 
-        this.loggerService.info(`USER "${userDb.id}" LOGGED IN`);
+        this.loggerService.info(`USER ${userDb.id} LOGGED IN`);
 
         return {
             user: userDb,
