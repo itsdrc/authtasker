@@ -54,9 +54,11 @@ export class UserController {
             const [error, validatedUser] = await LoginUserValidator.validate(user);
 
             if (validatedUser) {
+                this.loggerService.info(`VALIDATION SUCESS`);
                 const loggedIn = await this.userService.login(validatedUser);
                 res.status(HTTP_STATUS_CODE.OK).json(loggedIn);
             } else {
+                this.loggerService.error(`VALIDATION REJECTED`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
