@@ -29,22 +29,15 @@ export class HttpLoggerService {
         transports: [
             new winston.transports.Console({
                 format: winston.format.combine(
-                    winston.format.colorize({ level: true }),
                     winston.format.timestamp(),
-                    winston.format.printf(({ level, message, timestamp, route, requestId, notColoredLevel }) => {                        
-                        // level is a ANSI escape sequence 
-                        // so notColoredLevel is needed to know what 
-                        // is the actual level thus the color.
-                        const color = notColoredLevel as string;
-
+                    winston.format.printf(({ level, message, timestamp, route, requestId }) => {
                         const colorizer = winston.format.colorize().colorize;
-                        const upperCaseMessage = (message as string).toUpperCase();                                           
 
-                        const coloredMessage = colorizer(color, upperCaseMessage);
-                        const coloredTimestamp = colorizer(color, `[${timestamp}]`);
-                        const coloredRoute = colorizer(color, route as string);
-                        const coloredRequest = colorizer(color, `[REQUEST: ${requestId}]`);
-                        const coloredLevel = colorizer(color, `[${(notColoredLevel as string).toUpperCase()}]`);
+                        const coloredMessage = colorizer(level, `${(message as string).toUpperCase()}`);
+                        const coloredTimestamp = colorizer(level, `[${timestamp}]`);
+                        const coloredRoute = colorizer(level, route as string);
+                        const coloredRequest = colorizer(level, `[REQUEST: ${requestId}]`);
+                        const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);
 
                         return `${coloredTimestamp} ${coloredRoute} ${coloredRequest} ${coloredLevel}: ${coloredMessage}`;
                     }),
@@ -65,8 +58,7 @@ export class HttpLoggerService {
             message,
             requestId,
             route,
-            notColoredLevel: level,
-        });        
+        });
     }
 
     info(message: string) {
