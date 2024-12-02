@@ -10,12 +10,21 @@ export class SystemLoggerService {
                 new winston.transports.Console({
                     format: winston.format.combine(
                         winston.format.timestamp(),
-                        winston.format.cli(),
+                        winston.format.printf(({ level, message, timestamp }) => {
+                            const colorizer = winston.format.colorize().colorize;
+                            
+                            // always green
+                            const coloredTimestamp = colorizer('info', `[${timestamp}]`);
+                            const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);
+                            const upperCaseMessage = (message as string).toUpperCase();
+
+                            return `${coloredTimestamp} ${coloredLevel}: ${upperCaseMessage}`;
+                        }),
                     )
                 }),
                 new winston.transports.File({
                     filename: 'logs/system.logs.log'
-                }), 
+                }),
             ]
         });
     }
@@ -24,7 +33,7 @@ export class SystemLoggerService {
         SystemLoggerService.logger.info(message);
     }
 
-    static error(message: string){
+    static error(message: string) {
         try {
             SystemLoggerService.logger.error(message);
         } catch (error) {
