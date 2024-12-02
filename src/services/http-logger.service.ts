@@ -30,16 +30,16 @@ export class HttpLoggerService {
             new winston.transports.Console({
                 format: winston.format.combine(
                     winston.format.timestamp(),
-                    winston.format.printf(({ level, message, timestamp, route, requestId }) => {
+                    winston.format.printf(({ level, message, timestamp, method, requestId }) => {
                         const colorizer = winston.format.colorize().colorize;
 
-                        const coloredMessage = colorizer(level, `${(message as string).toUpperCase()}`);
+                        const messageUpperCase = `${(message as string).toUpperCase()}`;
                         const coloredTimestamp = colorizer(level, `[${timestamp}]`);
-                        const coloredRoute = colorizer(level, route as string);
-                        const coloredRequest = colorizer(level, `[REQUEST: ${requestId}]`);
+                        const coloredMethod = colorizer(level, `[${method}]`);
+                        const coloredRequest = colorizer(level, `[${requestId}]`);
                         const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);
 
-                        return `${coloredTimestamp} ${coloredRoute} ${coloredRequest} ${coloredLevel}: ${coloredMessage}`;
+                        return `${coloredTimestamp} ${coloredRequest} ${coloredMethod}  ${coloredLevel}: ${messageUpperCase}`;
                     }),
                 ),
             }),
@@ -52,12 +52,14 @@ export class HttpLoggerService {
 
     private log(level: 'info' | 'error' | 'debug' | 'warn', message: string): void {
         const requestId = this.asyncLocalStorage.getStore()?.requestId || 'N/A';
-        const route = this.asyncLocalStorage.getStore()?.route || 'Unknown Route';
+        const method = this.asyncLocalStorage.getStore()?.method || 'Unknown Route';
+        const url = this.asyncLocalStorage.getStore()?.url;
         this.logger.log({
             level,
             message,
+            method,
+            url,
             requestId,
-            route,
         });
     }
 
