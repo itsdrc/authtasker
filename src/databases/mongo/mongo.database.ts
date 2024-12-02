@@ -7,10 +7,8 @@ export class MongoDatabase {
     static async connect(mongoURI: string): Promise<boolean> {
         try {
             await mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 1000 });
-            SystemLoggerService.info(`Connected to mongo database`);
             return true;
         } catch (error) {
-            SystemLoggerService.error(`Failed to connect to mongo database - ${error}`);
             return false;
         }
     }
@@ -18,10 +16,8 @@ export class MongoDatabase {
     static async disconnect(): Promise<boolean> {
         try {
             await mongoose.disconnect();
-            SystemLoggerService.info(`Disconnected from mongo database`);
             return true;
         } catch (error) {
-            SystemLoggerService.error(`Failed to disconnect from mongo database - ${error}`);
             return false;
         }
     }

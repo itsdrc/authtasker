@@ -5,16 +5,21 @@ import { AppRoutes } from "./routes/server.routes";
 import { Server } from "./server/server.init";
 import { AsyncLocalStorageStore } from "./types/common/asyncLocalStorage.type";
 import { SystemLoggerService } from "./services/system-logger.service";
+import { MongoListener } from "./databases/mongo/mongo.listener";
+import { HttpLoggerService } from "./services/http-logger.service";
 
 async function main() {
-    const configService = new ConfigService();    
+    const configService = new ConfigService();
     SystemLoggerService.info(`Starting application in current enviroment: ${configService.NODE_ENV}`);
 
     const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageStore>();
+    const loggerService = new HttpLoggerService(configService, asyncLocalStorage);
+
+    new MongoListener(loggerService);
 
     const connected = await MongoDatabase.connect(configService.MONGO_URI)
     if (connected) {
-        const appRoutes = new AppRoutes(configService, asyncLocalStorage);
+        const appRoutes = new AppRoutes(configService, loggerService, asyncLocalStorage);
         const server = new Server(configService.PORT, appRoutes.routes);
         server.start();
     }
