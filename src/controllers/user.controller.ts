@@ -22,26 +22,25 @@ export class UserController {
         else {
             res.status(500)
                 .json({ error: UNEXPECTED_ERROR_MESSAGE });
-            this.loggerService.error(`Unexpected error - ${error.message}`);
+            this.loggerService.error(`UNEXPECTED ERROR - ${error.message}`);
         }
     };
 
     readonly create = async (req: Request, res: Response): Promise<void> => {
         try {
+            this.loggerService.info('USER CREATION ATTEMP');
             const user = req.body;
             const [error, validatedUser] = await CreateUserValidator.validateAndTransform(user);
 
             if (validatedUser) {
-                this.loggerService.debug(`validation for new user sucess`)
+                this.loggerService.info(`VALIDATION SUCESS`);
                 const created = await this.userService.create(validatedUser);
                 res.status(HTTP_STATUS_CODE.CREATED).json(created);
             } else {
-                this.loggerService.debug(`validation for new user fails`);
+                this.loggerService.info(`VALIDATION REJECTED`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
-
-            this.loggerService.info(`user with email ${validatedUser.email} created sucesfully`);
 
         } catch (error) {
             this.handleError(res, error as any);
@@ -50,6 +49,7 @@ export class UserController {
 
     readonly login = async (req: Request, res: Response): Promise<void> => {
         try {
+            this.loggerService.info('USER LOGIN ATTEMP');
             const user = req.body;
             const [error, validatedUser] = await LoginUserValidator.validate(user);
 
@@ -60,6 +60,7 @@ export class UserController {
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
+
         } catch (error) {
             this.handleError(res, error as any);
         }
@@ -67,6 +68,7 @@ export class UserController {
 
     readonly validateEmail = async (req: Request, res: Response): Promise<void> => {
         try {
+            this.loggerService.info('EMAIL VALIDATION ATTEMP');
             const token = req.params.token;
             await this.userService.validateEmail(token);
             res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
@@ -97,6 +99,7 @@ export class UserController {
     }
 
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
+        this.loggerService.info('USER DELETION ATTEMP');
         try {
             const id = req.params.id;
             await this.userService.deleteOne(id);
@@ -107,15 +110,18 @@ export class UserController {
     }
 
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
+        this.loggerService.info('USER UPDATE ATTEMP');
         try {
             const id = req.params.id;
             const propertiesToUpdate = req.body;
             const [error, validatedProperties] = await UpdateUserValidator.validateAndTransform(propertiesToUpdate);
 
             if (validatedProperties) {
+                this.loggerService.info(`VALIDATION SUCESS`);
                 const userUpdated = await this.userService.updateOne(id, validatedProperties);
                 res.status(HTTP_STATUS_CODE.OK).json(userUpdated);
             } else {
+                this.loggerService.info(`VALIDATION REJECTED`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }

@@ -10,6 +10,7 @@ import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 import { User } from "../types/user/user.type";
 import { HttpLoggerService } from "./http-logger.service";
+import { SystemLoggerService } from "./system-logger.service";
 
 export class UserService {
 
@@ -25,7 +26,7 @@ export class UserService {
     private async sendEmailValidationLink(email: string): Promise<void> {
         // this function shouldn't be called if emailService is not provided 
         if (!this.emailService) {
-            console.error('Email service should be injected to use this feature');
+            SystemLoggerService.error('AN EMAIL VALIDATION IS TRYING TO BE SENT BUT EMAIL SERVICE IS NOT INJECTED');
             throw HttpError.internalServer('Email can not be validated due to a server error');
         }
 
@@ -45,47 +46,52 @@ export class UserService {
     async validateEmail(token: string): Promise<void> {
         // token verification
         const payload = this.jwtService.verify(token);
-        if (!payload)
+        if (!payload) {
+            this.loggerService.error('INVALID TOKEN');
             throw HttpError.badRequest('Invalid token')
+        }
 
         const { email } = payload as { email: string };
-        if (!email)
+        if (!email) {
+            this.loggerService.error('EMAIL NOT IN TOKEN');
             throw HttpError.internalServer('Email not in token');
+        }
 
         // check user existence
         const user = await this.userModel.findOne({ email }).exec();
-        if (!user)
+        if (!user) {
+            this.loggerService.error(`USER ${email} NOT FOUND`);
             throw HttpError.notFound('User not found');
+        }
 
         // update 
         user.emailValidated = true;
         await user.save();
+
+        this.loggerService.info(`USER ${user.id} UPDATED TO VALID`);
     }
 
     async create(user: CreateUserValidator): Promise<{ user: HydratedDocument<User>, token: string }> {
         try {
-            this.loggerService.info(`starting creation for user with email: ${user.email}`);
-
             // hashing
             const passwordHash = await this.hashingService.hash(user.password);
             user.password = passwordHash;
-            this.loggerService.debug(`password hashed`);
 
             // creation in db
             const created = await this.userModel.create(user);
-            this.loggerService.debug(`user saved in db`);
 
             // token generation
             const token = this.jwtService.generate({ id: created.id });
-            this.loggerService.debug(`token generated with id ${created.id}`);
 
             // email validation
             if (this.configService.mailServiceIsDefined()) {
                 await this.sendEmailValidationLink(user.email);
-                this.loggerService.info(`email validation link sent to: ${user.email}`);
+                this.loggerService.info('EMAIL VALIDATION LINK SENT');
             } else {
-                this.loggerService.warn(`email validation is not enabled`);
+                this.loggerService.warn(`EMAIL VALIDATION NOT ENABLED`);
             }
+
+            this.loggerService.info(`USER ${created.id} CREATED`);
 
             return {
                 user: created,
@@ -95,7 +101,7 @@ export class UserService {
         } catch (error: any) {
             if (error.code == 11000) {
                 const duplicatedKey = Object.values(error.keyValue).join(', ');
-                this.loggerService.error(`duplicated key error: ${duplicatedKey} already exists`);
+                this.loggerService.error(`DUPLICATE KEY ERROR`);
                 throw HttpError.badRequest(`${duplicatedKey} already exists`);
             }
             else {
@@ -107,19 +113,25 @@ export class UserService {
     async login(userToLogin: LoginUserValidator): Promise<{ user: HydratedDocument<User>, token: string }> {
         // check user existence
         const userDb = await this.userModel.findOne({ email: userToLogin.email }).exec();
-        if (!userDb)
+        if (!userDb) {
+            this.loggerService.error(`USER ${userToLogin.email} NOT FOUND`);
             throw HttpError.badRequest(`User with email ${userToLogin.email} not found`);
+        }
 
         // check password
         const passwordOk = await this.hashingService.compare(
             userToLogin.password,
             userDb.password
         );
-        if (!passwordOk)
+        if (!passwordOk) {
+            this.loggerService.error('PASSWORD DOES NOT MATCH');
             throw HttpError.badRequest('Incorrect password');
+        }
 
         // token generation
         const token = this.jwtService.generate({ id: userDb.id });
+
+        this.loggerService.info(`USER "${userDb.id}" LOGGED IN`);
 
         return {
             user: userDb,
@@ -136,6 +148,7 @@ export class UserService {
 
         if (!userDb)
             throw HttpError.badRequest(`User with id ${id} not found`);
+
         return userDb;
     }
 
@@ -159,8 +172,12 @@ export class UserService {
         if (Types.ObjectId.isValid(id))
             deleted = await this.userModel.findByIdAndDelete(id).exec();
 
-        if (!deleted)
+        if (!deleted) {
+            this.loggerService.error(`USER ${id} NOT FOUND`);
             throw HttpError.badRequest(`User with id ${id} not found`);
+        }
+
+        this.loggerService.info(`USER ${id} DELETED`);
     }
 
     async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<User>> {
@@ -168,10 +185,14 @@ export class UserService {
         if (Types.ObjectId.isValid(id))
             user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
 
-        if (!user)
+        if (!user) {
+            this.loggerService.error(`USER ${id} NOT FOUND`);
             throw HttpError.badRequest(`User with id ${id} not found`);
+        }
 
         Object.assign(user, propertiesUpdated);
+        this.loggerService.info(`USER ${id} UPDATED`);
+
         return user;
     }
 }
