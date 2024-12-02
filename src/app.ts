@@ -8,7 +8,7 @@ import { SystemLoggerService } from "./services/system-logger.service";
 
 async function main() {
     const configService = new ConfigService();    
-    SystemLoggerService.info(`Current enviroment: ${configService.NODE_ENV}`);
+    SystemLoggerService.info(`Starting application in current enviroment: ${configService.NODE_ENV}`);
 
     const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageStore>();
 
