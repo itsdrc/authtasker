@@ -37,7 +37,7 @@ export class UserController {
                 const created = await this.userService.create(validatedUser);
                 res.status(HTTP_STATUS_CODE.CREATED).json(created);
             } else {
-                this.loggerService.info(`VALIDATION REJECTED`);
+                this.loggerService.error(`VALIDATION REJECTED`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
@@ -121,7 +121,7 @@ export class UserController {
                 const userUpdated = await this.userService.updateOne(id, validatedProperties);
                 res.status(HTTP_STATUS_CODE.OK).json(userUpdated);
             } else {
-                this.loggerService.info(`VALIDATION REJECTED`);
+                this.loggerService.error(`VALIDATION REJECTED`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
