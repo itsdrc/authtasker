@@ -5,7 +5,7 @@ import { AsyncLocalStorageStore } from "@root/types/common/asyncLocalStorage.typ
 import { ConfigService } from "@root/services/config.service";
 import { EmailService } from "@root/services/email.service";
 import { HashingService } from "@root/services/hashing.service";
-import { HttpLoggerService } from "@root/services/http-logger.service";
+import { LoggerService } from "@root/services/logger.service";
 import { JwtService } from "@root/services/jwt.service";
 import { requestContextMiddlewareFactory } from "@root/middlewares/common/request-context.middleware";
 import { UserModel } from "@root/databases/mongo/schemas/user.schema";
@@ -17,7 +17,7 @@ export class AppRoutes {
 
     constructor(
         private readonly configService: ConfigService,
-        private readonly httpLoggerService: HttpLoggerService,
+        private readonly loggerService: LoggerService,
         private readonly asyncLocalStorage: AsyncLocalStorage<AsyncLocalStorageStore>
     ) {}
 
@@ -48,7 +48,7 @@ export class AppRoutes {
             UserModel,
             hashingService,
             jwtService,
-            this.httpLoggerService,
+            this.loggerService,
             emailService,
         );
 

@@ -6,14 +6,14 @@ import { Server } from "./server/server.init";
 import { AsyncLocalStorageStore } from "./types/common/asyncLocalStorage.type";
 import { SystemLoggerService } from "./services/system-logger.service";
 import { MongooseEventsListener } from "./events/mongoose.events";
-import { HttpLoggerService } from "./services/http-logger.service";
+import { LoggerService } from "./services/logger.service";
 
 async function main() {
     const configService = new ConfigService();
     SystemLoggerService.info(`Starting application in ${configService.NODE_ENV} MODE`);
 
     const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageStore>();
-    const loggerService = new HttpLoggerService(configService, asyncLocalStorage);
+    const loggerService = new LoggerService(configService, asyncLocalStorage);
 
     new MongooseEventsListener(loggerService);
 

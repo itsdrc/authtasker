@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { EventManager } from "@root/events/eventManager";
-import { HttpLoggerService } from "@root/services/http-logger.service";
+import { LoggerService } from "@root/services/logger.service";
 
 export class MongooseEventsListener {
 
-    constructor(private readonly loggerService: HttpLoggerService) {
+    constructor(private readonly loggerService: LoggerService) {
         this.listenConnectionEvents();
         this.listModelEvents('user');
     }

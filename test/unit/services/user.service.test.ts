@@ -10,7 +10,7 @@ import { JwtService } from "@root/services/jwt.service";
 import { User } from "@root/types/user/user.type";
 import { UserService } from "@root/services/user.service";
 import { ConfigService } from '@root/services/config.service';
-import { HttpLoggerService } from '@root/services/http-logger.service';
+import { HttpLoggerService } from '@root/services/logger.service';
 
 // These tests only test the most critical parts of the service:
 // validateEmail, sendEmailValidationLink, create and login

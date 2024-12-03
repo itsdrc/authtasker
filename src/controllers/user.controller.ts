@@ -3,7 +3,7 @@ import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.consta
 import { CreateUserValidator, LoginUserValidator } from "@root/rules/validators/models/user";
 import { UserService } from "@root/services/user.service";
 import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
-import { HttpLoggerService } from "@root/services/http-logger.service";
+import { LoggerService } from "@root/services/logger.service";
 import { HttpError } from "@root/rules/errors/http.error";
 import { UNEXPECTED_ERROR_MESSAGE } from "./constants/unexpected-error.constant";
 
@@ -11,7 +11,7 @@ export class UserController {
 
     constructor(
         private readonly userService: UserService,
-        private readonly loggerService: HttpLoggerService,
+        private readonly loggerService: LoggerService,
     ) {}
 
     handleError(res: Response, error: Error) {

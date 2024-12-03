@@ -14,7 +14,7 @@ import { ConfigService } from "./config.service";
     silly: number 
 */
 
-export class HttpLoggerService {
+export class LoggerService {
 
     constructor(
         private readonly configService: ConfigService,
