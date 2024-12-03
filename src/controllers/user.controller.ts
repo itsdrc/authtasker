@@ -22,7 +22,8 @@ export class UserController {
         else {
             res.status(500)
                 .json({ error: UNEXPECTED_ERROR_MESSAGE });
-            this.loggerService.error(`UNEXPECTED ERROR - ${error.message}`);
+            this.loggerService.error(`UNEXPECTED ERROR - ${error.message}`, error.stack);
+            this.loggerService.debug(`UNEXPECTED ERROR - ${error.stack}`);
         }
     };
 

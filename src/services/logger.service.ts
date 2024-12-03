@@ -50,8 +50,12 @@ export class LoggerService {
         ]
     });
 
-    private log(level: 'info' | 'error' | 'debug' | 'warn', message: string): void {
-        if(this.configService.HTTP_LOGS){
+    private log(
+        level: 'info' | 'error' | 'debug' | 'warn',
+        message: string,
+        stackTrace?: string
+    ): void {
+        if (this.configService.HTTP_LOGS) {
             const requestId = this.asyncLocalStorage.getStore()?.requestId || 'N/A';
             const method = this.asyncLocalStorage.getStore()?.method || 'Unknown Route';
             const url = this.asyncLocalStorage.getStore()?.url;
@@ -61,6 +65,7 @@ export class LoggerService {
                 method,
                 url,
                 requestId,
+                stackTrace,
             });
         }
     }
@@ -69,8 +74,8 @@ export class LoggerService {
         this.log('info', message);
     }
 
-    error(message: string) {
-        this.log('error', message);
+    error(message: string, stackTrace?: string) {
+        this.log('error', message, stackTrace);
     }
 
     debug(message: string) {
