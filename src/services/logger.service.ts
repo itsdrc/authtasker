@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from "async_hooks";
 import winston from "winston";
 import { AsyncLocalStorageStore } from "@root/types/common/asyncLocalStorage.type";
 import { ConfigService } from "./config.service";
+import { RequestLog } from "@root/types/logs/request.log.type";
 
 /*  
     WINSTON LEVELS
@@ -47,13 +48,13 @@ export class LoggerService {
         const prodLogsFilename = 'logs/prod/http.logs.log';
 
         const filename = currentEnv === 'production' ? prodLogsFilename : devLogsFilename;
-        const fileTransport = new winston.transports.File({ 
+        const fileTransport = new winston.transports.File({
             // no debug messages in fs
-            level: 'info',  
-            filename 
+            level: 'info',
+            filename
         });
 
-        this.logger = winston.createLogger({          
+        this.logger = winston.createLogger({
             transports: [
                 consoleTransport,
                 fileTransport
@@ -95,5 +96,15 @@ export class LoggerService {
 
     warn(message: string) {
         this.log('warn', message);
+    }
+
+    logRequest(data: RequestLog) {
+        if (this.configService.HTTP_LOGS) {
+            this.logger.log({
+                message: `Request completed (${data.responseTime}ms)`,
+                level: 'info',
+                ...data
+            })
+        };
     }
 }

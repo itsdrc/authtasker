@@ -55,7 +55,10 @@ export class AppRoutes {
         const router = Router();
 
         // global middlewares
-        router.use(requestContextMiddlewareFactory(this.asyncLocalStorage));
+        router.use(requestContextMiddlewareFactory(
+            this.asyncLocalStorage,
+            this.loggerService,            
+        ));
 
         // apis
         router.use('/api/users', userRoutes.routes);
