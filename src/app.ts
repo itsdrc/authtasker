@@ -1,7 +1,6 @@
 import { ConfigService } from "./services/config.service";
 import { AsyncLocalStorage } from "async_hooks";
 import { MongoDatabase } from "./databases/mongo/mongo.database";
-import { AppRoutes } from "./routes/server.routes";
 import { Server } from "./server/server.init";
 import { AsyncLocalStorageStore } from "./types/common/asyncLocalStorage.type";
 import { SystemLoggerService } from "./services/system-logger.service";
@@ -19,6 +18,9 @@ async function main() {
 
     const connected = await MongoDatabase.connect(configService.MONGO_URI)
     if (connected) {
+        // Allows the models to be loaded only if db is connected.
+        const { AppRoutes } = await import('./routes/server.routes');
+
         const appRoutes = new AppRoutes(configService, loggerService, asyncLocalStorage);
         const server = new Server(configService.PORT, appRoutes.routes);
         server.start();
