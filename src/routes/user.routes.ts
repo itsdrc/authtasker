@@ -8,6 +8,7 @@ import { EmailService } from "@root/services/email.service";
 import { UserService } from "@root/services/user.service";
 import { UserController } from "@root/controllers/user.controller";
 import { LoggerService } from "@root/services/logger.service";
+import { SystemLoggerService } from "@root/services/system-logger.service";
 
 export class UserRoutes {
 
@@ -18,7 +19,9 @@ export class UserRoutes {
         private readonly jwtService: JwtService,
         private readonly loggerService: LoggerService,
         private readonly emailService?: EmailService,        
-    ) {}
+    ) {
+        SystemLoggerService.info('User routes loaded');
+    }
 
     get routes(): Router {
         const router = Router();
