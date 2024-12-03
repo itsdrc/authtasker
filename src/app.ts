@@ -5,7 +5,7 @@ import { AppRoutes } from "./routes/server.routes";
 import { Server } from "./server/server.init";
 import { AsyncLocalStorageStore } from "./types/common/asyncLocalStorage.type";
 import { SystemLoggerService } from "./services/system-logger.service";
-import { MongoListener } from "./databases/mongo/mongo.listener";
+import { MongooseEventsListener } from "./events/mongoose.events";
 import { HttpLoggerService } from "./services/http-logger.service";
 
 async function main() {
@@ -15,7 +15,7 @@ async function main() {
     const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageStore>();
     const loggerService = new HttpLoggerService(configService, asyncLocalStorage);
 
-    new MongoListener(loggerService);
+    new MongooseEventsListener(loggerService);
 
     const connected = await MongoDatabase.connect(configService.MONGO_URI)
     if (connected) {

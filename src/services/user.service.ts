@@ -181,6 +181,7 @@ export class UserService {
     }
 
     async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<User>> {
+        // TODO: what if password is updated or email (emailValidated should be false);
         let user;
         if (Types.ObjectId.isValid(id))
             user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();

@@ -17,6 +17,7 @@ export class AppRoutes {
 
     constructor(
         private readonly configService: ConfigService,
+        private readonly httpLoggerService: HttpLoggerService,
         private readonly asyncLocalStorage: AsyncLocalStorage<AsyncLocalStorageStore>
     ) {}
 
@@ -42,17 +43,12 @@ export class AppRoutes {
             this.configService.BCRYPT_SALT_ROUNDS
         );
 
-        const loggerService = new HttpLoggerService(
-            this.configService,
-            this.asyncLocalStorage
-        );
-
         const userRoutes = new UserRoutes(
             this.configService,
             UserModel,
             hashingService,
             jwtService,
-            loggerService,
+            this.httpLoggerService,
             emailService,
         );
 
