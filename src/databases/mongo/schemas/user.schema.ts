@@ -3,6 +3,7 @@ import { UserInDb } from "@root/types/user/user-db.type";
 import { validRoles } from "@root/types/user/user-roles.type";
 import { User } from "@root/types/user/user.type";
 import { EventManager } from "@root/events/eventManager";
+import { SystemLoggerService } from "@root/services/system-logger.service";
 
 // you will see an error here if properties don't match the type
 const schema: UserInDb = {
@@ -73,3 +74,4 @@ userSchema.post('findOneAndDelete', (doc) => {
 });
 
 export const UserModel = mongoose.model<User>('user', userSchema);
+SystemLoggerService.info('User model loaded');
