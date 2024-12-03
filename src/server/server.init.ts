@@ -18,7 +18,7 @@ export class Server {
 
         return new Promise<void>((resolve) => {
             this.server = this.app.listen(this.port, () => {
-                SystemLoggerService.info(`Listening on port ${this.port}`)
+                SystemLoggerService.info(`Server listening on port ${this.port}`)
                 resolve();
             });
         });

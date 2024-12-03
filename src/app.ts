@@ -10,7 +10,7 @@ import { HttpLoggerService } from "./services/http-logger.service";
 
 async function main() {
     const configService = new ConfigService();
-    SystemLoggerService.info(`Starting application in current enviroment: ${configService.NODE_ENV}`);
+    SystemLoggerService.info(`Starting application in ${configService.NODE_ENV} MODE`);
 
     const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageStore>();
     const loggerService = new HttpLoggerService(configService, asyncLocalStorage);
