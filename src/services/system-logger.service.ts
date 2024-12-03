@@ -5,6 +5,9 @@ export class SystemLoggerService {
     private static logger: winston.Logger;
 
     static {
+        const devLogsFilename = 'logs/dev/system.logs.log';
+        const prodLogsFilename = 'logs/prod/system.logs.log';
+
         SystemLoggerService.logger = winston.createLogger({
             transports: [
                 new winston.transports.Console({
@@ -12,7 +15,7 @@ export class SystemLoggerService {
                         winston.format.timestamp(),
                         winston.format.printf(({ level, message, timestamp }) => {
                             const colorizer = winston.format.colorize().colorize;
-                            
+
                             // always green
                             const coloredTimestamp = colorizer('info', `[${timestamp}]`);
                             const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);
@@ -23,7 +26,8 @@ export class SystemLoggerService {
                     )
                 }),
                 new winston.transports.File({
-                    filename: 'logs/system.logs.log'
+                    filename: process.env.NODE_ENV === 'production'
+                        ? prodLogsFilename : devLogsFilename,
                 }),
             ]
         });
@@ -32,10 +36,14 @@ export class SystemLoggerService {
     static info(message: string) {
         SystemLoggerService.logger.info(message);
     }
-
-    static error(message: string) {
+    
+    static error(message: string, stackTrace?: string) {
         try {
-            SystemLoggerService.logger.error(message);
+            SystemLoggerService.logger.log({
+                level: 'error',
+                message,
+                stackTrace
+            });
         } catch (error) {
             console.error(error);
         }

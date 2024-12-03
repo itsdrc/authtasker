@@ -16,39 +16,50 @@ import { ConfigService } from "./config.service";
 
 export class LoggerService {
 
+    private logger: winston.Logger;
+
     constructor(
         private readonly configService: ConfigService,
         private readonly asyncLocalStorage: AsyncLocalStorage<AsyncLocalStorageStore>
-    ) {}
+    ) {
+        const currentEnv = this.configService.NODE_ENV;
 
-    // development: all
-    // production: no debug messages
+        const consoleTransport = new winston.transports.Console({
+            // no debug messages in production mode
+            level: currentEnv === 'production' ? 'info' : 'debug',
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.printf(({ level, message, timestamp, method, requestId }) => {
+                    const colorizer = winston.format.colorize().colorize;
 
-    private readonly logger = winston.createLogger({
-        level: this.configService.NODE_ENV === 'production' ? 'info' : 'debug',
-        transports: [
-            new winston.transports.Console({
-                format: winston.format.combine(
-                    winston.format.timestamp(),
-                    winston.format.printf(({ level, message, timestamp, method, requestId }) => {
-                        const colorizer = winston.format.colorize().colorize;
+                    const messageUpperCase = `${(message as string).toUpperCase()}`;
+                    const coloredTimestamp = colorizer(level, `[${timestamp}]`);
+                    const coloredMethod = colorizer(level, `[${method}]`);
+                    const coloredRequest = colorizer(level, `[${requestId}]`);
+                    const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);
 
-                        const messageUpperCase = `${(message as string).toUpperCase()}`;
-                        const coloredTimestamp = colorizer(level, `[${timestamp}]`);
-                        const coloredMethod = colorizer(level, `[${method}]`);
-                        const coloredRequest = colorizer(level, `[${requestId}]`);
-                        const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);
+                    return `${coloredTimestamp} ${coloredRequest} ${coloredMethod}  ${coloredLevel}: ${messageUpperCase}`;
+                }),
+            ),
+        });
 
-                        return `${coloredTimestamp} ${coloredRequest} ${coloredMethod}  ${coloredLevel}: ${messageUpperCase}`;
-                    }),
-                ),
-            }),
-            new winston.transports.File({
-                level: 'info',
-                filename: 'logs/http.logs.log',
-            })
-        ]
-    });
+        const devLogsFilename = 'logs/dev/http.logs.log';
+        const prodLogsFilename = 'logs/prod/http.logs.log';
+
+        const filename = currentEnv === 'production' ? prodLogsFilename : devLogsFilename;
+        const fileTransport = new winston.transports.File({ 
+            // no debug messages in fs
+            level: 'info',  
+            filename 
+        });
+
+        this.logger = winston.createLogger({          
+            transports: [
+                consoleTransport,
+                fileTransport
+            ]
+        });
+    }
 
     private log(
         level: 'info' | 'error' | 'debug' | 'warn',
