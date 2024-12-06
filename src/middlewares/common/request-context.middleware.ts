@@ -8,9 +8,11 @@ export const requestContextMiddlewareFactory = (
     loggerService: LoggerService,
 ) => {
     return (req: Request, res: Response, next: NextFunction) => {
+        loggerService.info('INCOMING REQUEST RECEIVED, INITIALIZING CONTEXT...');
+
         const url = req.originalUrl;
         const method = req.method;
-        const requestId = uuidv4();        
+        const requestId = uuidv4();
 
         const store = {
             requestId,
@@ -29,7 +31,7 @@ export const requestContextMiddlewareFactory = (
                 method: req.method,
                 requestId: requestId,
                 responseTime: durationInMs,
-                statusCode: res.statusCode,                
+                statusCode: res.statusCode,
                 url,
             })
         });
