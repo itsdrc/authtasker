@@ -1,4 +1,4 @@
-import { UserRoles } from "./user-roles.type";
+import { UserRole } from "./user-roles.type";
 
 // Represents the UserModel.
 export type User = {
@@ -8,6 +8,6 @@ export type User = {
     password: string;
     createdAt: Date;
     updatedAt: Date;
-    role: UserRoles;
+    role: UserRole;
     emailValidated: boolean;
 }
