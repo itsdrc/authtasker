@@ -11,6 +11,7 @@ import { User } from "@root/types/user/user.type";
 import { UserService } from "@root/services/user.service";
 import { ConfigService } from '@root/services/config.service';
 import { LoggerService } from '@root/services/logger.service';
+import { SystemLoggerService } from '@root/services/system-logger.service';
 
 // These tests only test the most critical parts of the service:
 // validateEmail, sendEmailValidationLink, create and login
@@ -26,8 +27,8 @@ describe('UserService', () => {
     let loggerService: MockProxy<LoggerService>;
     let userService: UserService;
 
-    // Disables console.error
-    console['error'] = jest.fn();
+    // Disables systemLoggerService.error printing
+    SystemLoggerService.error = jest.fn(); 
 
     beforeEach(() => {
         hashingServiceMock = mock<HashingService>();
@@ -342,8 +343,24 @@ describe('UserService', () => {
                     );
             });
 
-            test('should call logs service', async () => {
-                // TODO:
+            test('should call systemLogs.error', async () => {
+                const systemLoggerServiceSpy = jest.spyOn(SystemLoggerService, 'error');
+
+                // inject everything but email service
+                const testUserService = new UserService(
+                    configServiceMock as any,
+                    userModelMock,
+                    hashingServiceMock,
+                    jwtServiceMock,
+                    loggerService,
+                    undefined,
+                );
+
+                expect(testUserService['sendEmailValidationLink'](''))
+                    .rejects
+                    .toThrow();
+
+                expect(systemLoggerServiceSpy).toHaveBeenCalledTimes(1);
             });
         });
 
