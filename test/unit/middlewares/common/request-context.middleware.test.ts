@@ -1,15 +1,15 @@
 import { faker } from "@faker-js/faker/.";
 import * as UUid from 'uuid';
 import { requestContextMiddlewareFactory } from "@root/middlewares/common/request-context.middleware";
-import { LoggerService } from "@root/services/logger.service";
-import { AsyncLocalStorage } from "async_hooks";
-import { Response, Request } from "express";
 import { RequestLog } from "@root/types/logs/request.log.type";
+import * as ErrorHandler  from "@root/common/helpers/handle-error.helper";
 
 describe('request context middleware', () => {
     test('should set the request id in Request-Id header', async () => {
-        // --- mock injections ---
-        const loggerServiceMock = {};
+        // --- mock injections ---        
+        const loggerServiceMock = {
+            info: jest.fn(),
+        };
 
         const asyncLocalStorageMock = {
             run: jest.fn()
@@ -28,6 +28,9 @@ describe('request context middleware', () => {
         // --- mock id generation ---
         const requestIdMock = faker.food.vegetable();
         jest.spyOn(UUid, 'v4').mockReturnValue(requestIdMock as any);
+
+        // stub error handler
+        jest.spyOn(ErrorHandler, 'handleError').mockImplementation();
 
         // create middleware
         const middleware = requestContextMiddlewareFactory(
@@ -48,7 +51,9 @@ describe('request context middleware', () => {
 
     test('asyncLocalStorage.run should be called with the store data (url, method, requestId)', () => {
         // --- mock injections ---
-        const loggerServiceMock = {};
+        const loggerServiceMock = {
+            info: jest.fn(),
+        };
 
         const asyncLocalStorageMock = {
             run: jest.fn()
@@ -66,6 +71,9 @@ describe('request context middleware', () => {
             originalUrl: faker.internet.url(),
             method: faker.food.vegetable(),
         };
+
+        // stub error handler
+        jest.spyOn(ErrorHandler, 'handleError').mockImplementation();
 
         // create middleware
         const middleware = requestContextMiddlewareFactory(
@@ -98,7 +106,9 @@ describe('request context middleware', () => {
 
     test('next function should be called inside the callback passed to asyncLocalStorage.run', async () => {
         // --- mock injections ---
-        const loggerServiceMock = {};
+        const loggerServiceMock = {
+            info: jest.fn()
+        };
 
         const asyncLocalStorageMock = {
             run: jest.fn((store, callback) => {
@@ -115,6 +125,9 @@ describe('request context middleware', () => {
             setHeader: jest.fn(),
             on: jest.fn()
         };
+
+        // stub error handler
+        jest.spyOn(ErrorHandler, 'handleError').mockImplementation();
 
         // create middleware
         const middleware = requestContextMiddlewareFactory(
@@ -135,6 +148,7 @@ describe('request context middleware', () => {
     test('logger service should be called when request finishes with req data', () => {
         // --- mock injections ---
         const loggerServiceMock = {
+            info: jest.fn(),
             logRequest: jest.fn(),
         };
 
@@ -169,6 +183,9 @@ describe('request context middleware', () => {
             loggerServiceMock as any,
         );
 
+        // stub error handler
+        jest.spyOn(ErrorHandler, 'handleError').mockImplementation();
+
         // execute
         middleware(
             requestMock as any,
@@ -190,4 +207,6 @@ describe('request context middleware', () => {
         expect(loggerServiceMock.logRequest)
             .toHaveBeenCalledWith(logExpected);
     });
+    
+    // TODO: TEST ERROR HANDLING
 });
