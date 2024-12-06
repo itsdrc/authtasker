@@ -9,6 +9,7 @@ import { UserService } from "@root/services/user.service";
 import { UserController } from "@root/controllers/user.controller";
 import { LoggerService } from "@root/services/logger.service";
 import { SystemLoggerService } from "@root/services/system-logger.service";
+import { rolesMiddlewareFactory } from "@root/middlewares/common/roles.middleware";
 
 export class UserRoutes {
 
@@ -18,7 +19,7 @@ export class UserRoutes {
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
         private readonly loggerService: LoggerService,
-        private readonly emailService?: EmailService,        
+        private readonly emailService?: EmailService,
     ) {
         SystemLoggerService.info('User routes loaded');
     }
@@ -33,14 +34,24 @@ export class UserRoutes {
             this.loggerService,
             this.emailService
         );
-        const controller = new UserController(service, this.loggerService);        
-        router.post('/create', controller.create);
+
+        const controller = new UserController(service, this.loggerService);
+        const onlyAdminMiddleware = rolesMiddlewareFactory(
+            'admin',
+            this.userModel,
+            this.loggerService,
+            this.jwtService
+        );
+
         router.post('/login', controller.login);
         router.get('/validate-email/:token', controller.validateEmail);
-        router.get('/:id', controller.findOne);
-        router.get('/',controller.findAll);    
-        router.delete('/:id', controller.deleteOne);            
-        router.patch('/:id', controller.updateOne);
+
+        router.post('/create', onlyAdminMiddleware, controller.create);
+        router.get('/:id', onlyAdminMiddleware, controller.findOne);
+        router.get('/', onlyAdminMiddleware, controller.findAll);
+        router.delete('/:id', onlyAdminMiddleware, controller.deleteOne);
+        router.patch('/:id', onlyAdminMiddleware, controller.updateOne);
+
         return router;
     }
 }
