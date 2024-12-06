@@ -181,14 +181,25 @@ export class UserService {
     }
 
     async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<User>> {
-        // TODO: what if password is updated or email (emailValidated should be false);
         let user;
-        if (Types.ObjectId.isValid(id))
-            user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
 
+        if (Types.ObjectId.isValid(id)) {
+            if (propertiesUpdated.password) {
+                propertiesUpdated.password = await this.hashingService.hash(propertiesUpdated.password);
+            }
+            user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
+        }
+
+        // id is not valid / user not found
         if (!user) {
             this.loggerService.error(`USER ${id} NOT FOUND`);
             throw HttpError.badRequest(`User with id ${id} not found`);
+        }
+
+        // if email is different change "emailValidated" prop
+        if (propertiesUpdated.email) {
+            if (user.email !== propertiesUpdated.email)
+                user.emailValidated = false;
         }
 
         Object.assign(user, propertiesUpdated);
