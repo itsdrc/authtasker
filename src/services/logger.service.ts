@@ -85,8 +85,10 @@ export class LoggerService {
     info(message: string) {
         this.log('info', message);
     }
-
+    
     error(message: string, stackTrace?: string) {
+        // stackTrace is not shown in console, 
+        // use debug to print the stack
         this.log('error', message, stackTrace);
     }
 
