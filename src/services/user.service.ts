@@ -186,9 +186,6 @@ export class UserService {
         let user;
 
         if (Types.ObjectId.isValid(id)) {
-            if (propertiesUpdated.password) {
-                propertiesUpdated.password = await this.hashingService.hash(propertiesUpdated.password);
-            }
             user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
         }
 
@@ -197,6 +194,12 @@ export class UserService {
             this.loggerService.error(`USER ${id} NOT FOUND`);
             throw HttpError.badRequest(`User with id ${id} not found`);
         }
+
+        if (propertiesUpdated.password) {
+            user.password = await this.hashingService.hash(propertiesUpdated.password);
+        }
+
+        console.log(user);
 
         // if email is different change "emailValidated" prop
         if (propertiesUpdated.email) {

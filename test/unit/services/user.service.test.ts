@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker/.';
 import { mock, mockDeep, MockProxy } from 'jest-mock-extended';
-import { Model, Query, Types } from "mongoose";
+import mongoose, { Model, Query } from "mongoose";
 
 import type { FindMockQuery, NoReadonly } from '../test-helpers/types';
 
@@ -530,6 +530,82 @@ describe('UserService', () => {
                         token,
                         user: userInDbMock,
                     });
+            });
+        });
+    });
+
+    describe('UPDATE ONE', () => {
+        describe('user found', () => {
+            describe('if password is being updated', () => {
+                test('hashingService.hash should be called with the new password', async () => {
+                    // mock user found to avoid bad request error
+                    userModelMock.findByIdAndUpdate().exec
+                        .mockResolvedValue({} as any);
+
+                    // provide a valid id to avoid bad request exception
+                    const validMongoId = new mongoose.Types.ObjectId().toString();
+                    const propertiesUpdated = {
+                        password: 'unhashed password'
+                    };
+
+                    // mock hashing
+                    const hashMock = 'hash mock';
+                    hashingServiceMock.hash.mockResolvedValue(hashMock);
+
+                    // this function should be called with the hash
+                    const objectAssignSpy = jest.spyOn(Object, 'assign')
+                        .mockImplementation();
+
+                    await userService.updateOne(validMongoId, propertiesUpdated);
+
+                    expect(objectAssignSpy)
+                        .toHaveBeenCalledWith({ password: hashMock }, propertiesUpdated)
+                });
+            });
+
+            describe('if updating an user email whose former email was validated', () => {
+                describe('if email is different', () => {
+                    test('emailValidated should be updated to false', async () => {
+                        // mock user found with a validated email
+                        const userFoundMock = {
+                            emailValidated: true,
+                            email: faker.internet.email(),
+                        };
+                        userModelMock.findByIdAndUpdate().exec
+                            .mockResolvedValue(userFoundMock);
+
+                        // provide a valid id to avoid bad request exception
+                        const validMongoId = new mongoose.Types.ObjectId().toString();
+                        const propertiesUpdated = {
+                            email: 'new email'
+                        };
+
+                        await userService.updateOne(validMongoId, propertiesUpdated);
+
+                        expect(userFoundMock.emailValidated).toBeFalsy();
+                    });
+                });
+
+                describe('if the email is the same', () => {
+                    test('emailValidated should remain true', async () => {
+                        const email = faker.internet.email();
+                        // mock user found with a validated email
+                        const userFoundMock = {
+                            emailValidated: true,
+                            email,
+                        };
+                        userModelMock.findByIdAndUpdate().exec
+                            .mockResolvedValue(userFoundMock);
+
+                        // provide a valid id to avoid bad request exception
+                        const validMongoId = new mongoose.Types.ObjectId().toString();
+                        const propertiesUpdated = { email };
+
+                        await userService.updateOne(validMongoId, propertiesUpdated);
+
+                        expect(userFoundMock.emailValidated).toBeTruthy();
+                    });
+                });
             });
         });
     });
