@@ -30,11 +30,11 @@ describe('UserService', () => {
     console['error'] = jest.fn();
 
     beforeEach(() => {
-        hashingServiceMock = mockDeep<HashingService>();
-        jwtServiceMock = mockDeep<JwtService>();
-        userModelMock = (mockDeep<Model<User>>() as any);
-        configServiceMock = mockDeep<NoReadonly<ConfigService>>();
-        emailServiceMock = mockDeep<EmailService>();
+        hashingServiceMock = mock<HashingService>();
+        jwtServiceMock = mock<JwtService>();
+        userModelMock = (mock<Model<User>>() as any);
+        configServiceMock = mock<NoReadonly<ConfigService>>();
+        emailServiceMock = mock<EmailService>();
         loggerService = mock<LoggerService>();
 
         // this allows, for example, findOne().exec() to be a mock...
