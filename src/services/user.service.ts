@@ -141,11 +141,11 @@ export class UserService {
 
     async findOne(id: string): Promise<HydratedDocument<User>> {
         let userDb;
-        // avoids the error throwing when id is not a mongo id
-        // otherwise is easy to know that we are using mongo as db
+
         if (Types.ObjectId.isValid(id))
             userDb = await this.userModel.findById(id).exec();
 
+        // id is not valdi / user not found
         if (!userDb)
             throw HttpError.badRequest(`User with id ${id} not found`);
 
@@ -169,9 +169,11 @@ export class UserService {
 
     async deleteOne(id: string): Promise<void> {
         let deleted;
+
         if (Types.ObjectId.isValid(id))
             deleted = await this.userModel.findByIdAndDelete(id).exec();
 
+        // id is not valid / user not found
         if (!deleted) {
             this.loggerService.error(`USER ${id} NOT FOUND`);
             throw HttpError.badRequest(`User with id ${id} not found`);
