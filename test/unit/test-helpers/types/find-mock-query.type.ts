@@ -4,7 +4,7 @@ import { Query } from "mongoose";
 /* 
   Let Typescript to know that any function in "Model" that starts with "find" is a:
   - jest mock
-  - function that when is called returns a Query with mocked 
+  - function that when is called returns a Query mocked 
   
   for example:
   model.findOne().mockResolvedValue(...) -> Ok, it is a mock
