@@ -6,7 +6,7 @@ import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.consta
 import { JwtService } from "@root/services/jwt.service";
 import { LoggerService } from "@root/services/logger.service";
 import { User } from "@root/types/user/user.type";
-import { canAccess } from "../helpers/can-access.helper";
+import { canAccess } from "./helpers/can-access.helper";
 import { handleError } from "@root/common/helpers/handle-error.helper";
 
 export const rolesMiddlewareFactory = (

@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker/.";
 import * as UUid from 'uuid';
-import { requestContextMiddlewareFactory } from "@root/middlewares/common/request-context.middleware";
+import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
 import { RequestLog } from "@root/types/logs/request.log.type";
 import * as ErrorHandler  from "@root/common/helpers/handle-error.helper";
 

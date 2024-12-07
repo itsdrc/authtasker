@@ -7,7 +7,7 @@ import { EmailService } from "@root/services/email.service";
 import { HashingService } from "@root/services/hashing.service";
 import { LoggerService } from "@root/services/logger.service";
 import { JwtService } from "@root/services/jwt.service";
-import { requestContextMiddlewareFactory } from "@root/middlewares/common/request-context.middleware";
+import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
 import { UserModel } from "@root/databases/mongo/schemas/user.schema";
 import { UserRoutes } from "./user.routes";
 

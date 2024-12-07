@@ -9,7 +9,7 @@ import { UserService } from "@root/services/user.service";
 import { UserController } from "@root/controllers/user.controller";
 import { LoggerService } from "@root/services/logger.service";
 import { SystemLoggerService } from "@root/services/system-logger.service";
-import { rolesMiddlewareFactory } from "@root/middlewares/common/roles.middleware";
+import { rolesMiddlewareFactory } from "@root/middlewares/roles.middleware";
 
 export class UserRoutes {
 
