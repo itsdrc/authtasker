@@ -7,12 +7,14 @@ export const handleError = (res: Response, error: Error | unknown, logger: Logge
     if (error instanceof HttpError) {
         res.status(error.statusCode).json({ error: error.message });
         // its assumed that error logging was handled in the service function that threw it
+        return;
     }
 
     if (error instanceof Error) {
         res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unexpected error' });
         logger.error(`UNEXPECTED ERROR: ${error.message}`, error.stack);
         logger.debug(`UNEXPECTED ERROR: ${error.stack}`);
+        return;
     }
 
     // unknown error
