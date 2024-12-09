@@ -19,9 +19,11 @@ export class SystemLoggerService {
                             // always green
                             const coloredTimestamp = colorizer('info', `[${timestamp}]`);
                             const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);
-                            const upperCaseMessage = (message as string).toUpperCase();
+                            const finalMessage = (message as any).toUpperCase();
 
-                            return `${coloredTimestamp} ${coloredLevel}: ${upperCaseMessage}`;
+                            const coloredMessage =  colorizer(level, finalMessage);
+
+                            return `${coloredTimestamp} ${coloredLevel}: ${coloredMessage}`;
                         }),
                     )
                 }),
@@ -36,7 +38,7 @@ export class SystemLoggerService {
     static info(message: string) {
         SystemLoggerService.logger.info(message);
     }
-    
+
     static error(message: string, stackTrace?: string) {
         try {
             SystemLoggerService.logger.log({
@@ -47,5 +49,9 @@ export class SystemLoggerService {
         } catch (error) {
             console.error(error);
         }
+    }
+
+    static warn(message: string){
+        SystemLoggerService.logger.warn(message);
     }
 }

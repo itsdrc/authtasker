@@ -12,7 +12,7 @@ export class SeedRoutes {
         private readonly userModel: Model<User>,
         private readonly hashingService: HashingService,    
     ) {
-        SystemLoggerService.info('Seed routes loaded');
+        SystemLoggerService.warn('Seed routes loaded');
     }
 
     get routes(){    

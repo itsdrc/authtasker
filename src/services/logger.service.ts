@@ -33,13 +33,18 @@ export class LoggerService {
                 winston.format.printf(({ level, message, timestamp, method, requestId }) => {
                     const colorizer = winston.format.colorize().colorize;
 
-                    const messageUpperCase = `${(message as string).toUpperCase()}`;
+                    const finalMessage = (() => {
+                        let mssg = (message as string).toLowerCase();
+                        return mssg[0].toUpperCase() + mssg.slice(1);                        
+                    })();
+
                     const coloredTimestamp = colorizer(level, `[${timestamp}]`);
                     const coloredMethod = colorizer(level, `[${method}]`);
                     const coloredRequest = colorizer(level, `[${requestId}]`);
                     const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);
+                    const coloredMessage = colorizer(level, finalMessage);
 
-                    return `${coloredTimestamp} ${coloredRequest} ${coloredMethod}  ${coloredLevel}: ${messageUpperCase}`;
+                    return `${coloredTimestamp} ${coloredRequest} ${coloredMethod}  ${coloredLevel}: ${finalMessage}`;
                 }),
             ),
         });
@@ -85,7 +90,7 @@ export class LoggerService {
     info(message: string) {
         this.log('info', message);
     }
-    
+
     error(message: string, stackTrace?: string) {
         // stackTrace is not shown in console, 
         // use debug to print the stack
