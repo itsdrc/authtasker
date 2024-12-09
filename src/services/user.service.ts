@@ -101,7 +101,7 @@ export class UserService {
         } catch (error: any) {
             if (error.code == 11000) {
                 const duplicatedKey = Object.values(error.keyValue).join(', ');
-                this.loggerService.error(`DUPLICATE KEY ERROR`);
+                this.loggerService.error(`DUPLICATE KEY ERROR: ${duplicatedKey}`);
                 throw HttpError.badRequest(`${duplicatedKey} already exists`);
             }
             else {
