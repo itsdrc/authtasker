@@ -2,47 +2,38 @@ import { faker } from "@faker-js/faker/.";
 import * as UUid from 'uuid';
 import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
 import { RequestLog } from "@root/types/logs/request.log.type";
-import * as ErrorHandler  from "@root/common/helpers/handle-error.helper";
+import * as GlobalHelpers from "@root/common/helpers/handle-error.helper";
+import { mock, MockProxy } from "jest-mock-extended";
+import { LoggerService } from "@root/services/logger.service";
+import { AsyncLocalStorage } from "async_hooks";
+import { Response } from "express";
 
 describe('request context middleware', () => {
+    let loggerServiceMock: MockProxy<LoggerService>;
+    let asyncLocalStorageMock: MockProxy<AsyncLocalStorage<unknown>>;
+    let responseMock: MockProxy<Response>;
+    let requestContextMiddleware: ReturnType<typeof requestContextMiddlewareFactory>;
+
+    beforeEach(() => {
+        loggerServiceMock = mock<LoggerService>();
+        asyncLocalStorageMock = mock<AsyncLocalStorage<unknown>>();
+        responseMock = mock<Response>();
+        requestContextMiddleware = requestContextMiddlewareFactory(
+            asyncLocalStorageMock,
+            loggerServiceMock,
+        );
+    });
+
     test('should set the request id in Request-Id header', async () => {
-        // --- mock injections ---        
-        const loggerServiceMock = {
-            info: jest.fn(),
-        };
-
-        const asyncLocalStorageMock = {
-            run: jest.fn()
-        };
-
-        // --- mock middleware arguments ---
-        const nextMock = jest.fn();
-
-        const requestMock = {} as unknown as Request;
-
-        const responseMock = {
-            setHeader: jest.fn(),
-            on: jest.fn()
-        };
-
-        // --- mock id generation ---
-        const requestIdMock = faker.food.vegetable();
+        // request id generation mock
+        const requestIdMock = 'generated req id mock';
         jest.spyOn(UUid, 'v4').mockReturnValue(requestIdMock as any);
 
-        // stub error handler
-        jest.spyOn(ErrorHandler, 'handleError').mockImplementation();
-
-        // create middleware
-        const middleware = requestContextMiddlewareFactory(
-            asyncLocalStorageMock as any,
-            loggerServiceMock as any,
-        );
-
         // execute
-        middleware(
-            requestMock as any,
-            responseMock as any,
-            nextMock as any,
+        requestContextMiddleware(
+            {} as any, // req stub
+            responseMock,
+            jest.fn(), // next() stub
         );
 
         expect(responseMock.setHeader)
@@ -50,47 +41,22 @@ describe('request context middleware', () => {
     });
 
     test('asyncLocalStorage.run should be called with the store data (url, method, requestId)', () => {
-        // --- mock injections ---
-        const loggerServiceMock = {
-            info: jest.fn(),
-        };
-
-        const asyncLocalStorageMock = {
-            run: jest.fn()
-        };
-
-        // --- mock middleware arguments ---
-        const nextMock = jest.fn();
-
-        const responseMock = {
-            setHeader: jest.fn(),
-            on: jest.fn()
-        };
-
+        // request mock
         const requestMock = {
             originalUrl: faker.internet.url(),
-            method: faker.food.vegetable(),
+            method: faker.internet.httpMethod(),
         };
 
-        // stub error handler
-        jest.spyOn(ErrorHandler, 'handleError').mockImplementation();
-
-        // create middleware
-        const middleware = requestContextMiddlewareFactory(
-            asyncLocalStorageMock as any,
-            loggerServiceMock as any,
-        );
-
-        // mock id generation
-        const requestIdMock = faker.food.vegetable();
+        // request id generation mock
+        const requestIdMock = 'generated req id mock';
         jest.spyOn(UUid, 'v4').mockReturnValue(requestIdMock as any);
 
         // execute
-        middleware(
+        requestContextMiddleware(
             requestMock as any,
-            responseMock as any,
-            nextMock as any,
-        );
+            responseMock,
+            jest.fn(), // next() stub
+        )
 
         const storeExpected = {
             requestId: requestIdMock,
@@ -105,92 +71,50 @@ describe('request context middleware', () => {
     });
 
     test('next function should be called inside the callback passed to asyncLocalStorage.run', async () => {
-        // --- mock injections ---
-        const loggerServiceMock = {
-            info: jest.fn()
-        };
+        // asyncLocalStorage.run mock (to call the callback immediately)
+        asyncLocalStorageMock.run
+            .mockImplementation((store: any, callback: any) => {
+                callback();
+            });
 
-        const asyncLocalStorageMock = {
-            run: jest.fn((store, callback) => {
-                callback(); // called immediately
-            }),
-        };
-
-        // --- mock middleware arguments ---
+        // next() mock
         const nextMock = jest.fn();
 
-        const requestMock = {};
-
-        const responseMock = {
-            setHeader: jest.fn(),
-            on: jest.fn()
-        };
-
-        // stub error handler
-        jest.spyOn(ErrorHandler, 'handleError').mockImplementation();
-
-        // create middleware
-        const middleware = requestContextMiddlewareFactory(
-            asyncLocalStorageMock as any,
-            loggerServiceMock as any,
-        );
-
         // execute
-        middleware(
-            requestMock as any,
+        requestContextMiddleware(
+            {} as any, // req stub
             responseMock as any,
-            nextMock as any,
+            nextMock,
         );
 
         expect(nextMock).toHaveBeenCalledTimes(1);
     });
 
     test('logger service should be called when request finishes with req data', () => {
-        // --- mock injections ---
-        const loggerServiceMock = {
-            info: jest.fn(),
-            logRequest: jest.fn(),
-        };
-
-        const asyncLocalStorageMock = {
-            run: jest.fn(),
-        };
-
-        // --- mock middleware arguments ---
-        const nextMock = jest.fn();
-
         const requestMock = {
             originalUrl: faker.internet.url(),
-            method: faker.food.vegetable(),
+            method: faker.internet.httpMethod(),
             ip: faker.internet.ip(),
         };
 
-        const responseMock = {
-            setHeader: jest.fn(),
-            on: jest.fn((event, callback) => {
-                callback(); // executed immediately
-            }),
-            statusCode: faker.internet.httpStatusCode(),
-        };
+        // response status code mock
+        const statusCodeMock = faker.internet.httpStatusCode();
+        responseMock.statusCode = statusCodeMock;
 
-        // mock id generation
-        const requestIdMock = faker.food.vegetable();
+        // call the callback immediately
+        responseMock.on.mockImplementation(((event: string, callback: any) => {
+            callback();
+        }) as any);
+
+        // request id generation mock
+        const requestIdMock = 'generated req id mock';
         jest.spyOn(UUid, 'v4').mockReturnValue(requestIdMock as any);
 
-        // create middleware
-        const middleware = requestContextMiddlewareFactory(
-            asyncLocalStorageMock as any,
-            loggerServiceMock as any,
-        );
-
-        // stub error handler
-        jest.spyOn(ErrorHandler, 'handleError').mockImplementation();
-
         // execute
-        middleware(
+        requestContextMiddleware(
             requestMock as any,
             responseMock as any,
-            nextMock as any,
+            jest.fn(), // next() stub
         );
 
         const logExpected: RequestLog = {
@@ -207,6 +131,27 @@ describe('request context middleware', () => {
         expect(loggerServiceMock.logRequest)
             .toHaveBeenCalledWith(logExpected);
     });
-    
-    // TODO: TEST ERROR HANDLING
+
+    describe('if an unexpected error occurs', () => {
+        test('handle error helper should be called', () => {
+            // error throwing mock
+            jest.spyOn(UUid, 'v4').mockImplementation(() => {
+                throw new Error();
+            });
+
+            // spy and mock
+            const handleErrorSpy = jest
+                .spyOn(GlobalHelpers, 'handleError')
+                .mockImplementation();
+
+            // execute
+            requestContextMiddleware(
+                {} as any, // req stub
+                responseMock as any,
+                jest.fn(), // next() stub
+            );
+
+            expect(handleErrorSpy).toHaveBeenCalled();
+        });
+    });
 });
