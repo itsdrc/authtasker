@@ -18,6 +18,6 @@ export const handleError = (res: Response, error: Error | unknown, logger: Logge
     }
 
     // unknown error
-    logger.error(`UNEXPECTED ERROR: ${error}`);
+    logger.error(`UNKNOWN ERROR: ${error}`);
     return res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unknown error' });
 };
