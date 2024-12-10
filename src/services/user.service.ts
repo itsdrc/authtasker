@@ -45,13 +45,14 @@ export class UserService {
 
     async validateEmail(token: string): Promise<void> {
         // token verification
-        const payload = this.jwtService.verify(token);
+        const payload = this.jwtService.verify<{ email: string }>(token);
         if (!payload) {
             this.loggerService.error('INVALID TOKEN');
             throw HttpError.badRequest('Invalid token')
         }
+        
+        const email =  payload.email;        
 
-        const { email } = payload as { email: string };
         if (!email) {
             this.loggerService.error('EMAIL NOT IN TOKEN');
             throw HttpError.internalServer('Email not in token');
