@@ -15,15 +15,18 @@ export class ConfigService {
     public readonly MAIL_SERVICE_PASS: string | undefined;
     public readonly WEB_URL: string;
     public readonly HTTP_LOGS: boolean;
+    public readonly REDIS_PORT: number;
+    public readonly REDIS_HOST: string;
+    public readonly REDIS_PASSWORD: string;
 
     constructor() {
         this.NODE_ENV = env.get('NODE_ENV')
             .required()
             .asEnum(['development', 'testing', 'production']);
 
-        this.HTTP_LOGS = env.get('HTTP_LOGS')            
+        this.HTTP_LOGS = env.get('HTTP_LOGS')
             .default("true")
-            .asBool();       
+            .asBool();
 
         this.MONGO_URI = env.get('MONGO_URI')
             .required()
@@ -70,6 +73,18 @@ export class ConfigService {
         this.WEB_URL = env.get('WEB_URL')
             .required()
             .asUrlString();
+
+        this.REDIS_PORT = env.get('REDIS_PORT')
+            .default(6379)
+            .asPortNumber();
+
+        this.REDIS_HOST = env.get('REDIS_HOST')
+            .default('127.0.0.1')
+            .asString();
+
+        this.REDIS_PASSWORD = env.get('REDIS_PASSWORD')
+            .required()
+            .asString();
     }
 
     mailServiceIsDefined(): this is this & {
