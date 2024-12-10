@@ -1,21 +1,22 @@
 import { Model } from "mongoose";
 import { Router } from "express";
+
 import { ConfigService } from "@root/services/config.service";
-import { User } from "@root/types/user/user.type";
-import { HashingService } from "@root/services/hashing.service";
-import { JwtService } from "@root/services/jwt.service";
 import { EmailService } from "@root/services/email.service";
-import { UserService } from "@root/services/user.service";
-import { UserController } from "@root/controllers/user.controller";
+import { HashingService } from "@root/services/hashing.service";
+import { IUser } from "@root/interfaces/user/user.interface";
+import { JwtService } from "@root/services/jwt.service";
 import { LoggerService } from "@root/services/logger.service";
-import { SystemLoggerService } from "@root/services/system-logger.service";
 import { rolesMiddlewareFactory } from "@root/middlewares/roles.middleware";
+import { SystemLoggerService } from "@root/services/system-logger.service";
+import { UserController } from "@root/controllers/user.controller";
+import { UserService } from "@root/services/user.service";
 
 export class UserRoutes {
 
     constructor(
         private readonly configService: ConfigService,
-        private readonly userModel: Model<User>,
+        private readonly userModel: Model<IUser>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
         private readonly loggerService: LoggerService,

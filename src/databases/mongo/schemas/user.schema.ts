@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { UserInDb } from "@root/types/user/user-db.type";
 import { validRoles } from "@root/types/user/user-roles.type";
-import { User } from "@root/types/user/user.type";
+import { IUser } from "@root/interfaces/user/user.interface";
 import { EventManager } from "@root/events/eventManager";
 import { SystemLoggerService } from "@root/services/system-logger.service";
 
@@ -36,7 +36,7 @@ const schema: UserInDb = {
     }
 };
 
-const userSchema = new mongoose.Schema<User>(schema, {
+const userSchema = new mongoose.Schema<IUser>(schema, {
     timestamps: true,
     toJSON: {
         virtuals: true,
@@ -73,5 +73,5 @@ userSchema.post('findOneAndDelete', (doc) => {
     }
 });
 
-export const UserModel = mongoose.model<User>('user', userSchema);
+export const UserModel = mongoose.model<IUser>('user', userSchema);
 SystemLoggerService.info('User model loaded');

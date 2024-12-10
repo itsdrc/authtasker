@@ -1,10 +1,10 @@
 
 // defines the log in fs
-export type RequestLog = {
+export interface IRequestLog {
     ip?: string;
     method: string;
     requestId: string;
     responseTime: number;
-    statusCode: number;    
+    statusCode: number;
     url: string;
 }

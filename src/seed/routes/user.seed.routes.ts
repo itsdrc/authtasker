@@ -1,16 +1,16 @@
 import { Model } from "mongoose";
 import { Router } from "express";
 
-import { User } from "@root/types/user/user.type";
 import { HashingService } from "@root/services/hashing.service";
-import { UserSeedService } from "../services/user.seed.service";
-import { UserSeedController } from "../controllers/user.seed.controller";
+import { IUser } from "@root/interfaces/user/user.interface";
 import { LoggerService } from "@root/services/logger.service";
+import { UserSeedController } from "../controllers/user.seed.controller";
+import { UserSeedService } from "../services/user.seed.service";
 
 export class UserSeedRoutes {
 
     constructor(
-        private readonly userModel: Model<User>,
+        private readonly userModel: Model<IUser>,
         private readonly hashingService: HashingService,
         private readonly loggerService: LoggerService,
     ) {}

@@ -1,7 +1,7 @@
-import { UserRole } from "./user-roles.type";
+import { UserRole } from "@root/types/user/user-roles.type";
 
 // Represents the UserModel.
-export type User = {
+export interface IUser {
     id: string;
     name: string;
     email: string;

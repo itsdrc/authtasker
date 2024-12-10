@@ -1,24 +1,23 @@
 import { AsyncLocalStorage } from "async_hooks";
 import { Router } from "express";
 
-import { AsyncLocalStorageStore } from "@root/types/common/asyncLocalStorage.type";
 import { ConfigService } from "@root/services/config.service";
 import { EmailService } from "@root/services/email.service";
 import { HashingService } from "@root/services/hashing.service";
-import { LoggerService } from "@root/services/logger.service";
+import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
 import { JwtService } from "@root/services/jwt.service";
+import { LoggerService } from "@root/services/logger.service";
 import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
+import { SeedRoutes } from "@root/seed/routes/seed.routes";
 import { UserModel } from "@root/databases/mongo/schemas/user.schema";
 import { UserRoutes } from "./user.routes";
-
-import { SeedRoutes } from "@root/seed/routes/seed.routes";
 
 export class AppRoutes {
 
     constructor(
         private readonly configService: ConfigService,
         private readonly loggerService: LoggerService,
-        private readonly asyncLocalStorage: AsyncLocalStorage<AsyncLocalStorageStore>
+        private readonly asyncLocalStorage: AsyncLocalStorage<IAsyncLocalStorageStore>
     ) {}
 
     get routes(): Router {

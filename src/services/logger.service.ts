@@ -1,8 +1,8 @@
 import { AsyncLocalStorage } from "async_hooks";
 import winston from "winston";
-import { AsyncLocalStorageStore } from "@root/types/common/asyncLocalStorage.type";
+import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
 import { ConfigService } from "./config.service";
-import { RequestLog } from "@root/types/logs/request.log.type";
+import { IRequestLog } from "@root/interfaces/logs/request.log.interface";
 
 /*  
     WINSTON LEVELS
@@ -21,7 +21,7 @@ export class LoggerService {
 
     constructor(
         private readonly configService: ConfigService,
-        private readonly asyncLocalStorage: AsyncLocalStorage<AsyncLocalStorageStore>
+        private readonly asyncLocalStorage: AsyncLocalStorage<IAsyncLocalStorageStore>
     ) {
         const currentEnv = this.configService.NODE_ENV;
 
@@ -105,7 +105,7 @@ export class LoggerService {
         this.log('warn', message);
     }
 
-    logRequest(data: RequestLog) {
+    logRequest(data: IRequestLog) {
         if (this.configService.HTTP_LOGS) {
             this.logger.log({
                 message: `Request completed (${data.responseTime}ms)`,

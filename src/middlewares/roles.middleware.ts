@@ -5,13 +5,13 @@ import type { UserRole } from "@root/types/user/user-roles.type";
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { JwtService } from "@root/services/jwt.service";
 import { LoggerService } from "@root/services/logger.service";
-import { User } from "@root/types/user/user.type";
+import { IUser } from "@root/interfaces/user/user.interface";
 import { canAccess } from "./helpers/can-access.helper";
 import { handleError } from "@root/common/helpers/handle-error.helper";
 
 export const rolesMiddlewareFactory = (
     minRoleRequired: UserRole,
-    userModel: Model<User>,
+    userModel: Model<IUser>,
     loggerService: LoggerService,
     jwtService: JwtService,
 ) => {

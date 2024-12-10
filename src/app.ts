@@ -1,17 +1,17 @@
-import { ConfigService } from "./services/config.service";
 import { AsyncLocalStorage } from "async_hooks";
+import { ConfigService } from "./services/config.service";
 import { MongoDatabase } from "./databases/mongo/mongo.database";
 import { Server } from "./server/server.init";
-import { AsyncLocalStorageStore } from "./types/common/asyncLocalStorage.type";
 import { SystemLoggerService } from "./services/system-logger.service";
 import { MongooseEventsListener } from "./events/mongoose.events";
 import { LoggerService } from "./services/logger.service";
+import { IAsyncLocalStorageStore } from "./interfaces/common/async-local-storage.interface";
 
 async function main() {
     const configService = new ConfigService();
     SystemLoggerService.info(`Starting application in ${configService.NODE_ENV} MODE`);
 
-    const asyncLocalStorage = new AsyncLocalStorage<AsyncLocalStorageStore>();
+    const asyncLocalStorage = new AsyncLocalStorage<IAsyncLocalStorageStore>();
     const loggerService = new LoggerService(configService, asyncLocalStorage);
 
     new MongooseEventsListener(loggerService);

@@ -1,13 +1,14 @@
 import { Model } from "mongoose";
 import { faker } from '@faker-js/faker';
-import { User } from "@root/types/user/user.type";
+
 import { HashingService } from "@root/services/hashing.service";
+import { IUser } from "@root/interfaces/user/user.interface";
 import { UserRequest } from "@root/types/user/user-request.type";
 
 export class UserSeedService {
 
     constructor(
-        private readonly userModel: Model<User>,
+        private readonly userModel: Model<IUser>,
         private readonly hashingService: HashingService,
     ) {}
 

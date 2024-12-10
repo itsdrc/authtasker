@@ -8,7 +8,7 @@ import { HttpError } from "../rules/errors/http.error";
 import { JwtService } from "./jwt.service";
 import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
-import { User } from "../types/user/user.type";
+import { IUser } from "../interfaces/user/user.interface";
 import { LoggerService } from "./logger.service";
 import { SystemLoggerService } from "./system-logger.service";
 
@@ -16,7 +16,7 @@ export class UserService {
 
     constructor(
         private readonly configService: ConfigService,
-        private readonly userModel: Model<User>,
+        private readonly userModel: Model<IUser>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
         private readonly loggerService: LoggerService,
@@ -62,7 +62,7 @@ export class UserService {
         const user = await this.userModel.findOne({ email }).exec();
         if (!user) {
             this.loggerService.error(`USER ${email} NOT FOUND`);
-            throw HttpError.notFound('User not found');
+            throw HttpError.notFound('IUser not found');
         }
 
         // update 
@@ -72,7 +72,7 @@ export class UserService {
         this.loggerService.info(`USER ${user.id} UPDATED TO VALID`);
     }
 
-    async create(user: CreateUserValidator): Promise<{ user: HydratedDocument<User>, token: string }> {
+    async create(user: CreateUserValidator): Promise<{ user: HydratedDocument<IUser>, token: string }> {
         try {
             // hashing
             const passwordHash = await this.hashingService.hash(user.password);
@@ -111,12 +111,12 @@ export class UserService {
         }
     }
 
-    async login(userToLogin: LoginUserValidator): Promise<{ user: HydratedDocument<User>, token: string }> {
+    async login(userToLogin: LoginUserValidator): Promise<{ user: HydratedDocument<IUser>, token: string }> {
         // check user existence
         const userDb = await this.userModel.findOne({ email: userToLogin.email }).exec();
         if (!userDb) {
             this.loggerService.error(`USER ${userToLogin.email} NOT FOUND`);
-            throw HttpError.badRequest(`User with email ${userToLogin.email} not found`);
+            throw HttpError.badRequest(`IUser with email ${userToLogin.email} not found`);
         }
 
         // check password
@@ -140,7 +140,7 @@ export class UserService {
         }
     }
 
-    async findOne(id: string): Promise<HydratedDocument<User>> {
+    async findOne(id: string): Promise<HydratedDocument<IUser>> {
         let userDb;
 
         if (Types.ObjectId.isValid(id))
@@ -148,12 +148,12 @@ export class UserService {
 
         // id is not valdi / user not found
         if (!userDb)
-            throw HttpError.badRequest(`User with id ${id} not found`);
+            throw HttpError.badRequest(`IUser with id ${id} not found`);
 
         return userDb;
     }
 
-    async findAll(limit?: number, page?: number): Promise<HydratedDocument<User>[]> {
+    async findAll(limit?: number, page?: number): Promise<HydratedDocument<IUser>[]> {
         if (!limit)
             limit = PAGINATION_SETTINGS.DEFAULT_LIMIT;
 
@@ -177,13 +177,13 @@ export class UserService {
         // id is not valid / user not found
         if (!deleted) {
             this.loggerService.error(`USER ${id} NOT FOUND`);
-            throw HttpError.badRequest(`User with id ${id} not found`);
+            throw HttpError.badRequest(`IUser with id ${id} not found`);
         }
 
         this.loggerService.info(`USER ${id} DELETED`);
     }
 
-    async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<User>> {
+    async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<IUser>> {
         let user;
 
         if (Types.ObjectId.isValid(id))
@@ -192,7 +192,7 @@ export class UserService {
         // id is not valid / user not found
         if (!user) {
             this.loggerService.error(`USER ${id} NOT FOUND`);
-            throw HttpError.badRequest(`User with id ${id} not found`);
+            throw HttpError.badRequest(`IUser with id ${id} not found`);
         }
 
         if (propertiesUpdated.password)
