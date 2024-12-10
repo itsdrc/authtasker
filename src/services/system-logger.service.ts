@@ -54,8 +54,4 @@ export class SystemLoggerService {
     static warn(message: string) {
         SystemLoggerService.logger.warn(message);
     }
-
-    static debug(message: string) {
-        SystemLoggerService.logger.debug(message);
-    }
 }
