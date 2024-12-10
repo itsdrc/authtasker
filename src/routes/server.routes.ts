@@ -66,7 +66,8 @@ export class AppRoutes {
         if (this.configService.NODE_ENV != 'production') {
             const seedRoutes = new SeedRoutes(
                 UserModel,
-                hashingService
+                hashingService,
+                this.loggerService,
             );
             router.use('/api/seed', seedRoutes.routes);
         }
