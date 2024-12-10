@@ -88,8 +88,8 @@ export class UserController {
     }
 
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
-        this.loggerService.info('USER DELETION ATTEMP');
         try {
+            this.loggerService.info('USER DELETION ATTEMP');
             const id = req.params.id;
             await this.userService.deleteOne(id);
             res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
@@ -99,8 +99,8 @@ export class UserController {
     }
 
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
-        this.loggerService.info('USER UPDATE ATTEMP');
         try {
+            this.loggerService.info('USER UPDATE ATTEMP');
             const id = req.params.id;
             const propertiesToUpdate = req.body;
             const [error, validatedProperties] = await UpdateUserValidator.validateAndTransform(propertiesToUpdate);
