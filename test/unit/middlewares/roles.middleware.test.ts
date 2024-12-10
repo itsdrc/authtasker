@@ -17,22 +17,19 @@ describe('Roles middleware', () => {
     let userModel: FindMockQuery<UserModelMocked> & UserModelMocked;
     let loggerService: MockProxy<LoggerService>;
     let requestMock: MockProxy<Request>;
-    let responseMock: MockProxy<Response> & Response;
-    let responseStatusJsonMock: jest.Mock; // res.status(...).json mock
+    let responseMock: MockProxy<Response> & Response;    
     let rolesMiddleware: ReturnType<typeof rolesMiddlewareFactory>;
 
     beforeEach(() => {
         jwtService = mock<JwtService>();
         loggerService = mock<LoggerService>();
         userModel = (mock<Model<User>>() as any);
-        requestMock = mockDeep<Request>();
-        responseMock = mockDeep<Response>();
-        responseStatusJsonMock = jest.fn();
+        requestMock = mock<Request>();
+        responseMock = mock<Response>();    
+        
+        responseMock.status.mockReturnThis();
 
-        // res.status(...).json()
-        responseMock.status.mockReturnValue({ json: responseStatusJsonMock } as any);
-
-        userModel.findById.mockReturnValue(mock<Query<any, any>>());
+        userModel.findById.mockReturnValue(mock<Query<any, any>>());    
 
         rolesMiddleware = rolesMiddlewareFactory(
             'readonly',
@@ -115,7 +112,7 @@ describe('Roles middleware', () => {
             const expectedErrMssg = 'No token provided';
             expect(responseMock.status)
                 .toHaveBeenCalledWith(expectedStatus);
-            expect(responseStatusJsonMock)
+            expect(responseMock.json)
                 .toHaveBeenCalledWith({ error: expectedErrMssg });
         });
     });
@@ -138,7 +135,7 @@ describe('Roles middleware', () => {
             const expectedErrMssg = 'Invalid bearer token'
             expect(responseMock.status)
                 .toHaveBeenCalledWith(expectedStatus);
-            expect(responseStatusJsonMock)
+            expect(responseMock.json)
                 .toHaveBeenCalledWith({ error: expectedErrMssg })
         });
     });
@@ -165,7 +162,7 @@ describe('Roles middleware', () => {
             const expectedErrMssg = 'User not found';
             expect(responseMock.status)
                 .toHaveBeenCalledWith(expectedStatus);
-            expect(responseStatusJsonMock)
+            expect(responseMock.json)
                 .toHaveBeenCalledWith({ error: expectedErrMssg });
         });
     });
@@ -196,7 +193,7 @@ describe('Roles middleware', () => {
             const expectedErrMssg = 'You do not have permission to perform this action';
             expect(responseMock.status)
                 .toHaveBeenCalledWith(expectedStatus);
-            expect(responseStatusJsonMock)
+            expect(responseMock.json)
                 .toHaveBeenCalledWith({ error: expectedErrMssg });
         });
     });
