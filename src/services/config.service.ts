@@ -22,7 +22,7 @@ export class ConfigService {
     constructor() {
         this.NODE_ENV = env.get('NODE_ENV')
             .required()
-            .asEnum(['development', 'testing', 'production']);
+            .asEnum(['development', 'integration', 'e2e', 'production']);
 
         this.HTTP_LOGS = env.get('HTTP_LOGS')
             .default("true")
