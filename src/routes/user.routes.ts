@@ -37,21 +37,21 @@ export class UserRoutes {
         );
 
         const controller = new UserController(service, this.loggerService);
-        const onlyAdminMiddleware = rolesMiddlewareFactory(
-            'admin',
+        const readonlyMiddleware = rolesMiddlewareFactory(
+            'readonly',
             this.userModel,
             this.loggerService,
             this.jwtService
         );
 
+        router.post('/create', controller.create);
         router.post('/login', controller.login);
         router.get('/validate-email/:token', controller.validateEmail);
 
-        router.post('/create', onlyAdminMiddleware, controller.create);
-        router.get('/:id', onlyAdminMiddleware, controller.findOne);
-        router.get('/', onlyAdminMiddleware, controller.findAll);
-        router.delete('/:id', onlyAdminMiddleware, controller.deleteOne);
-        router.patch('/:id', onlyAdminMiddleware, controller.updateOne);
+        router.get('/:id', readonlyMiddleware, controller.findOne);
+        router.get('/', readonlyMiddleware, controller.findAll);
+        router.delete('/:id', readonlyMiddleware, controller.deleteOne);
+        router.patch('/:id', readonlyMiddleware, controller.updateOne);
 
         return router;
     }

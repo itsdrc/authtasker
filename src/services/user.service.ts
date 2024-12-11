@@ -5,12 +5,13 @@ import { CreateUserValidator, LoginUserValidator } from "../rules/validators/mod
 import { EmailService } from "./email.service";
 import { HashingService } from "./hashing.service";
 import { HttpError } from "../rules/errors/http.error";
-import { JwtService } from "./jwt.service";
-import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
-import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 import { IUser } from "../interfaces/user/user.interface";
+import { JwtService } from "./jwt.service";
 import { LoggerService } from "./logger.service";
+import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { SystemLoggerService } from "./system-logger.service";
+import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
+import { UserRole } from "@root/types/user/user-roles.type";
 
 export class UserService {
 
@@ -50,8 +51,8 @@ export class UserService {
             this.loggerService.error('INVALID TOKEN');
             throw HttpError.badRequest('Invalid token')
         }
-        
-        const email =  payload.email;        
+
+        const email = payload.email;
 
         if (!email) {
             this.loggerService.error('EMAIL NOT IN TOKEN');
@@ -62,7 +63,7 @@ export class UserService {
         const user = await this.userModel.findOne({ email }).exec();
         if (!user) {
             this.loggerService.error(`USER ${email} NOT FOUND`);
-            throw HttpError.notFound('IUser not found');
+            throw HttpError.notFound('User not found');
         }
 
         // update 
@@ -116,7 +117,7 @@ export class UserService {
         const userDb = await this.userModel.findOne({ email: userToLogin.email }).exec();
         if (!userDb) {
             this.loggerService.error(`USER ${userToLogin.email} NOT FOUND`);
-            throw HttpError.badRequest(`IUser with email ${userToLogin.email} not found`);
+            throw HttpError.badRequest(`User with email ${userToLogin.email} not found`);
         }
 
         // check password
@@ -146,9 +147,9 @@ export class UserService {
         if (Types.ObjectId.isValid(id))
             userDb = await this.userModel.findById(id).exec();
 
-        // id is not valdi / user not found
+        // id is not valid / user not found
         if (!userDb)
-            throw HttpError.badRequest(`IUser with id ${id} not found`);
+            throw HttpError.badRequest(`User with id ${id} not found`);
 
         return userDb;
     }
@@ -168,45 +169,48 @@ export class UserService {
             .exec();
     }
 
+    // do not call this function without call canModifyUser first
     async deleteOne(id: string): Promise<void> {
-        let deleted;
-
-        if (Types.ObjectId.isValid(id))
-            deleted = await this.userModel.findByIdAndDelete(id).exec();
-
-        // id is not valid / user not found
-        if (!deleted) {
-            this.loggerService.error(`USER ${id} NOT FOUND`);
-            throw HttpError.badRequest(`IUser with id ${id} not found`);
-        }
-
+        await this.userModel.findByIdAndDelete(id).exec();
         this.loggerService.info(`USER ${id} DELETED`);
     }
 
-    async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<IUser>> {
-        let user;
-
-        if (Types.ObjectId.isValid(id))
-            user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
-
-        // id is not valid / user not found
-        if (!user) {
-            this.loggerService.error(`USER ${id} NOT FOUND`);
-            throw HttpError.badRequest(`IUser with id ${id} not found`);
-        }
+    // do not call this function without call canModifyUser first
+    async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<IUser>> {        
+        const user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
 
         if (propertiesUpdated.password)
-            user.password = await this.hashingService.hash(propertiesUpdated.password);
+            user!.password = await this.hashingService.hash(propertiesUpdated.password);
 
         // if email is different change "emailValidated" prop
         if (propertiesUpdated.email) {
-            if (user.email !== propertiesUpdated.email)
-                user.emailValidated = false;
+            if (user!.email !== propertiesUpdated.email)
+                user!.emailValidated = false;
         }
 
-        Object.assign(user, propertiesUpdated);
+        Object.assign(user!, propertiesUpdated);
         this.loggerService.info(`USER ${id} UPDATED`);
 
-        return user;
+        return user!;
+    }
+
+    // allows to know if an user can make modifications on another one
+    async canModifyUser(requestUser: { role: UserRole, id: string }, userToModifyId: string): Promise<boolean> {        
+        const userToModify = await this.findOne(userToModifyId);
+        const userToModifyRole = userToModify.role;
+
+        // an admin user can modify any no-admin users
+        if (requestUser.role === 'admin' && userToModifyRole === 'admin') {
+            this.loggerService.error(`Admin ${requestUser.id} unauthorized attemp to modify admin ${userToModifyId}`);
+            return false;
+        }
+
+        // a no-admin user can only modify itself.
+        if (userToModifyId !== requestUser.id) {                      
+            this.loggerService.error(`Access denied`);
+            return false;
+        }
+
+        return true;
     }
 }

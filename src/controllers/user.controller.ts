@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
-import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
+
 import { CreateUserValidator, LoginUserValidator } from "@root/rules/validators/models/user";
-import { UserService } from "@root/services/user.service";
-import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
-import { LoggerService } from "@root/services/logger.service";
 import { handleError } from "@root/common/helpers/handle-error.helper";
+import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
+import { LoggerService } from "@root/services/logger.service";
+import { SystemLoggerService } from "@root/services/system-logger.service";
+import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
+import { UserService } from "@root/services/user.service";
 
 export class UserController {
 
@@ -12,6 +14,36 @@ export class UserController {
         private readonly userService: UserService,
         private readonly loggerService: LoggerService,
     ) {}
+
+    private async isAuthorized(req: Request, res: Response): Promise<boolean> {
+        const userToDeleteId = req.params.id;        
+        const requestUserId = (req as any).userId;
+        const requestUserRole = (req as any).userRole;        
+
+        if (!requestUserId) {
+            res.status(HTTP_STATUS_CODE.INTERNALSERVER)
+                .json({ error: 'Can not deduce the request user id' });
+            SystemLoggerService.error('User id was not stablished in middleware');
+            return false;
+        }
+
+        if (!requestUserRole) {
+            res.status(HTTP_STATUS_CODE.INTERNALSERVER)
+                .json({ error: 'Can not deduce the request user role' });
+            SystemLoggerService.error('User role was not stablished in middleware');
+            return false;
+        }
+
+        const requestUserData = { role: requestUserRole, id: requestUserId };        
+        const authorized = await this.userService.canModifyUser(requestUserData, userToDeleteId);
+
+        if (!authorized) {
+            res.status(HTTP_STATUS_CODE.UNAUTHORIZED).json({ error: 'You do not have permission to perform this action' });
+            return false;
+        }
+
+        return true;
+    }
 
     readonly create = async (req: Request, res: Response): Promise<void> => {
         try {
@@ -90,25 +122,40 @@ export class UserController {
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
         try {
             this.loggerService.info('USER DELETION ATTEMP');
-            const id = req.params.id;
-            await this.userService.deleteOne(id);
-            res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
+
+            const id = req.params.id;            
+            const authorized = await this.isAuthorized(req, res);
+
+            if (authorized) {
+                await this.userService.deleteOne(id);
+                res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
+                return;
+            }
+
         } catch (error) {
             handleError(res, error, this.loggerService);
         }
-    }
+    }  
 
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
         try {
             this.loggerService.info('USER UPDATE ATTEMP');
             const id = req.params.id;
             const propertiesToUpdate = req.body;
-            const [error, validatedProperties] = await UpdateUserValidator.validateAndTransform(propertiesToUpdate);
+
+            const [error, validatedProperties] = await UpdateUserValidator
+                .validateAndTransform(propertiesToUpdate);
 
             if (validatedProperties) {
                 this.loggerService.info(`VALIDATION SUCESS`);
-                const userUpdated = await this.userService.updateOne(id, validatedProperties);
-                res.status(HTTP_STATUS_CODE.OK).json(userUpdated);
+
+                const authorized = await this.isAuthorized(req, res);
+                if (authorized) {
+                    const userUpdated = await this.userService.updateOne(id, validatedProperties);
+                    res.status(HTTP_STATUS_CODE.OK).json(userUpdated);
+                    return;
+                }
+
             } else {
                 this.loggerService.error(`VALIDATION REJECTED`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
