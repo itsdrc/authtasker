@@ -46,6 +46,10 @@ export const rolesMiddlewareFactory = (
 
             if (canAccess(minRoleRequired, user.role)) {
                 loggerService.info(`Access granted for user ${userId} with role "${user.role}"`)
+                Object.defineProperties(req, {
+                    userId: { value: userId },
+                    userRole: { value: user.role }
+                });
                 next();
             }
             else {
@@ -53,7 +57,7 @@ export const rolesMiddlewareFactory = (
                 res.status(HTTP_STATUS_CODE.UNAUTHORIZED)
                     .json({ error: 'You do not have permission to perform this action' })
                 return
-            }
+            }            
 
         } catch (error) {
             handleError(res, error, loggerService);
