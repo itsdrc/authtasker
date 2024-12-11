@@ -8,9 +8,11 @@ node_modules/
 /logs/
 
 # db
-/mongo
+/mongo*/
+/redis*/
 
-# files
-.env.prod
-.env.test
-.env.dev
+# env files
+envs/.env.prod
+envs/.env.dev
+envs/.env.int
+envs/.env.e2e
