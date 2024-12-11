@@ -62,7 +62,7 @@ export class AppRoutes {
         // apis
         router.use('/api/users', userRoutes.routes);
 
-        if (this.configService.NODE_ENV != 'production') {
+        if (this.configService.NODE_ENV === 'development') {
             const seedRoutes = new SeedRoutes(
                 UserModel,
                 hashingService,
