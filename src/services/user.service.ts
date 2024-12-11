@@ -12,6 +12,7 @@ import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { SystemLoggerService } from "./system-logger.service";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 import { UserRole } from "@root/types/user/user-roles.type";
+import { Http } from "winston/lib/winston/transports";
 
 export class UserService {
 
@@ -169,48 +170,39 @@ export class UserService {
             .exec();
     }
 
-    // do not call this function without call canModifyUser first
     async deleteOne(id: string): Promise<void> {
-        await this.userModel.findByIdAndDelete(id).exec();
+        const user = await this.findOne(id);
+        if (user.role === 'admin') {
+            this.loggerService.error('Can not delete admin users');
+            throw HttpError.unAuthorized('You do not have permissions to perform this action');
+        }
+
+        await user.deleteOne().exec();
         this.loggerService.info(`USER ${id} DELETED`);
     }
 
-    // do not call this function without call canModifyUser first
-    async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<IUser>> {        
-        const user = await this.userModel.findByIdAndUpdate(id, propertiesUpdated).exec();
+    async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<IUser>> {
+        const user = await this.findOne(id);
 
+        if (user.role === 'admin') {
+            this.loggerService.error('Can not update admin users');
+            throw HttpError.unAuthorized('You do not have permissions to perform this action');
+        }
+
+        Object.assign(user, propertiesUpdated);
+            
         if (propertiesUpdated.password)
-            user!.password = await this.hashingService.hash(propertiesUpdated.password);
+            user.password = await this.hashingService.hash(propertiesUpdated.password);
 
         // if email is different change "emailValidated" prop
         if (propertiesUpdated.email) {
-            if (user!.email !== propertiesUpdated.email)
-                user!.emailValidated = false;
+            if (user.email !== propertiesUpdated.email)
+                user.emailValidated = false;
         }
 
-        Object.assign(user!, propertiesUpdated);
-        this.loggerService.info(`USER ${id} UPDATED`);
+        await user.save();
+        this.loggerService.info(`User ${id} updated`);
 
-        return user!;
-    }
-
-    // allows to know if an user can make modifications on another one
-    async canModifyUser(requestUser: { role: UserRole, id: string }, userToModifyId: string): Promise<boolean> {        
-        const userToModify = await this.findOne(userToModifyId);
-        const userToModifyRole = userToModify.role;
-
-        // an admin user can modify any no-admin users
-        if (requestUser.role === 'admin' && userToModifyRole === 'admin') {
-            this.loggerService.error(`Admin ${requestUser.id} unauthorized attemp to modify admin ${userToModifyId}`);
-            return false;
-        }
-
-        // a no-admin user can only modify itself.
-        if (userToModifyId !== requestUser.id) {                      
-            this.loggerService.error(`Access denied`);
-            return false;
-        }
-
-        return true;
+        return user;
     }
 }

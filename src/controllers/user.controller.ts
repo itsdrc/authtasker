@@ -15,10 +15,10 @@ export class UserController {
         private readonly loggerService: LoggerService,
     ) {}
 
-    private async isAuthorized(req: Request, res: Response): Promise<boolean> {
-        const userToDeleteId = req.params.id;        
+    private async isAuthorizedToModify(req: Request, res: Response): Promise<boolean> {
+        const userToDeleteId = req.params.id;
         const requestUserId = (req as any).userId;
-        const requestUserRole = (req as any).userRole;        
+        const requestUserRole = (req as any).userRole;
 
         if (!requestUserId) {
             res.status(HTTP_STATUS_CODE.INTERNALSERVER)
@@ -34,15 +34,15 @@ export class UserController {
             return false;
         }
 
-        const requestUserData = { role: requestUserRole, id: requestUserId };        
-        const authorized = await this.userService.canModifyUser(requestUserData, userToDeleteId);
+        if (requestUserRole === 'admin')
+            return true;
 
-        if (!authorized) {
+        if (requestUserId === userToDeleteId) {
+            return true;
+        } else {
             res.status(HTTP_STATUS_CODE.UNAUTHORIZED).json({ error: 'You do not have permission to perform this action' });
             return false;
         }
-
-        return true;
     }
 
     readonly create = async (req: Request, res: Response): Promise<void> => {
@@ -123,8 +123,8 @@ export class UserController {
         try {
             this.loggerService.info('USER DELETION ATTEMP');
 
-            const id = req.params.id;            
-            const authorized = await this.isAuthorized(req, res);
+            const id = req.params.id;
+            const authorized = await this.isAuthorizedToModify(req, res);
 
             if (authorized) {
                 await this.userService.deleteOne(id);
@@ -135,7 +135,7 @@ export class UserController {
         } catch (error) {
             handleError(res, error, this.loggerService);
         }
-    }  
+    }
 
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
         try {
@@ -149,7 +149,7 @@ export class UserController {
             if (validatedProperties) {
                 this.loggerService.info(`VALIDATION SUCESS`);
 
-                const authorized = await this.isAuthorized(req, res);
+                const authorized = await this.isAuthorizedToModify(req, res);
                 if (authorized) {
                     const userUpdated = await this.userService.updateOne(id, validatedProperties);
                     res.status(HTTP_STATUS_CODE.OK).json(userUpdated);
