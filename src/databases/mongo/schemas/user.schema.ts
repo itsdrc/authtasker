@@ -51,25 +51,25 @@ const userSchema = new mongoose.Schema<IUser>(schema, {
 
 userSchema.post('findOne', (doc) => {
     if (doc) {
-        EventManager.emit('mongoose.userModel.findOne', doc.id);
+        EventManager.emit('mongoose.userModel.findOne', doc.name);
     }
 });
 
 userSchema.post('save', (doc) => {
     if (doc) {
-        EventManager.emit('mongoose.userModel.save', doc.id);
+        EventManager.emit('mongoose.userModel.save', doc.name);
     }
 });
 
 userSchema.post('findOneAndUpdate', (doc) => {
     if (doc) {
-        EventManager.emit('mongoose.userModel.findOneAndUpdate', doc.id);
+        EventManager.emit('mongoose.userModel.findOneAndUpdate', doc.name);
     }
 });
 
 userSchema.post('findOneAndDelete', (doc) => {
     if (doc) {
-        EventManager.emit('mongoose.userModel.deleteOne', doc.id);
+        EventManager.emit('mongoose.userModel.deleteOne', doc.name);
     }
 });
 

@@ -26,20 +26,20 @@ export class MongooseEventsListener {
 
     // for example: mongoose.userModel.save
     listModelEvents(model: string) {
-        EventManager.listen(`mongoose.${model}Model.save`, (id: string) => {
-            this.loggerService.debug(`${model} ${id} SAVED IN DB`);
+        EventManager.listen(`mongoose.${model}Model.save`, (property: string) => {
+            this.loggerService.debug(`${model} "${property}" SAVED IN DB`);
         });
 
-        EventManager.listen(`mongoose.${model}Model.findOne`, (id: string) => {
-            this.loggerService.debug(`${model} ${id} FOUND IN DB`);
+        EventManager.listen(`mongoose.${model}Model.findOne`, (prop: string) => {
+            this.loggerService.debug(`${model} ${prop} FOUND IN DB`);
         });
 
-        EventManager.listen(`mongoose.${model}Model.findOneAndUpdate`, (id: string) => {
-            this.loggerService.debug(`${model} ${id} UPDATED IN DB`);
+        EventManager.listen(`mongoose.${model}Model.findOneAndUpdate`, (prop: string) => {
+            this.loggerService.debug(`${model} ${prop} UPDATED IN DB`);
         });
 
-        EventManager.listen(`mongoose.${model}Model.deleteOne`, (id: string) => {
-            this.loggerService.debug(`${model} ${id} DELETED FROM DB`);
+        EventManager.listen(`mongoose.${model}Model.deleteOne`, (prop: string) => {
+            this.loggerService.debug(`${model} ${prop} DELETED FROM DB`);
         });
     }
 }
