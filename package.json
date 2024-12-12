@@ -4,12 +4,19 @@
   "main": "app.js",
   "scripts": {
     "type-check": "tspc --noEmit src/app.ts",
-    "dev": "npm run type-check && dotenvx run -f .env.dev -- tsx watch -r tsconfig-paths/register src/app.ts",
+    "dev": "npm run type-check && dotenvx run -f envs/.env.dev -- tsx watch -r tsconfig-paths/register src/app.ts",
+    
+    "containers:dev": "docker compose --env-file envs/.env.dev -p authtasker-dev up -d",
+    "containers:test:int": "docker compose --env-file envs/.env.int -p authtasker-int up -d",
+    "containers:test:e2e": "docker compose --env-file envs/.env.e2e -p authtasker-e2e up -d",
+    "containers:all": "npm run containers:dev && npm run containers:test:int && npm run containers:test:e2e",
+
+    "test:unit": "jest --config  jest/jest.unit.config.ts",
+    "test:int": "npm run containers:test:int && dotenvx run -f envs/.env.int -- node -r tsconfig-paths/register -- jest --config jest/jest.int.config.ts",
+    "test:e2e": "npm run containers:test:e2e && dotenvx run -f envs/.env.e2e -- jest --config jest/jest.e2e.config.ts",
+
     "build": "rimraf ./dist && tspc -p tsconfig.build.json",
-    "start": "npm run build && dotenvx run -f .env.prod -- node dist/app.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "launch-containers:dev": "docker compose --env-file .env.dev up -d"
+    "start": "npm run build && dotenvx run -f envs/.env.prod -- node dist/app.js"
   },
   "keywords": [],
   "author": "",
@@ -23,9 +30,11 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.1",
     "@types/nodemailer": "^6.4.16",
+    "@types/supertest": "^6.0.2",
     "jest": "^29.7.0",
     "jest-mock-extended": "^4.0.0-beta1",
     "rimraf": "^6.0.1",
+    "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "ts-patch": "^3.2.1",
     "tsx": "^4.19.2",
