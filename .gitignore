@@ -6,10 +6,7 @@ node_modules/
 /coverage/
 /dist/
 /logs/
-
-# db
-/mongo*/
-/redis*/
+docker-volumes/
 
 # env files
 envs/.env.prod
