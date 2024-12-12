@@ -36,7 +36,8 @@ export class SystemLoggerService {
     }
 
     static info(message: string) {
-        SystemLoggerService.logger.info(message);
+        if (process.env.NODE_ENV !== 'integration' && process.env.NODE_ENV !== 'e2e')
+            SystemLoggerService.logger.info(message);
     }
 
     static error(message: string, stackTrace?: string) {
@@ -52,6 +53,7 @@ export class SystemLoggerService {
     }
 
     static warn(message: string) {
-        SystemLoggerService.logger.warn(message);
+        if (process.env.NODE_ENV !== 'integration' && process.env.NODE_ENV !== 'e2e')
+            SystemLoggerService.logger.warn(message);
     }
 }
