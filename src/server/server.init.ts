@@ -9,13 +9,13 @@ export class Server {
 
     constructor(
         private readonly port: number,
-        private readonly routes: Router,
-    ) {}
-
-    start(): Promise<void> {
+        private readonly routes: Router
+    ) {
         this.app.use(express.json());
         this.app.use(this.routes);
+    }
 
+    start(): Promise<void> {
         return new Promise<void>((resolve) => {
             this.server = this.app.listen(this.port, () => {
                 SystemLoggerService.info(`Server listening on port ${this.port}`)
