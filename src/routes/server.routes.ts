@@ -10,7 +10,7 @@ import { LoggerService } from "@root/services/logger.service";
 import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
 import { SeedRoutes } from "@root/seed/routes/seed.routes";
 import { UserRoutes } from "./user.routes";
-import { loadUserModel } from "@root/databases/mongo/models/users/user.schema.load";
+import { loadUserModel } from "@root/databases/mongo/models/users/user.model.load";
 
 export class AppRoutes {
 
