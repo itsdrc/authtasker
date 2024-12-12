@@ -9,8 +9,8 @@ import { JwtService } from "@root/services/jwt.service";
 import { LoggerService } from "@root/services/logger.service";
 import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
 import { SeedRoutes } from "@root/seed/routes/seed.routes";
-import { UserModel } from "@root/databases/mongo/schemas/user.schema";
 import { UserRoutes } from "./user.routes";
+import { loadUserModel } from "@root/databases/mongo/models/users/user.schema.load";
 
 export class AppRoutes {
 
@@ -42,9 +42,11 @@ export class AppRoutes {
             this.configService.BCRYPT_SALT_ROUNDS
         );
 
+        const userModel = loadUserModel(this.configService);
+        
         const userRoutes = new UserRoutes(
             this.configService,
-            UserModel,
+            userModel,
             hashingService,
             jwtService,
             this.loggerService,
@@ -56,7 +58,7 @@ export class AppRoutes {
         // global middlewares
         router.use(requestContextMiddlewareFactory(
             this.asyncLocalStorage,
-            this.loggerService,            
+            this.loggerService,
         ));
 
         // apis
@@ -64,7 +66,7 @@ export class AppRoutes {
 
         if (this.configService.NODE_ENV === 'development') {
             const seedRoutes = new SeedRoutes(
-                UserModel,
+                userModel,
                 hashingService,
                 this.loggerService,
             );

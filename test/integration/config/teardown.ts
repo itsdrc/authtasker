@@ -1,12 +1,13 @@
+import { loadUserModel } from "@root/databases/mongo/models/users/user.schema.load";
 import { MongoDatabase } from "@root/databases/mongo/mongo.database";
 import { SystemLoggerService } from "@root/services/system-logger.service";
-import { UserModel } from "@root/databases/mongo/schemas/user.schema";
 
 export default async () => {
-    await UserModel.deleteMany().exec();
+    const userModel = loadUserModel({} as any);
+    await userModel.deleteMany().exec();
     SystemLoggerService.warn('All documents deleted');
 
-    const disc = await MongoDatabase.disconnect();
-    if (!disc)
-        SystemLoggerService.error('Failed to disconnect from test db');
+    await MongoDatabase.disconnect().then(ok => {
+        if (!ok) SystemLoggerService.error('Failed to disconnect from test db');
+    });
 }
