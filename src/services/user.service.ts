@@ -33,7 +33,8 @@ export class UserService {
         }
 
         const token = this.jwtService.generate({ email });
-        const link = `${this.configService.WEB_URL}/api/users/validate-email/${token}`;
+        // web url is appended with a default "/" when read
+        const link = `${this.configService.WEB_URL}api/users/validate-email/${token}`;
 
         await this.emailService.sendMail({
             to: email,
