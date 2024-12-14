@@ -7,6 +7,7 @@ import { USER_CONSTANTS } from "@root/rules/constants/user.constants";
 import { UserRequest } from "../../../../types/user/user-request.type";
 import { validationOptionsConfig } from "../../config/validation.config";
 import { ValidationResult } from "../../types/validation-result.type";
+import { returnFirstError } from "../../helpers/return-first-error.helper";
 
 export class CreateUserValidator implements Exact<CreateUserValidator, UserRequest> {
 
@@ -29,14 +30,10 @@ export class CreateUserValidator implements Exact<CreateUserValidator, UserReque
         const user = new CreateUserValidator();
         Object.assign(user, data); // TODO: what if...
 
-        const errors = await validate(user, validationOptionsConfig);
+        const errors = await validate(user, validationOptionsConfig);        
 
-        if (errors.length > 0) {
-            return [errors.map(error => ({
-                property: error.property,
-                constraints: error.constraints,
-            })), undefined];
-        }
+        if (errors.length > 0) 
+            return [returnFirstError(errors), undefined];
 
         return [undefined, plainToInstance(CreateUserValidator, user)];
     }

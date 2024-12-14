@@ -3,6 +3,7 @@ import { IsDefined, IsEmail, IsString, MaxLength, validate } from "class-validat
 import { CreateUserValidator } from "./create-user.validator";
 import { ValidationResult } from "../../types/validation-result.type";
 import { validationOptionsConfig } from "../../config/validation.config";
+import { returnFirstError } from "../../helpers/return-first-error.helper";
 
 export class LoginUserValidator implements Pick<CreateUserValidator, 'email' | 'password'> {
 
@@ -19,12 +20,8 @@ export class LoginUserValidator implements Pick<CreateUserValidator, 'email' | '
         Object.assign(user, data);
         const errors = await validate(user, validationOptionsConfig);
 
-        if (errors.length > 0) {
-            return [errors.map(error => ({
-                property: error.property,
-                constraints: error.constraints,
-            })), undefined];
-        }
+        if (errors.length > 0)
+            return [returnFirstError(errors), undefined];
 
         return [undefined, user];
     }
