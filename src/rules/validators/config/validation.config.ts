@@ -5,4 +5,4 @@ export const validationOptionsConfig = {
     forbidNonWhitelisted: true,
     validationError: { target: false },
     stopAtFirstError: true,
-};
+} as const;
