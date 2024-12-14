@@ -91,6 +91,13 @@ export class UserController {
         try {
             this.loggerService.info('EMAIL VALIDATION ATTEMP');
             const token = req.params.token;
+
+            if (!token) {
+                const error = 'No token provided';
+                this.loggerService.error(error);
+                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
+            }
+
             await this.userService.validateEmail(token);
             res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
         } catch (error) {
