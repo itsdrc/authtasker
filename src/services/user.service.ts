@@ -12,6 +12,7 @@ import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { SystemLoggerService } from "./system-logger.service";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 import { UserRole } from "@root/types/user/user-roles.type";
+import { UNAUTHORIZED_MSSG } from "@root/rules/constants/messages";
 
 export class UserService {
 
@@ -176,7 +177,7 @@ export class UserService {
         const userToDelete = await this.IsModificationAuthorized(requestUserInfo, id);
         if (!userToDelete) {
             // TODO: logging
-            throw HttpError.unAuthorized('You do not have permissions to perform this action');
+            throw HttpError.unAuthorized(UNAUTHORIZED_MSSG);
         }
         await userToDelete.deleteOne().exec();
         this.loggerService.info(`USER ${id} DELETED`);
@@ -186,7 +187,7 @@ export class UserService {
         const userToUpdate = await this.IsModificationAuthorized(requestUserInfo, id);
         if (!userToUpdate) {
             // TODO: logging
-            throw HttpError.unAuthorized('You do not have permissions to perform this action');
+            throw HttpError.unAuthorized(UNAUTHORIZED_MSSG);
         }
 
         Object.assign(userToUpdate, propertiesUpdated);

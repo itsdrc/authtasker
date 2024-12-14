@@ -1,13 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 import { Model } from "mongoose";
 
-import type { UserRole } from "@root/types/user/user-roles.type";
-import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
-import { JwtService } from "@root/services/jwt.service";
-import { LoggerService } from "@root/services/logger.service";
-import { IUser } from "@root/interfaces/user/user.interface";
 import { canAccess } from "./helpers/can-access.helper";
 import { handleError } from "@root/common/helpers/handle-error.helper";
+import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
+import { IUser } from "@root/interfaces/user/user.interface";
+import { JwtService } from "@root/services/jwt.service";
+import { LoggerService } from "@root/services/logger.service";
+import { UNAUTHORIZED_MSSG } from "@root/rules/constants/messages";
+import type { UserRole } from "@root/types/user/user-roles.type";
 
 export const rolesMiddlewareFactory = (
     minRoleRequired: UserRole,
@@ -55,7 +56,7 @@ export const rolesMiddlewareFactory = (
             else {
                 loggerService.error('Access denied. Insufficient permissions')
                 res.status(HTTP_STATUS_CODE.UNAUTHORIZED)
-                    .json({ error: 'You do not have permission to perform this action' })
+                    .json({ error: UNAUTHORIZED_MSSG })
                 return
             }            
 
