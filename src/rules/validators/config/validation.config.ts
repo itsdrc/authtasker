@@ -1,8 +1,8 @@
 /* Keep forbidNonWhitelisted to true in order to avoid Prototype Pollution Attacks
 when using Object.assign */
 export const validationOptionsConfig = {
-    whitelist: false,
-    forbidNonWhitelisted: false,
+    whitelist: true,
+    forbidNonWhitelisted: true,
     validationError: { target: false },
     stopAtFirstError: true,
 };
