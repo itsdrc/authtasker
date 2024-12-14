@@ -11,8 +11,6 @@ import { LoggerService } from "./logger.service";
 import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { SystemLoggerService } from "./system-logger.service";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
-import { UserRole } from "@root/types/user/user-roles.type";
-import { Http } from "winston/lib/winston/transports";
 
 export class UserService {
 
@@ -70,6 +68,8 @@ export class UserService {
 
         // update 
         user.emailValidated = true;
+        user.role = 'editor';
+
         await user.save();
 
         this.loggerService.info(`USER ${user.id} UPDATED TO VALID`);
@@ -191,7 +191,7 @@ export class UserService {
         }
 
         Object.assign(user, propertiesUpdated);
-            
+
         if (propertiesUpdated.password)
             user.password = await this.hashingService.hash(propertiesUpdated.password);
 

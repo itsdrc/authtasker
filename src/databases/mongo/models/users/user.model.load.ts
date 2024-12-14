@@ -28,7 +28,8 @@ export const loadUserModel = (configService: ConfigService): Model<IUser> => {
         role: {
             type: String,
             required: true,
-            enum: validRoles
+            enum: validRoles,
+            default: 'readonly'
         },
 
         emailValidated: {

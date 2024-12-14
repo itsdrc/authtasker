@@ -16,8 +16,7 @@ export class UserSeedService {
         return {
             name: faker.person.fullName().toLowerCase(),
             email: faker.internet.email(),
-            password: await this.hashingService.hash(faker.food.vegetable()),
-            role: Math.floor(Math.random() * 10) % 2 == 0 ? 'editor' : 'readonly',
+            password: await this.hashingService.hash(faker.food.vegetable()),            
         };
     }
 
