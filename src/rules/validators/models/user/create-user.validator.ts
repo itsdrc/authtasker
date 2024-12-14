@@ -28,7 +28,7 @@ export class CreateUserValidator implements Exact<CreateUserValidator, UserReque
 
     static async validateAndTransform(data: object): ValidationResult<CreateUserValidator> {
         const user = new CreateUserValidator();
-        Object.assign(user, data); // TODO: what if...
+        Object.assign(user, data);
 
         const errors = await validate(user, validationOptionsConfig);        
 
