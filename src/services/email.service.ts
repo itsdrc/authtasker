@@ -1,4 +1,4 @@
-import nodemailer, { SendMailOptions, Transporter } from 'nodemailer';
+import{ SendMailOptions, Transporter, createTransport } from 'nodemailer';
 import { ITransporter } from '../interfaces/email/transporter.interface';
 
 export class EmailService {
@@ -6,7 +6,7 @@ export class EmailService {
     private transporter: Transporter;
 
     constructor(transporterOptions: ITransporter) {
-        this.transporter = nodemailer.createTransport({
+        this.transporter = createTransport({
             host: transporterOptions.host,
             port: transporterOptions.port,
             secure: transporterOptions.port === 465,
