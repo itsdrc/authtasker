@@ -7,6 +7,7 @@ import { LoggerService } from "@root/services/logger.service";
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
 import { UserService } from "@root/services/user.service";
+import { UserRole } from "@root/types/user/user-roles.type";
 
 export class UserController {
 
@@ -15,34 +16,28 @@ export class UserController {
         private readonly loggerService: LoggerService,
     ) {}
 
-    private async isAuthorizedToModify(req: Request, res: Response): Promise<boolean> {
-        const userToDeleteId = req.params.id;
-        const requestUserId = (req as any).userId;
+    private getUserInfoOrHandleError(req: Request, res: Response): { id: string, role: UserRole } | undefined {
         const requestUserRole = (req as any).userRole;
+        const requestUserId = (req as any).userId;
 
         if (!requestUserId) {
             res.status(HTTP_STATUS_CODE.INTERNALSERVER)
                 .json({ error: 'Can not deduce the request user id' });
             SystemLoggerService.error('User id was not stablished in middleware');
-            return false;
+            return;
         }
 
         if (!requestUserRole) {
             res.status(HTTP_STATUS_CODE.INTERNALSERVER)
                 .json({ error: 'Can not deduce the request user role' });
             SystemLoggerService.error('User role was not stablished in middleware');
-            return false;
+            return;
         }
 
-        if (requestUserRole === 'admin')
-            return true;
-
-        if (requestUserId === userToDeleteId) {
-            return true;
-        } else {
-            res.status(HTTP_STATUS_CODE.UNAUTHORIZED).json({ error: 'You do not have permission to perform this action' });
-            return false;
-        }
+        return {
+            id: requestUserId,
+            role: requestUserRole
+        };
     }
 
     readonly create = async (req: Request, res: Response): Promise<void> => {
@@ -130,12 +125,12 @@ export class UserController {
         try {
             this.loggerService.info('USER DELETION ATTEMP');
 
-            const id = req.params.id;
-            const authorized = await this.isAuthorizedToModify(req, res);
-
-            if (authorized) {
-                await this.userService.deleteOne(id);
-                res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
+            const userIdToUpdate = req.params.id;
+            const requestUserInfo = this.getUserInfoOrHandleError(req, res);
+            
+            if (requestUserInfo) {
+                const updated = await this.userService.deleteOne(requestUserInfo, userIdToUpdate);
+                res.status(HTTP_STATUS_CODE.OK).json(updated);
                 return;
             }
 
@@ -147,7 +142,8 @@ export class UserController {
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
         try {
             this.loggerService.info('USER UPDATE ATTEMP');
-            const id = req.params.id;
+
+            const userIdToUpdate = req.params.id;
             const propertiesToUpdate = req.body;
 
             const [error, validatedProperties] = await UpdateUserValidator
@@ -156,10 +152,10 @@ export class UserController {
             if (validatedProperties) {
                 this.loggerService.info(`VALIDATION SUCESS`);
 
-                const authorized = await this.isAuthorizedToModify(req, res);
-                if (authorized) {
-                    const userUpdated = await this.userService.updateOne(id, validatedProperties);
-                    res.status(HTTP_STATUS_CODE.OK).json(userUpdated);
+                const requestUserInfo = this.getUserInfoOrHandleError(req, res);
+                if (requestUserInfo) {
+                    const updated = await this.userService.updateOne(requestUserInfo, userIdToUpdate, validatedProperties);
+                    res.status(HTTP_STATUS_CODE.OK).json(updated);
                     return;
                 }
 

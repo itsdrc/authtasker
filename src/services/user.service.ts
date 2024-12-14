@@ -11,6 +11,7 @@ import { LoggerService } from "./logger.service";
 import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { SystemLoggerService } from "./system-logger.service";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
+import { UserRole } from "@root/types/user/user-roles.type";
 
 export class UserService {
 
@@ -171,39 +172,52 @@ export class UserService {
             .exec();
     }
 
-    async deleteOne(id: string): Promise<void> {
-        const user = await this.findOne(id);
-        if (user.role === 'admin') {
-            this.loggerService.error('Can not delete admin users');
+    async deleteOne(requestUserInfo: { id: string, role: UserRole }, id: string): Promise<void> {
+        const userToDelete = await this.IsModificationAuthorized(requestUserInfo, id);
+        if (!userToDelete) {
+            // TODO: logging
             throw HttpError.unAuthorized('You do not have permissions to perform this action');
         }
-
-        await user.deleteOne().exec();
+        await userToDelete.deleteOne().exec();
         this.loggerService.info(`USER ${id} DELETED`);
     }
 
-    async updateOne(id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<IUser>> {
-        const user = await this.findOne(id);
-
-        if (user.role === 'admin') {
-            this.loggerService.error('Can not update admin users');
+    async updateOne(requestUserInfo: { id: string, role: UserRole }, id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<IUser>> {
+        const userToUpdate = await this.IsModificationAuthorized(requestUserInfo, id);
+        if (!userToUpdate) {
+            // TODO: logging
             throw HttpError.unAuthorized('You do not have permissions to perform this action');
         }
 
-        Object.assign(user, propertiesUpdated);
+        Object.assign(userToUpdate, propertiesUpdated);
 
         if (propertiesUpdated.password)
-            user.password = await this.hashingService.hash(propertiesUpdated.password);
+            userToUpdate.password = await this.hashingService.hash(propertiesUpdated.password);
 
         // if email is different change "emailValidated" prop
         if (propertiesUpdated.email) {
-            if (user.email !== propertiesUpdated.email)
-                user.emailValidated = false;
+            if (userToUpdate.email !== propertiesUpdated.email)
+                userToUpdate.emailValidated = false;
         }
 
-        await user.save();
+        await userToUpdate.save();
         this.loggerService.info(`User ${id} updated`);
 
-        return user;
+        return userToUpdate;
+    }
+
+    // returns the user to modify in order to not have to findOne it again
+    private async IsModificationAuthorized(requestUserInfo: { id: string, role: UserRole }, userIdToUpdate: string): Promise<HydratedDocument<IUser> | undefined> {
+        const userToModify = await this.findOne(userIdToUpdate);
+
+        // users can modify themselves
+        if (requestUserInfo.id === userToModify.id)
+            return userToModify;
+
+        // admins can modify other users (except for other admins)
+        if (requestUserInfo.role === 'admin') {
+            if (!(userToModify.role === 'admin'))
+                return userToModify;
+        }
     }
 }
