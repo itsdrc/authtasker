@@ -6,7 +6,8 @@ node_modules/
 /coverage/
 /dist/
 /logs/
-docker-volumes/
+docker-volumes/*
+!docker-volumes/.gitkeep
 
 # env files
 envs/.env.prod
