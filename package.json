@@ -10,10 +10,12 @@
     "containers:test:e2e": "docker compose --env-file envs/.env.e2e -p authtasker-e2e up -d",
     "containers:all": "npm run containers:dev && npm run containers:test:int && npm run containers:test:e2e",
     "test:unit": "jest --config  jest/jest.unit.config.ts",
-    "test:int": "npm run containers:test:int && dotenvx run -f envs/.env.int -- node -r tsconfig-paths/register -- jest --config jest/jest.int.config.ts",    
+    "test:int": "npm run containers:test:int && dotenvx run -f envs/.env.int -- node -r tsconfig-paths/register -- jest --config jest/jest.int.config.ts",
     "build": "rimraf ./dist && tspc -p tsconfig.build.json",
     "start": "npm run build && dotenvx run -f envs/.env.prod -- node dist/app.js",
-    "test:e2e": "npm run containers:test:e2e && conc \"dotenvx run -f envs/.env.e2e -- node -r tsconfig-paths/register -- jest --config jest/jest.e2e.config.ts\" \"dotenvx run -f envs/.env.e2e -- tsx watch -r tsconfig-paths/register src/app.ts\""
+    "jest:e2e": "dotenvx run -f envs/.env.e2e -- node -r tsconfig-paths/register -- jest --config jest/jest.e2e.config.ts",
+    "app:e2e": "dotenvx run -f envs/.env.e2e -- cross-env NODE_ENV=e2e tsx watch -r tsconfig-paths/register src/app.ts",
+    "test:e2e": "npm run containers:test:e2e && conc \"npm run jest:e2e\" \"npm run app:e2e\""
   },
   "keywords": [],
   "author": "",
