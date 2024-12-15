@@ -129,8 +129,8 @@ export class UserController {
             const requestUserInfo = this.getUserInfoOrHandleError(req, res);
             
             if (requestUserInfo) {
-                const updated = await this.userService.deleteOne(requestUserInfo, userIdToUpdate);
-                res.status(HTTP_STATUS_CODE.OK).json(updated);
+                await this.userService.deleteOne(requestUserInfo, userIdToUpdate);
+                res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
                 return;
             }
 
