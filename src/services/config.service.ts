@@ -21,12 +21,10 @@ export class ConfigService {
     public readonly REDIS_PASSWORD: string;
 
     constructor() {
-        if(!process.env.NODE_ENV){             
-            SystemLoggerService.error('Node env not specified in script');
-            process.exit(1);             
-        }                    
 
-        this.NODE_ENV = process.env.NODE_ENV;            
+        this.NODE_ENV = env.get('NODE_ENV')
+            .required()
+            .asEnum(['development', 'e2e', 'integration'])
 
         this.HTTP_LOGS = env.get('HTTP_LOGS')
             .default("true")

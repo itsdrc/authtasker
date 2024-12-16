@@ -4,7 +4,7 @@
   "main": "app.js",
   "scripts": {
     "type-check": "tspc --noEmit src/app.ts",
-    "dev": "npm run type-check && dotenvx run -f envs/.env.dev -- cross-env NODE_ENV=development tsx watch -r tsconfig-paths/register src/app.ts",
+    "dev": "npm run type-check && dotenvx run -f envs/.env.dev -- tsx watch -r tsconfig-paths/register src/app.ts",
     "containers:dev": "docker compose --env-file envs/.env.dev -p authtasker-dev up -d",
     "containers:test:int": "docker compose --env-file envs/.env.int -p authtasker-int up -d",
     "containers:test:e2e": "docker compose --env-file envs/.env.e2e -p authtasker-e2e up -d",
@@ -13,7 +13,7 @@
     "test:int": "npm run containers:test:int && dotenvx run -f envs/.env.int -- node -r tsconfig-paths/register -- jest --config jest/jest.int.config.ts",
     "build": "rimraf ./dist && tspc -p tsconfig.build.json",
     "start": "npm run build && dotenvx run -f envs/.env.prod -- node dist/app.js",
-    "server:e2e": "dotenvx run -f envs/.env.e2e -- cross-env NODE_ENV=e2e tsx -r tsconfig-paths/register src/app.ts",
+    "server:e2e": "dotenvx run -f envs/.env.e2e -- tsx -r tsconfig-paths/register src/app.ts",
     "test:e2e": "dotenvx run -f envs/.env.e2e -- node -r tsconfig-paths/register -- ./node_modules/jest/bin/jest.js --config jest/jest.e2e.config.ts",
     "test:e2e:parallel": "npm run containers:test:e2e && conc \"npm run server:e2e\" \"npm run test:e2e\""
   },
