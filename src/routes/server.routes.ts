@@ -11,6 +11,7 @@ import { requestContextMiddlewareFactory } from "@root/middlewares/request-conte
 import { SeedRoutes } from "@root/seed/routes/seed.routes";
 import { UserRoutes } from "./user.routes";
 import { loadUserModel } from "@root/databases/mongo/models/users/user.model.load";
+import { createAdmin } from "@root/admin/create-admin";
 
 export class AppRoutes {
 
@@ -43,7 +44,13 @@ export class AppRoutes {
         );
 
         const userModel = loadUserModel(this.configService);
-        
+
+        createAdmin(
+            userModel,
+            this.configService,
+            hashingService,
+        );
+
         const userRoutes = new UserRoutes(
             this.configService,
             userModel,

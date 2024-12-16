@@ -19,6 +19,9 @@ export class ConfigService {
     public readonly REDIS_PORT: number;
     public readonly REDIS_HOST: string;
     public readonly REDIS_PASSWORD: string;
+    public readonly ADMIN_NAME: string;
+    public readonly ADMIN_EMAIL: string;
+    public readonly ADMIN_PASSWORD: string;
 
     constructor() {
 
@@ -85,6 +88,18 @@ export class ConfigService {
             .asString();
 
         this.REDIS_PASSWORD = env.get('REDIS_PASSWORD')
+            .required()
+            .asString();
+
+        this.ADMIN_NAME = env.get('ADMIN_NAME')
+            .required()
+            .asString();
+
+        this.ADMIN_EMAIL = env.get('ADMIN_EMAIL')
+            .required()
+            .asEmailString();
+
+        this.ADMIN_PASSWORD = env.get('ADMIN_PASSWORD')
             .required()
             .asString();
     }
