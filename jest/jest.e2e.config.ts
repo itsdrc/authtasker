@@ -2,9 +2,7 @@ import type { Config } from 'jest';
 
 const config: Config = {
     rootDir: "./../", // root    
-    collectCoverage: true,
-    coverageDirectory: "./coverage/e2e",
-    coverageProvider: "v8",
+    collectCoverage: false,    
     moduleNameMapper: {
         "^@root/(.*)$": "<rootDir>/src/$1"
     },
