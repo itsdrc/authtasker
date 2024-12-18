@@ -4,6 +4,16 @@ import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler"
 import { createAdmin } from "../../../helpers/admin/create-admin";
 
 describe('Users - DELETE/ Access', () => {
+    test('can not access if token is not provided (401 FORBIDDEN)', async () => {
+        const expectedStatus = 401;
+        try {
+            await axios.delete(`${global.USERS_PATH}/12345`);
+        } catch (error) {
+            const axiosError = error as AxiosError;
+            expect(axiosError.status).toBe(expectedStatus);
+        }
+    });
+
     describe('Readonly users', () => {
         test('can delete themselves (204 NO CONTENT)', async () => {
             try {
@@ -33,9 +43,9 @@ describe('Users - DELETE/ Access', () => {
             }
         });
 
-        test('can not delete another user (401 Unauthorized)', async () => {
+        test('can not delete another user (403 FORBIDDEN)', async () => {
             try {
-                const status = 401;
+                const status = 403;
 
                 // register both
                 const [user1Created, user2Created] = await Promise.all([
@@ -102,9 +112,9 @@ describe('Users - DELETE/ Access', () => {
             }
         });
 
-        test('can not delete another admin (401 Unauthorized)', async () => {
+        test('can not delete another admin (403 FORBIDDEN)', async () => {
             try {
-                const expectedStatus = 401;
+                const expectedStatus = 403;
 
                 // admin created by server 
                 const anotherAdmin = await createAdmin();
