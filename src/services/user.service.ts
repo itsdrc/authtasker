@@ -153,7 +153,7 @@ export class UserService {
 
         // id is not valid / user not found
         if (!userDb)
-            throw HttpError.badRequest(`User with id ${id} not found`);
+            throw HttpError.notFound(`User with id ${id} not found`);
 
         return userDb;
     }
