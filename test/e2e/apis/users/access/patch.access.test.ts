@@ -4,6 +4,16 @@ import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler"
 import { createAdmin } from "../../../helpers/admin/create-admin";
 
 describe('Users - PATCH/ Access', () => {
+    test('can not access if token is not provided (401 FORBIDDEN)', async () => {
+        const expectedStatus = 401;
+        try {
+            await axios.patch(`${global.USERS_PATH}/12345`);            
+        } catch (error) {
+            const axiosError = error as AxiosError;
+            expect(axiosError.status).toBe(expectedStatus);
+        }
+    });
+
     describe('Readonly users', () => {
         test('can update themselves (200 OK)', async () => {
             try {
@@ -37,9 +47,9 @@ describe('Users - PATCH/ Access', () => {
             }
         });
 
-        test('can not update another user (401 UNAUTHORIZED)', async () => {
+        test('can not update another user (403 FORBIDDEN)', async () => {
             try {
-                const expectedStatus = 401;
+                const expectedStatus = 403;
 
                 // create user
                 const user1Created = await axios.post(global.REGISTER_USER_PATH, {
@@ -114,9 +124,9 @@ describe('Users - PATCH/ Access', () => {
             }
         });
 
-        test('can not update another admin (401 UNAUTHORIZED)', async () => {
+        test('can not update another admin (403 FORBIDDEN)', async () => {
             try {
-                const expectedStatus = 401;
+                const expectedStatus = 403;
 
                 // simulate admin created by server
                 const newAdmin = await createAdmin();
