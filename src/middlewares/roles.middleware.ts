@@ -55,7 +55,7 @@ export const rolesMiddlewareFactory = (
             }
             else {
                 loggerService.error('Access denied. Insufficient permissions')
-                res.status(HTTP_STATUS_CODE.UNAUTHORIZED)
+                res.status(HTTP_STATUS_CODE.FORBIDDEN)
                     .json({ error: UNAUTHORIZED_MSSG })
                 return
             }            

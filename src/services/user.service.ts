@@ -177,7 +177,7 @@ export class UserService {
         const userToDelete = await this.IsModificationAuthorized(requestUserInfo, id);
         if (!userToDelete) {
             // TODO: logging
-            throw HttpError.unAuthorized(UNAUTHORIZED_MSSG);
+            throw HttpError.forbidden(UNAUTHORIZED_MSSG);
         }
         await userToDelete.deleteOne().exec();
         this.loggerService.info(`USER ${id} DELETED`);
@@ -187,7 +187,7 @@ export class UserService {
         const userToUpdate = await this.IsModificationAuthorized(requestUserInfo, id);
         if (!userToUpdate) {
             // TODO: logging
-            throw HttpError.unAuthorized(UNAUTHORIZED_MSSG);
+            throw HttpError.forbidden(UNAUTHORIZED_MSSG);
         }
 
         Object.assign(userToUpdate, propertiesUpdated);
