@@ -6,10 +6,12 @@ import { IUser } from "@root/interfaces/user/user.interface";
 import { LoggerService } from "@root/services/logger.service";
 import { UserSeedController } from "../controllers/user.seed.controller";
 import { UserSeedService } from "../services/user.seed.service";
+import { ConfigService } from "@root/services/config.service";
 
 export class UserSeedRoutes {
 
     constructor(
+        private readonly configService: ConfigService,
         private readonly userModel: Model<IUser>,
         private readonly hashingService: HashingService,
         private readonly loggerService: LoggerService,
@@ -17,6 +19,7 @@ export class UserSeedRoutes {
 
     get routes() {
         const userSeedService = new UserSeedService(
+            this.configService,
             this.userModel,
             this.hashingService,
         );

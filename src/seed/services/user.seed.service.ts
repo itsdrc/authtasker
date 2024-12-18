@@ -4,10 +4,12 @@ import { faker } from '@faker-js/faker';
 import { HashingService } from "@root/services/hashing.service";
 import { IUser } from "@root/interfaces/user/user.interface";
 import { UserRequest } from "@root/types/user/user-request.type";
+import { ConfigService } from "@root/services/config.service";
 
 export class UserSeedService {
 
     constructor(
+        private readonly configService: ConfigService,
         private readonly userModel: Model<IUser>,
         private readonly hashingService: HashingService,
     ) {}
@@ -29,7 +31,7 @@ export class UserSeedService {
     }
 
     async seedBunch(n: number) {
-        await this.userModel.deleteMany();        
+        await this.userModel.deleteMany({ email: { $ne: this.configService.ADMIN_EMAIL } });      
         const users = await this.generateBunchOfUsers(n);        
         return await this.userModel.insertMany(users);
     }
