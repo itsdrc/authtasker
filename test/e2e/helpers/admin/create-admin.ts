@@ -1,5 +1,4 @@
 import { HydratedDocument } from "mongoose";
-import * as dataGenerator from "../generators/user-info.generator";
 import { loadUserModel } from "@root/databases/mongo/models/users/user.model.load";
 import { ConfigService } from "@root/services/config.service";
 import { HashingService } from "@root/services/hashing.service";
@@ -19,9 +18,9 @@ export const createAdmin = async (): Promise<HydratedDocument<IUser>> => {
     await MongoDatabase.connect(configService.MONGO_URI);
 
     const created = await userModel.create({
-        name: dataGenerator.name(),
-        email: dataGenerator.email(),
-        password: await hashingService.hash(dataGenerator.password()),
+        name: global.DATA_GENERATOR.name(),
+        email: global.DATA_GENERATOR.email(),
+        password: await hashingService.hash(global.DATA_GENERATOR.password()),
         role: 'admin'
     });
 

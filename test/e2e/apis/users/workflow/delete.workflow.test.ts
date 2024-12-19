@@ -1,5 +1,4 @@
 import axios, { AxiosError } from "axios";
-import * as dataGenerator from "../../../helpers/generators/user-info.generator";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
 
 describe('Users - DELETE/ Workflow', () => {
@@ -10,9 +9,9 @@ describe('Users - DELETE/ Workflow', () => {
 
                 // create user
                 const created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 });
 
                 const userId = created.data.user.id;

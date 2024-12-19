@@ -1,6 +1,5 @@
 import axios, { AxiosError } from "axios";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
-import * as dataGenerator from "../../../helpers/generators/user-info.generator";
 
 describe('Users - GET/ Access', () => {
     describe('Find by id', () => {
@@ -22,17 +21,17 @@ describe('Users - GET/ Access', () => {
                     const expectedStatus = 200;
                     
                     const user1Created = await axios.post(global.REGISTER_USER_PATH, {
-                        name: dataGenerator.name(),
-                        email: dataGenerator.email(),
-                        password: dataGenerator.password()
+                        name: global.DATA_GENERATOR.name(),
+                        email: global.DATA_GENERATOR.email(),
+                        password: global.DATA_GENERATOR.password()
                     });
 
                     const user1Token = user1Created.data.token;
 
                     const user2Created = await axios.post(global.REGISTER_USER_PATH, {
-                        name: dataGenerator.name(),
-                        email: dataGenerator.email(),
-                        password: dataGenerator.password()
+                        name: global.DATA_GENERATOR.name(),
+                        email: global.DATA_GENERATOR.email(),
+                        password: global.DATA_GENERATOR.password()
                     });
 
                     const user2Id = user2Created.data.user.id;

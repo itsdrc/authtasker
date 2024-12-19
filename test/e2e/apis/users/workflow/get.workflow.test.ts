@@ -1,5 +1,4 @@
 import axios from "axios";
-import * as dataGenerator from "../../../helpers/generators/user-info.generator";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
 
 describe('Users - GET/ Workflow', () => {
@@ -8,9 +7,9 @@ describe('Users - GET/ Workflow', () => {
             try {
                 const expectedStatus = 200;
                 const userData = {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 };
 
                 // create user

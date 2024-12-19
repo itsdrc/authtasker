@@ -1,5 +1,4 @@
 import axios, { AxiosError } from "axios";
-import * as dataGenerator from "../../../helpers/generators/user-info.generator";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
 import { createAdmin } from "../../../helpers/admin/create-admin";
 
@@ -21,9 +20,9 @@ describe('Users - DELETE/ Access', () => {
 
                 // create user
                 const created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 });
 
                 const id = created.data.user.id;
@@ -50,14 +49,14 @@ describe('Users - DELETE/ Access', () => {
                 // register both
                 const [user1Created, user2Created] = await Promise.all([
                     axios.post(global.REGISTER_USER_PATH, {
-                        name: dataGenerator.name(),
-                        email: dataGenerator.email(),
-                        password: dataGenerator.password(),
+                        name: global.DATA_GENERATOR.name(),
+                        email: global.DATA_GENERATOR.email(),
+                        password: global.DATA_GENERATOR.password(),
                     }),
                     axios.post(global.REGISTER_USER_PATH, {
-                        name: dataGenerator.name(),
-                        email: dataGenerator.email(),
-                        password: dataGenerator.password(),
+                        name: global.DATA_GENERATOR.name(),
+                        email: global.DATA_GENERATOR.email(),
+                        password: global.DATA_GENERATOR.password(),
                     })
                 ]);
 
@@ -92,9 +91,9 @@ describe('Users - DELETE/ Access', () => {
 
                 // create a readonly user
                 const created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password(),
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password(),
                 });
                 const userId = created.data.user.id;
 

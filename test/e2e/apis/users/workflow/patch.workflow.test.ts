@@ -1,5 +1,4 @@
-import axios, { Axios, AxiosError } from "axios";
-import * as dataGenerator from "../../../helpers/generators/user-info.generator";
+import axios from "axios";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
 
 describe('Users - PATCH/ Workflow', () => {
@@ -8,9 +7,9 @@ describe('Users - PATCH/ Workflow', () => {
             try {
                 // create user            
                 const created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 });
 
                 const userId = created.data.user.id;
@@ -18,8 +17,8 @@ describe('Users - PATCH/ Workflow', () => {
 
                 // update
                 const userNewData = {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
                 };
 
                 await axios.patch(`${global.USERS_PATH}/${userId}`,
@@ -52,9 +51,9 @@ describe('Users - PATCH/ Workflow', () => {
 
                 // create user            
                 const created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 });
 
                 const userId = created.data.user.id;
@@ -62,9 +61,9 @@ describe('Users - PATCH/ Workflow', () => {
 
                 // update
                 const userNewData = {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password(),
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password(),
                 };
 
                 await axios.patch(`${global.USERS_PATH}/${userId}`,

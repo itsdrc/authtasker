@@ -1,5 +1,4 @@
 import axios, { Axios, AxiosError } from "axios";
-import * as dataGenerator from "../../../helpers/generators/user-info.generator";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
 import { createAdmin } from "../../../helpers/admin/create-admin";
 
@@ -21,9 +20,9 @@ describe('Users - PATCH/ Access', () => {
 
                 // create user
                 const created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 });
 
                 const id = created.data.user.id;
@@ -32,7 +31,7 @@ describe('Users - PATCH/ Access', () => {
                 // update
                 const updated = await axios.patch(
                     `${global.USERS_PATH}/${id}`,
-                    { name: dataGenerator.name() },
+                    { name: global.DATA_GENERATOR.name() },
                     {
                         headers: {
                             Authorization: `Bearer ${token}`
@@ -53,16 +52,16 @@ describe('Users - PATCH/ Access', () => {
 
                 // create user
                 const user1Created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 });
 
                 // create another user
                 const user2Created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 });
 
                 const user2Id = user2Created.data.user.id;
@@ -71,7 +70,7 @@ describe('Users - PATCH/ Access', () => {
                 try {
                     await axios.patch(
                         `${global.USERS_PATH}/${user2Id}`,
-                        { name: dataGenerator.name() },
+                        { name: global.DATA_GENERATOR.name() },
                         {
                             headers: {
                                 Authorization: `Bearer ${user1Token}`
@@ -99,9 +98,9 @@ describe('Users - PATCH/ Access', () => {
 
                 // create user
                 const created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 });
 
                 const userCreatedId = created.data.user.id;
@@ -109,7 +108,7 @@ describe('Users - PATCH/ Access', () => {
                 // update with admin's token
                 const updated = await axios.patch(
                     `${global.USERS_PATH}/${userCreatedId}`
-                    , { name: dataGenerator.name() },
+                    , { name: global.DATA_GENERATOR.name() },
                     {
                         headers: {
                             Authorization: `Bearer ${global.ADMIN_TOKEN}`
@@ -136,7 +135,7 @@ describe('Users - PATCH/ Access', () => {
                     // update with admin's token
                     await axios.patch(
                         `${global.USERS_PATH}/${newAdminId}`,
-                        { name: dataGenerator.name() },
+                        { name: global.DATA_GENERATOR.name() },
                         {
                             headers: {
                                 Authorization: `Bearer ${global.ADMIN_TOKEN}`

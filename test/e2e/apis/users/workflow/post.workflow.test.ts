@@ -1,15 +1,14 @@
 import axios from "axios";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
-import * as dataGenerator from "../../../helpers/generators/user-info.generator";
 
 describe('Users - POST/ Workflow', () => {
     describe('Create user', () => {
         test('response should contain token and user data (no password)', async () => {
             try {
                 const created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 });
 
                 expect(created.data).toStrictEqual({
@@ -35,9 +34,9 @@ describe('Users - POST/ Workflow', () => {
         test('created user can login and get token and data (no password)', async () => {
             try {
                 const userData = {
-                    name: dataGenerator.name(),
-                    email: dataGenerator.email(),
-                    password: dataGenerator.password()
+                    name: global.DATA_GENERATOR.name(),
+                    email: global.DATA_GENERATOR.email(),
+                    password: global.DATA_GENERATOR.password()
                 };
 
                 // create
