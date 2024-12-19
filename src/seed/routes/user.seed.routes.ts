@@ -7,6 +7,7 @@ import { LoggerService } from "@root/services/logger.service";
 import { UserSeedController } from "../controllers/user.seed.controller";
 import { UserSeedService } from "../services/user.seed.service";
 import { ConfigService } from "@root/services/config.service";
+import { UserDataGenerator } from "../generators/user.generator";
 
 export class UserSeedRoutes {
 
@@ -18,12 +19,15 @@ export class UserSeedRoutes {
     ) {}
 
     get routes() {
+        const userDataGenerator = new UserDataGenerator({ respectMinAndMaxLength: false });
+
         const userSeedService = new UserSeedService(
             this.configService,
             this.userModel,
             this.hashingService,
+            userDataGenerator
         );
-        
+
         const userSeedController = new UserSeedController(
             userSeedService,
             this.loggerService,
