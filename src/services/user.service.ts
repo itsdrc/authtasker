@@ -8,7 +8,6 @@ import { HttpError } from "../rules/errors/http.error";
 import { IUser } from "../interfaces/user/user.interface";
 import { JwtService } from "./jwt.service";
 import { LoggerService } from "./logger.service";
-import { PAGINATION_SETTINGS } from "../rules/constants/pagination.constants";
 import { SystemLoggerService } from "./system-logger.service";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 import { UserRole } from "@root/types/user/user-roles.type";
@@ -158,16 +157,47 @@ export class UserService {
         return userDb;
     }
 
-    async findAll(limit?: number, page?: number): Promise<HydratedDocument<IUser>[]> {
-        if (!limit)
-            limit = PAGINATION_SETTINGS.DEFAULT_LIMIT;
+    async findAll(limit: number, page: number): Promise<HydratedDocument<IUser>[]> {
+        // if (!Number.isInteger(limit) || !Number.isInteger(!page)) {
+        //     // TODO: logging
+        //     throw HttpError.badRequest('Limit and page must be a valid integer');
+        // }
 
-        if (!page)
-            page = PAGINATION_SETTINGS.DEFAULT_PAGE;
+        if (limit <= 0) {
+            // TODO: logging
+            throw HttpError.badRequest('Limit must be a valid number');
+        }
+
+        if (limit > 100) {
+            // TODO: logging
+            throw HttpError.badRequest('Limit is too large');
+        }
+
+        const totalDocuments = await this.userModel
+            .countDocuments()
+            .exec();
+
+        if (totalDocuments === 0) {
+            // TODO: logging
+            return [];
+        }
+
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        if (page <= 0) {
+            // TODO: logging
+            throw HttpError.badRequest('Page must be a valid number');
+        }
+
+        if (page > totalPages) {
+            // TODO: logging
+            throw HttpError.badRequest('Invalid page');
+        }
 
         const offset = (page - 1) * limit;
 
-        return await this.userModel.find()
+        return await this.userModel
+            .find()
             .skip(offset)
             .limit(limit)
             .exec();

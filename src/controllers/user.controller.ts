@@ -8,6 +8,7 @@ import { SystemLoggerService } from "@root/services/system-logger.service";
 import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
 import { UserService } from "@root/services/user.service";
 import { UserRole } from "@root/types/user/user-roles.type";
+import { PAGINATION_SETTINGS } from "@root/rules/constants/pagination.constants";
 
 export class UserController {
 
@@ -112,8 +113,8 @@ export class UserController {
 
     readonly findAll = async (req: Request, res: Response): Promise<void> => {
         try {
-            const limit = (req.query.limit) ? +req.query.limit : undefined;
-            const page = (req.query.page) ? +req.query.page : undefined;
+            const limit = (req.query.limit) ? +req.query.limit : PAGINATION_SETTINGS.DEFAULT_LIMIT;
+            const page = (req.query.page) ? +req.query.page : PAGINATION_SETTINGS.DEFAULT_PAGE;
             const usersFound = await this.userService.findAll(limit, page);
             res.status(HTTP_STATUS_CODE.OK).json(usersFound);
         } catch (error) {
