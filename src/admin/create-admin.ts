@@ -23,6 +23,7 @@ export const createAdmin = async (
             SystemLoggerService.info(`Admin user creation omitted, already exists`);
         }
     } catch (error) {                
-        SystemLoggerService.error(`Failed to created admin user`);
+        SystemLoggerService.error(`Failed to create admin user: ${error}`);
+        process.exit(1);
     }
 }
