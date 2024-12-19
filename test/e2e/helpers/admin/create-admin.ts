@@ -5,6 +5,10 @@ import { ConfigService } from "@root/services/config.service";
 import { HashingService } from "@root/services/hashing.service";
 import { IUser } from "@root/interfaces/user/user.interface";
 import { MongoDatabase } from "@root/databases/mongo/mongo.database";
+import { SystemLoggerService } from "@root/services/system-logger.service";
+
+// disable logs when user model is loaded
+SystemLoggerService.info = jest.fn();
 
 const configService = new ConfigService();
 const userModel = loadUserModel(configService);
