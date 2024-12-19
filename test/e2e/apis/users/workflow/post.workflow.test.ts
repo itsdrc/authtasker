@@ -40,11 +40,13 @@ describe('Users - POST/ Workflow', () => {
                     password: dataGenerator.password()
                 };
 
-                const created = await axios.post(
+                // create
+                await axios.post(
                     global.REGISTER_USER_PATH,
                     userData
                 );
 
+                // login
                 const loggedIn = await axios.post(global.LOGIN_USER_PATH, {
                     email: userData.email,
                     password: userData.password
@@ -53,8 +55,8 @@ describe('Users - POST/ Workflow', () => {
                 expect(loggedIn.data).toStrictEqual({
                     token: expect.any(String),
                     user: {
-                        name: expect.any(String),
-                        email: expect.any(String),
+                        name: userData.name.toLowerCase(),
+                        email: userData.email,
                         createdAt: expect.any(String),
                         updatedAt: expect.any(String),
                         emailValidated: expect.any(Boolean),
