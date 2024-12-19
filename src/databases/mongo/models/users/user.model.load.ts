@@ -49,7 +49,7 @@ export const loadUserModel = (configService: ConfigService): Model<IUser> => {
         }
     });
 
-    if (configService.NODE_ENV === 'development') {
+    if (configService.HTTP_LOGS) {
         userSchema.post('findOne', (doc) => {
             if (doc) EventManager.emit('mongoose.userModel.findOne', doc.name);
         });
