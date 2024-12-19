@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { writeFileSync } from 'fs';
-import { handleAxiosError } from '../helpers/handlers/axios-error.handler';
 
 export default async () => {
     SystemLoggerService.info('E2E global setup');
@@ -23,6 +22,7 @@ export default async () => {
         SystemLoggerService.info('Admin token obtained');
 
     } catch (error) {
-        handleAxiosError(error);
+        console.error(error);
+        process.exit(1);
     }
 }
