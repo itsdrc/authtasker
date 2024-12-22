@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
 
-describe('Users - DELETE/ Workflow', () => {
-    describe('A deleted user', () => {
+describe('Delete users workflow', () => {
+    describe('When a user is deleted', () => {
         test('can not be found anymore (404 NOT FOUND)', async () => {
             try {
                 const expectedStatus = 404;
@@ -34,7 +34,7 @@ describe('Users - DELETE/ Workflow', () => {
                     expect(true).toBeFalsy();
 
                 } catch (error) {
-                    const axiosError = error as AxiosError;                    
+                    const axiosError = error as AxiosError;
                     expect(axiosError.status).toBe(expectedStatus);
                 }
 

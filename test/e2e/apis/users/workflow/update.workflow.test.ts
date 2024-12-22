@@ -1,8 +1,8 @@
 import axios from "axios";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
 
-describe('Users - PATCH/ Workflow', () => {
-    describe('An updated user', () => {
+describe('Update user workflow', () => {
+    describe('When a user is updated', () => {
         test('data must be updated when user is found', async () => {
             try {
                 // create user            
@@ -45,7 +45,7 @@ describe('Users - PATCH/ Workflow', () => {
             }
         });
 
-        test('can login with new data (200 OK)', async () => {
+        test('can login with new data', async () => {
             try {
                 const expectedStatus = 200;
 

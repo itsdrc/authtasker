@@ -2,15 +2,17 @@ import axios, { AxiosError } from "axios";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
 import { createAdmin } from "../../../helpers/admin/create-admin";
 
-describe('Users - DELETE/ Access', () => {
-    test('can not access if token is not provided (401 FORBIDDEN)', async () => {
-        const expectedStatus = 401;
-        try {
-            await axios.delete(`${global.USERS_PATH}/12345`);
-        } catch (error) {
-            const axiosError = error as AxiosError;
-            expect(axiosError.status).toBe(expectedStatus);
-        }
+describe('USER DELETION ACCESS', () => {
+    describe('Token not provided', () => {
+        test('can not access this feature (401 FORBIDDEN)', async () => {
+            const expectedStatus = 401;
+            try {
+                await axios.delete(`${global.USERS_PATH}/12345`);
+            } catch (error) {
+                const axiosError = error as AxiosError;
+                expect(axiosError.status).toBe(expectedStatus);
+            }
+        });
     });
 
     describe('Readonly users', () => {
