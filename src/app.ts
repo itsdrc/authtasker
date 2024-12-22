@@ -22,7 +22,7 @@ async function main() {
         const { AppRoutes } = await import('./routes/server.routes');
 
         const appRoutes = new AppRoutes(configService, loggerService, asyncLocalStorage);
-        const server = new Server(configService.PORT, appRoutes.routes);
+        const server = new Server(configService.PORT, await appRoutes.buildApp());
         server.start();
     }
 }

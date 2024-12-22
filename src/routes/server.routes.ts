@@ -1,85 +1,93 @@
 import { AsyncLocalStorage } from "async_hooks";
+import { Model } from "mongoose";
 import { Router } from "express";
 
-import { ConfigService } from "@root/services/config.service";
-import { EmailService } from "@root/services/email.service";
-import { HashingService } from "@root/services/hashing.service";
+import {
+    ConfigService,
+    EmailService,
+    HashingService,
+    JwtService,
+    LoggerService
+} from "@root/services";
 import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
-import { JwtService } from "@root/services/jwt.service";
-import { LoggerService } from "@root/services/logger.service";
+import { IUser } from "@root/interfaces/user/user.interface";
+import { loadUserModel } from "@root/databases/mongo/models/users/user.model.load";
 import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
 import { SeedRoutes } from "@root/seed/routes/seed.routes";
 import { UserRoutes } from "./user.routes";
-import { loadUserModel } from "@root/databases/mongo/models/users/user.model.load";
-import { createAdmin } from "@root/admin/create-admin";
 
 export class AppRoutes {
+
+    private readonly jwtService: JwtService;
+    private readonly hashingService: HashingService;
+    private readonly emailService?: EmailService;
+    private readonly userModel: Model<IUser>;
 
     constructor(
         private readonly configService: ConfigService,
         private readonly loggerService: LoggerService,
         private readonly asyncLocalStorage: AsyncLocalStorage<IAsyncLocalStorageStore>
-    ) {}
+    ) {
+        this.jwtService = new JwtService(
+            this.configService.JWT_EXPIRATION_TIME,
+            this.configService.JWT_PRIVATE_KEY
+        );
 
-    get routes(): Router {
-        // common services
+        this.hashingService = new HashingService(
+            this.configService.BCRYPT_SALT_ROUNDS
+        );
 
-        let emailService: EmailService | undefined;
+        this.userModel = loadUserModel(this.configService);
+
         if (this.configService.mailServiceIsDefined()) {
-            emailService = new EmailService({
+            this.emailService = new EmailService({
                 host: this.configService.MAIL_SERVICE_HOST,
                 port: this.configService.MAIL_SERVICE_PORT,
                 user: this.configService.MAIL_SERVICE_USER,
                 pass: this.configService.MAIL_SERVICE_PASS,
             });
         }
+    }
 
-        const jwtService = new JwtService(
-            this.configService.JWT_EXPIRATION_TIME,
-            this.configService.JWT_PRIVATE_KEY
-        );
+    private buildGlobalMiddlewares() {
+        return [
+            requestContextMiddlewareFactory(
+                this.asyncLocalStorage,
+                this.loggerService,
+            )
+        ];
+    }
 
-        const hashingService = new HashingService(
-            this.configService.BCRYPT_SALT_ROUNDS
-        );
-
-        const userModel = loadUserModel(this.configService);
-
-        createAdmin(
-            userModel,
-            this.configService,
-            hashingService,
-        );
-
+    private buildUserRoutes(): Promise<Router> {
         const userRoutes = new UserRoutes(
             this.configService,
-            userModel,
-            hashingService,
-            jwtService,
+            this.userModel,
+            this.hashingService,
+            this.jwtService,
             this.loggerService,
-            emailService,
+            this.emailService,
         );
+        return userRoutes.build();
+    }
 
-        const router = Router();
-
-        // global middlewares
-        router.use(requestContextMiddlewareFactory(
-            this.asyncLocalStorage,
+    private buildSeedRoutes() {
+        const seedRoutes = new SeedRoutes(
+            this.configService,
+            this.userModel,
+            this.hashingService,
             this.loggerService,
-        ));
+        );
+        return seedRoutes.routes;
+    }
 
-        // apis
-        router.use('/api/users', userRoutes.routes);
+    async buildApp() {
+        const router = Router();        
 
-        if (this.configService.NODE_ENV === 'development') {
-            const seedRoutes = new SeedRoutes(
-                this.configService,
-                userModel,
-                hashingService,
-                this.loggerService,                
-            );
-            router.use('/api/seed', seedRoutes.routes);
-        }
+        router.use(this.buildGlobalMiddlewares());
+        router.use('/api/users', await this.buildUserRoutes());
+
+        if (this.configService.NODE_ENV === 'development')
+            router.use('/seed', this.buildSeedRoutes());
 
         return router;
     }
