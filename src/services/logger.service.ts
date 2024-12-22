@@ -44,7 +44,7 @@ export class LoggerService {
                     const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);
                     const coloredMessage = colorizer(level, finalMessage);
 
-                    return `${coloredTimestamp} ${coloredRequest} ${coloredMethod}  ${coloredLevel}: ${finalMessage}`;
+                    return `${coloredTimestamp} ${coloredRequest} ${coloredMethod} ${coloredLevel}: ${finalMessage}`;
                 }),
             ),
         });
