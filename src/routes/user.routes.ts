@@ -64,7 +64,8 @@ export class UserRoutes {
 
         router.post('/create', this.userController.create);
         router.post('/login', this.userController.login);
-        router.get('/validate-email/:token', this.userController.validateEmail);
+        router.post('/requestEmailValidation', readonlyMiddleware, this.userController.requestEmailValidation);
+        router.get('/confirmEmailValidation/:token', this.userController.confirmEmailValidation);
 
         router.get('/:id', readonlyMiddleware, this.userController.findOne);
         router.get('/', readonlyMiddleware, this.userController.findAll);

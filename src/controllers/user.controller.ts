@@ -83,9 +83,23 @@ export class UserController {
         }
     }
 
-    readonly validateEmail = async (req: Request, res: Response): Promise<void> => {
+    readonly requestEmailValidation = async (req:Request, res:Response): Promise<void> => {
         try {
-            this.loggerService.info('EMAIL VALIDATION ATTEMP');
+            this.loggerService.info('Email validation requested');
+            const requestUserInfo = this.getUserInfoOrHandleError(req,res);
+            if(requestUserInfo){
+                await this.userService.requestEmailValidation(requestUserInfo.id);
+                res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
+            }
+
+        } catch (error) {
+            handleError(res,error,this.loggerService);
+        }
+    }
+
+    readonly confirmEmailValidation = async (req: Request, res: Response): Promise<void> => {
+        try {
+            this.loggerService.info('Confirming email validation');
             const token = req.params.token;
 
             if (!token) {
@@ -94,8 +108,8 @@ export class UserController {
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
             }
 
-            await this.userService.validateEmail(token);
-            res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
+            await this.userService.confirmEmailValidation(token);
+            res.status(HTTP_STATUS_CODE.OK).send('Email successfully validated');
         } catch (error) {
             handleError(res, error, this.loggerService);
         }

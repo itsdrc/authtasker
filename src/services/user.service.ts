@@ -22,18 +22,21 @@ export class UserService {
         private readonly jwtService: JwtService,
         private readonly loggerService: LoggerService,
         private readonly emailService?: EmailService,
-    ) {}
+    ) {
+        if (!this.configService.mailServiceIsDefined())
+            SystemLoggerService.warn('Email validation is not enabled');
+    }
 
     private async sendEmailValidationLink(email: string): Promise<void> {
         // this function shouldn't be called if emailService is not provided 
         if (!this.emailService) {
-            SystemLoggerService.error('AN EMAIL VALIDATION IS TRYING TO BE SENT BUT EMAIL SERVICE IS NOT INJECTED');
+            SystemLoggerService.error('An email validation is trying to be sent but email service is not injected');
             throw HttpError.internalServer('Email can not be validated due to a server error');
         }
 
         const token = this.jwtService.generate({ email });
         // web url is appended with a default "/" when read
-        const link = `${this.configService.WEB_URL}api/users/validate-email/${token}`;
+        const link = `${this.configService.WEB_URL}api/users/confirmEmailValidation/${token}`;
 
         await this.emailService.sendMail({
             to: email,
@@ -45,7 +48,25 @@ export class UserService {
         });
     }
 
-    async validateEmail(token: string): Promise<void> {
+    async requestEmailValidation(id: string): Promise<void> {
+        const user = await this.userModel
+            .findById(id)
+            .exec();
+
+        if (!user) {
+            // todo: logging
+            throw HttpError.badRequest('User not found');
+        }
+
+        if (this.configService.mailServiceIsDefined()) {
+            await this.sendEmailValidationLink(user.email);
+            this.loggerService.info('Email validation sent')
+        } else {
+            this.loggerService.debug('Email validation not sent because is not enabled')
+        }
+    }
+
+    async confirmEmailValidation(token: string): Promise<void> {
         // token verification
         const payload = this.jwtService.verify<{ email: string }>(token);
         if (!payload) {
@@ -54,7 +75,6 @@ export class UserService {
         }
 
         const email = payload.email;
-
         if (!email) {
             this.loggerService.error('EMAIL NOT IN TOKEN');
             throw HttpError.internalServer('Email not in token');
@@ -73,7 +93,7 @@ export class UserService {
 
         await user.save();
 
-        this.loggerService.info(`USER ${user.id} UPDATED TO VALID`);
+        this.loggerService.info(`User ${user.id} email validated, now is editor`);
     }
 
     async create(user: CreateUserValidator): Promise<{ user: HydratedDocument<IUser>, token: string }> {
@@ -87,14 +107,6 @@ export class UserService {
 
             // token generation
             const token = this.jwtService.generate({ id: created.id });
-
-            // email validation
-            if (this.configService.mailServiceIsDefined()) {
-                await this.sendEmailValidationLink(user.email);
-                this.loggerService.info('EMAIL VALIDATION LINK SENT');
-            } else {
-                this.loggerService.warn(`EMAIL VALIDATION NOT ENABLED`);
-            }
 
             this.loggerService.info(`USER ${created.id} CREATED`);
 
