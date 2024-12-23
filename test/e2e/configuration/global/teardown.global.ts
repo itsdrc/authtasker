@@ -1,8 +1,6 @@
 import { loadUserModel } from "@root/databases/mongo/models/users/user.model.load";
 import { MongoDatabase } from "@root/databases/mongo/mongo.database"
 import { SystemLoggerService } from "@root/services/system-logger.service";
-import { rm } from "fs";
-import { ImapFlow } from "imapflow";
 import { removeAdminTokenIfExists } from "../../helpers/admin/token/remove-admin-token.helper";
 
 export default async () => {
@@ -19,7 +17,4 @@ export default async () => {
     removeAdminTokenIfExists();
 
     // TODO: Remove all messages from Ethereal inbox
-
-    await global.IMAP_CLIENT.logout();
-    SystemLoggerService.info('Imap client disconnected')
 }
