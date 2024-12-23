@@ -46,6 +46,8 @@ export class UserService {
             <p> Click below to validate your email </p>
             <a href= "${link}"> Validate your email ${email} </a>`,
         });
+
+        this.loggerService.info(`Email validation sent to ${email}`);
     }
 
     async requestEmailValidation(id: string): Promise<void> {
@@ -59,8 +61,7 @@ export class UserService {
         }
 
         if (this.configService.mailServiceIsDefined()) {
-            await this.sendEmailValidationLink(user.email);
-            this.loggerService.info('Email validation sent')
+            await this.sendEmailValidationLink(user.email);            
         } else {
             this.loggerService.debug('Email validation not sent because is not enabled')
         }
