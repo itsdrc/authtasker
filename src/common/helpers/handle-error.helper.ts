@@ -1,6 +1,7 @@
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { HttpError } from "@root/rules/errors/http.error";
 import { LoggerService } from "@root/services/logger.service";
+import { SystemLoggerService } from "@root/services/system-logger.service";
 import { Response } from "express";
 
 export const handleError = (res: Response, error: Error | unknown, logger: LoggerService) => {
@@ -14,10 +15,12 @@ export const handleError = (res: Response, error: Error | unknown, logger: Logge
         res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unexpected error' });
         logger.error(`UNEXPECTED ERROR: ${error.message}`, error.stack);
         logger.debug(`UNEXPECTED ERROR: ${error.stack}`);
+        SystemLoggerService.error(error.message);
         return;
     }
 
     // unknown error
     logger.error(`UNKNOWN ERROR: ${error}`);
+    SystemLoggerService.error(error as string);
     return res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unknown error' });
 };
