@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { SystemLoggerService } from "@root/services/system-logger.service";
-import { writeFileSync } from 'fs';
 import { ImapFlow } from 'imapflow';
+import { SystemLoggerService } from "@root/services/system-logger.service";
+import { saveAdminToken } from '../../helpers/admin/token/save-admin-token.helper';
+import { removeAdminTokenIfExists } from '../../helpers/admin/token/remove-admin-token.helper';
 
 const connectImapClient = async () => {
     SystemLoggerService.info('Connecting to IMAP client...');
@@ -17,7 +18,7 @@ const connectImapClient = async () => {
             pass: process.env.MAIL_SERVICE_PASS,
         }
     });
-    await imapClient.connect();    
+    await imapClient.connect();
     SystemLoggerService.info('Connected to IMAP client');
     global.IMAP_CLIENT = imapClient;
 };
@@ -29,8 +30,7 @@ const getAdminToken = async () => {
         password: process.env.ADMIN_PASSWORD,
     });
     const adminToken = response.data.token;
-    writeFileSync(`${__dirname}/token.txt`, adminToken);
-    SystemLoggerService.info('Admin token obtained');
+    saveAdminToken(adminToken);
 };
 
 export default async () => {
@@ -53,8 +53,10 @@ export default async () => {
         ]);
 
     } catch (error) {
-        if (global.IMAP_CLIENT)
+        removeAdminTokenIfExists();
+        if (global.IMAP_CLIENT) {
             await global.IMAP_CLIENT.logout();
+        }
 
         console.error(error);
         process.exit(1);

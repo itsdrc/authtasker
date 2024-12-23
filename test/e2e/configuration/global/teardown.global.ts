@@ -3,6 +3,7 @@ import { MongoDatabase } from "@root/databases/mongo/mongo.database"
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { rm } from "fs";
 import { ImapFlow } from "imapflow";
+import { removeAdminTokenIfExists } from "../../helpers/admin/token/remove-admin-token.helper";
 
 export default async () => {
     SystemLoggerService.info('E2E global teardown');
@@ -15,9 +16,7 @@ export default async () => {
     await MongoDatabase.disconnect();
 
     // Remove the admin's token obtained in globalSetup
-    rm(`${__dirname}/token.txt`, () => {
-        SystemLoggerService.info('Token removed');
-    });
+    removeAdminTokenIfExists();
 
     // TODO: Remove all messages from Ethereal inbox
 
