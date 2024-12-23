@@ -7,9 +7,9 @@ const config: Config = {
         "^@root/(.*)$": "<rootDir>/src/$1"
     },
     preset: 'ts-jest',
-    globalSetup: "./test/e2e/config/globalSetup.ts",
-    globalTeardown: "./test/e2e/config/globalTeardown.ts",
-    setupFilesAfterEnv: ["./test/e2e/config/setupAfterEnv.ts"],
+    globalSetup: "./test/e2e/configuration/global/setup.global.ts",
+    globalTeardown: "./test/e2e/configuration/global/teardown.global.ts",
+    setupFilesAfterEnv: ["./test/e2e/configuration/test-file/setupAfterEnv.ts"],
     // test files
     roots: ["<rootDir>/test/e2e"],
     testEnvironment: "jest-environment-node",
