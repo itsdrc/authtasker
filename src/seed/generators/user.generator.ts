@@ -10,9 +10,14 @@ export class UserDataGenerator {
 
     name() {
         if (this.seedOptions.respectMinAndMaxLength) {
-            let generated: string;
+            let generated: string;            
             do {
-                generated = faker.person.firstName();
+                // generated a number between 0 and 1
+                const random = Math.round(Math.random());
+                if (random === 0)
+                    generated = faker.internet.username();
+                else
+                    generated = faker.person.firstName();
             } while (
                 generated.length < CONSTS.MIN_NAME_LENGTH ||
                 generated.length > CONSTS.MAX_NAME_LENGTH
