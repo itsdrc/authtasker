@@ -58,7 +58,7 @@ export class AppRoutes {
         ];
     }
 
-    private buildUserRoutes(): Promise<Router> {
+    private async buildUserRoutes(): Promise<Router> {
         const userRoutes = new UserRoutes(
             this.configService,
             this.userModel,
@@ -67,7 +67,7 @@ export class AppRoutes {
             this.loggerService,
             this.emailService,
         );
-        return userRoutes.build();
+        return await userRoutes.build();
     }
 
     private buildSeedRoutes() {
@@ -81,7 +81,7 @@ export class AppRoutes {
     }
 
     async buildApp() {
-        const router = Router();        
+        const router = Router();
 
         router.use(this.buildGlobalMiddlewares());
         router.use('/api/users', await this.buildUserRoutes());
