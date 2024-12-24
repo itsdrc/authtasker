@@ -15,6 +15,4 @@ export default async () => {
 
     // Remove the admin's token obtained in globalSetup
     removeAdminTokenIfExists();
-
-    // TODO: Remove all messages from Ethereal inbox
 }
