@@ -2,6 +2,21 @@ import { HashingService, JwtService } from '@root/services';
 import request from 'supertest';
 
 describe('Register user', () => {
+    test('should succesfully register a user (201 CREATED)', async () => {
+        const expectedStatus = 201;
+        const user = {
+            name: global.USER_DATA_GENERATOR.name(),
+            email: global.USER_DATA_GENERATOR.email(),
+            password: global.USER_DATA_GENERATOR.password(),
+        };
+
+        // create user
+        await request(global.SERVER_APP)
+            .post(global.REGISTER_USER_PATH)
+            .send(user)
+            .expect(expectedStatus);
+    });
+
     describe('When save user in db', () => {
         test('name should be converted to lowercase', async () => {
             const user = {
