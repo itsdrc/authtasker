@@ -241,6 +241,7 @@ export class UserService {
         if (propertiesUpdated.email) {
             if (userToUpdate.email !== propertiesUpdated.email) {                
                 userToUpdate.emailValidated = false;
+                userToUpdate.role = 'readonly';
             }
         }
 
