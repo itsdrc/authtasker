@@ -1,32 +1,32 @@
 import axios from "axios";
 import { ImapFlow, MailboxLockObject } from "imapflow";
-import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
-import { getUrlFromEmailMessage } from "../../../helpers/email/get-url-from-message.helper";
+import { handleAxiosError } from "../../helpers/handlers/axios-error.handler";
+import { getUrlFromEmailMessage } from "../../helpers/email/get-url-from-message.helper";
 
-describe('Email validation workflow', () => {
-    let client: ImapFlow;
+describe('Authentication', () => {
+    describe('Email validation', () => {
+        let client: ImapFlow;
 
-    beforeAll(async () => {
-        client = new ImapFlow({
-            logger: false,
-            connectionTimeout: 10000,
-            host: 'imap.ethereal.email',
-            port: 993,
-            secure: true,
-            auth: {
-                user: process.env.MAIL_SERVICE_USER!,
-                pass: process.env.MAIL_SERVICE_PASS!,
-            }
+        beforeAll(async () => {
+            client = new ImapFlow({
+                logger: false,
+                connectionTimeout: 10000,
+                host: 'imap.ethereal.email',
+                port: 993,
+                secure: true,
+                auth: {
+                    user: process.env.MAIL_SERVICE_USER!,
+                    pass: process.env.MAIL_SERVICE_PASS!,
+                }
+            });
+
+            await client.connect();
+        }, 11000);
+
+        afterAll(async () => {
+            await client.logout();
         });
 
-        await client.connect();
-    }, 11000);
-
-    afterAll(async () => {
-        await client.logout();
-    });
-
-    describe('When email is validated', () => {
         test('user should become an "editor" and emailValidated should be true', async () => {
             let lock: MailboxLockObject | undefined;
             const initialRole = 'readonly';
