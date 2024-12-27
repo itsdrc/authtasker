@@ -233,15 +233,19 @@ export class UserService {
             throw HttpError.forbidden(UNAUTHORIZED_MSSG);
         }
 
-        Object.assign(userToUpdate, propertiesUpdated);
+        if (propertiesUpdated.password) {
+            userToUpdate.password = await this.hashingService.hash(propertiesUpdated.password);        
+        }
 
-        if (propertiesUpdated.password)
-            userToUpdate.password = await this.hashingService.hash(propertiesUpdated.password);
-
-        // if email is different change "emailValidated" prop
+        // if email is different change "emailValidated" prop        
         if (propertiesUpdated.email) {
-            if (userToUpdate.email !== propertiesUpdated.email)
+            if (userToUpdate.email !== propertiesUpdated.email) {                
                 userToUpdate.emailValidated = false;
+            }
+        }
+
+        if(propertiesUpdated.name){
+            userToUpdate.name = propertiesUpdated.name
         }
 
         await userToUpdate.save();
