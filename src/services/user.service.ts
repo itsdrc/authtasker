@@ -243,6 +243,7 @@ export class UserService {
                 userToUpdate.emailValidated = false;
                 userToUpdate.role = 'readonly';
             }
+            userToUpdate.email = propertiesUpdated.email;            
         }
 
         if(propertiesUpdated.name){
