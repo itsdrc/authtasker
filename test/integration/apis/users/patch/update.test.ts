@@ -7,6 +7,56 @@ describe('PATCH/', () => {
     describe('Update user', () => {
         const hashingService = new HashingService(+process.env.BCRYPT_SALT_ROUNDS!);
 
+        describe('User is not found', () => {
+            test('should return status 404 NOT FOUND', async () => {
+                const expectedStatus = 404;
+
+                // create user in order to set bearer token
+                const userInDb = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                });
+
+                // generate a token with user id
+                const validToken = generateValidTokenWithId(userInDb.id);
+
+                const validMongoId = new Types.ObjectId();
+
+                await request(global.SERVER_APP)
+                    .patch(`${global.USERS_PATH}/${validMongoId}`)
+                    // at least one property is required
+                    .send({ name: global.USER_DATA_GENERATOR.name() })
+                    .set('Authorization', `Bearer ${validToken}`)
+                    .expect(expectedStatus);
+            });
+        });
+
+        describe('Id is not valid', () => {
+            test('should return status 404 NOT FOUND', async () => {
+                const expectedStatus = 404;
+
+                // create user in order to set bearer token
+                const userInDb = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                });
+
+                // generate a token with user id
+                const validToken = generateValidTokenWithId(userInDb.id);
+
+                const invalidMongoId = 123;
+
+                await request(global.SERVER_APP)
+                    .patch(`${global.USERS_PATH}/${invalidMongoId}`)
+                    // at least one property is required
+                    .send({ name: global.USER_DATA_GENERATOR.name() })
+                    .set('Authorization', `Bearer ${validToken}`)
+                    .expect(expectedStatus);
+            });
+        });
+
         describe('No new property is provided', () => {
             test('should causes 400 BAD REQUEST', async () => {
                 const expectedStatus = 400;
@@ -71,7 +121,7 @@ describe('PATCH/', () => {
         });
 
         describe('Name is updated', () => {
-            test('should be transformed to lowercase when saved in db', async () => {
+            test('should be transformed to lowercase', async () => {
                 // create user
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
@@ -136,38 +186,103 @@ describe('PATCH/', () => {
             });
         });
 
-        describe('Email is updated', () => {
-            describe('email is validated (role is editor)', () => {
-                test('should be updated to false and role updated to "readonly"', async () => {
-                    // create user and set emailValidated to true
-                    const userInDb = await global.USER_MODEL.create({
-                        name: global.USER_DATA_GENERATOR.name(),
-                        email: global.USER_DATA_GENERATOR.email(),
-                        password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+        describe('Email is updated', () => {            
+            test('email should be successfully updated', async () => {
+                // create user and set emailValidated to true
+                const userInDb = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                });
+
+                const newEmail = global.USER_DATA_GENERATOR.email();
+
+                // generate a token with user id
+                const validToken = generateValidTokenWithId(userInDb.id);
+
+                // update
+                await request(global.SERVER_APP)
+                    .patch(`${global.USERS_PATH}/${userInDb.id}`)
+                    .send({ email: newEmail })
+                    .set('Authorization', `Bearer ${validToken}`)
+                    .expect(200);
+
+                // find user in database
+                const userUpdatedInDb = await global.USER_MODEL
+                    .findById(userInDb.id)
+                    .exec();
+
+                expect(userUpdatedInDb?.email).toBe(newEmail);
+            });
+
+            describe('email is different', () => {
+                describe('email is validated (role is editor)', () => {
+                    test('should be updated to false and role updated to "readonly"', async () => {
+                        // create user and set emailValidated to true
+                        const userInDb = await global.USER_MODEL.create({
+                            name: global.USER_DATA_GENERATOR.name(),
+                            email: global.USER_DATA_GENERATOR.email(),
+                            password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                        });
+                        userInDb.emailValidated = true;
+                        userInDb.role = 'editor';
+                        await userInDb.save();
+
+                        const newEmail = global.USER_DATA_GENERATOR.email();
+
+                        // generate a token with user id
+                        const validToken = generateValidTokenWithId(userInDb.id);
+
+                        // update
+                        await request(global.SERVER_APP)
+                            .patch(`${global.USERS_PATH}/${userInDb.id}`)
+                            .send({ email: newEmail })
+                            .set('Authorization', `Bearer ${validToken}`)
+                            .expect(200);
+
+                        // find user in database
+                        const userUpdatedInDb = await global.USER_MODEL
+                            .findById(userInDb.id)
+                            .exec();
+
+                        expect(userUpdatedInDb?.emailValidated).toBeFalsy();
+                        expect(userUpdatedInDb?.role).toBe('readonly');
                     });
-                    userInDb.emailValidated = true;
-                    userInDb.role = 'editor';
-                    await userInDb.save();
+                });
+            });
 
-                    const newEmail = global.USER_DATA_GENERATOR.email();
+            describe('email is the same', () => {
+                describe('email is validated (role is editor)', () => {
+                    test('emailValidated should remain as true and role as editor', async () => {
+                        // create user and set emailValidated to true
+                        const userInDb = await global.USER_MODEL.create({
+                            name: global.USER_DATA_GENERATOR.name(),
+                            email: global.USER_DATA_GENERATOR.email(),
+                            password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                        });
+                        userInDb.emailValidated = true;
+                        userInDb.role = 'editor';
+                        await userInDb.save();
 
-                    // generate a token with user id
-                    const validToken = generateValidTokenWithId(userInDb.id);
+                        // generate a token with user id
+                        const validToken = generateValidTokenWithId(userInDb.id);
 
-                    // update
-                    await request(global.SERVER_APP)
-                        .patch(`${global.USERS_PATH}/${userInDb.id}`)
-                        .send({ email: newEmail })
-                        .set('Authorization', `Bearer ${validToken}`)
-                        .expect(200);
+                        // update
+                        await request(global.SERVER_APP)
+                            .patch(`${global.USERS_PATH}/${userInDb.id}`)
+                            // send the same email
+                            .send({ email: userInDb.email })
+                            .set('Authorization', `Bearer ${validToken}`)
+                            .expect(200);
 
-                    // find user in database
-                    const userUpdatedInDb = await global.USER_MODEL
-                        .findById(userInDb.id)
-                        .exec();
+                        // find user in database
+                        const userUpdatedInDb = await global.USER_MODEL
+                            .findById(userInDb.id)
+                            .exec();
 
-                    expect(userUpdatedInDb?.emailValidated).toBeFalsy();
-                    expect(userUpdatedInDb?.role).toBe('readonly');
+                        expect(userUpdatedInDb?.emailValidated).toBeTruthy();
+                        expect(userUpdatedInDb?.role).toBe('editor');
+                    });
                 });
             });
         });
