@@ -1,7 +1,7 @@
 import axios from "axios";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
 
-describe('Find users workflow', () => {
+describe('Workflow', () => {
     describe('Find by id', () => {
         describe('When a user is found', () => {
             test('should contain the correct data', async () => {

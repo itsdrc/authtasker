@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { handleAxiosError } from "../../../helpers/handlers/axios-error.handler";
 
-describe('FIND USER/S ACCESS', () => {
+describe('Access', () => {
     describe('Find by id', () => {
         describe('Token not provided', () => {
             test('can not access this feature (401 UNAUTHORIZED)', async () => {
