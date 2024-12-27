@@ -1,4 +1,5 @@
 import request from 'supertest'
+import { Types } from 'mongoose';
 import { HashingService } from "@root/services";
 import { generateValidTokenWithId } from '../../../helpers/token/generate-valid-token-with-id';
 
@@ -6,7 +7,68 @@ describe('DELETE/', () => {
     describe('Delete user', () => {
         const hashingService = new HashingService(+process.env.BCRYPT_SALT_ROUNDS!);
 
-        describe('When a user is deleted', () => {
+        describe('User is not found', () => {
+            test('should return status 404 NOT FOUND', async () => {
+                const expectedStatus = 404;
+
+                // create user to provide Bearer token
+                const userInDb = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                });
+
+                // generate token with user id
+                const token = generateValidTokenWithId(userInDb.id);
+
+                // generate a valid mongo id
+                const mongoId = new Types.ObjectId();
+
+                await request(global.SERVER_APP)
+                    .delete(`${global.USERS_PATH}/${mongoId}`)
+                    .set('Authorization', `Bearer ${token}`)
+                    .expect(expectedStatus);
+            });
+        });
+
+        describe('Provided id is not valid', () => {
+            test('should return status 404 NOT FOUND', async () => {
+                const expectedStatus = 404;
+
+                // create user to provide Bearer token
+                const userInDb = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                });
+
+                // generate token with user id
+                const token = generateValidTokenWithId(userInDb.id);
+
+                const invalidMongoId = 123;
+
+                await request(global.SERVER_APP)
+                    .delete(`${global.USERS_PATH}/${invalidMongoId}`)
+                    .set('Authorization', `Bearer ${token}`)
+                    .expect(expectedStatus);
+            });
+        });
+
+        // ensures roles middleware is applied
+        describe('Token is not provided', () => {
+            test('should return 401 UNAUTHORIZED', async () => {
+                const expectedStatus = 401;
+
+                // generate a valid mongo id
+                const mongoId = new Types.ObjectId();
+
+                await request(global.SERVER_APP)
+                    .delete(`${global.USERS_PATH}/${mongoId}`)
+                    .expect(expectedStatus);
+            });
+        });
+
+        describe('User is successfully deleted', () => {
             test('should be removed from database', async () => {
                 // create user            
                 const userInDb = await global.USER_MODEL.create({
