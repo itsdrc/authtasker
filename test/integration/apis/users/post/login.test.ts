@@ -1,10 +1,8 @@
 import request from 'supertest';
-import { HashingService, JwtService } from '@root/services';
+import { JwtService } from '@root/services';
 
 describe('POST/', () => {
     describe('Login', () => {
-        const hashingService = new HashingService(+process.env.BCRYPT_SALT_ROUNDS!);
-
         test('should successfully log in a user (200 OK)', async () => {
             // create user using model
             const user = {
@@ -13,7 +11,7 @@ describe('POST/', () => {
                 password: global.USER_DATA_GENERATOR.password(),
             };
 
-            const hashedPassword = await hashingService.hash(user.password);
+            const hashedPassword = await global.HASHING_SERVICE.hash(user.password);
 
             await global.USER_MODEL.create({
                 ...user,
@@ -40,7 +38,7 @@ describe('POST/', () => {
                     password: global.USER_DATA_GENERATOR.password(),
                 };
 
-                const hashedPassword = await hashingService.hash(user.password);
+                const hashedPassword = await global.HASHING_SERVICE.hash(user.password);
                 await global.USER_MODEL.create({
                     ...user,
                     password: hashedPassword,
@@ -68,7 +66,7 @@ describe('POST/', () => {
                     password: global.USER_DATA_GENERATOR.password(),
                 };
 
-                const hashedPassword = await hashingService.hash(user.password);
+                const hashedPassword = await global.HASHING_SERVICE.hash(user.password);
                 const userInDb = await global.USER_MODEL.create({
                     ...user,
                     password: hashedPassword,
@@ -104,7 +102,7 @@ describe('POST/', () => {
                     password: global.USER_DATA_GENERATOR.password(),
                 };
 
-                const hashedPassword = await hashingService.hash(user.password);
+                const hashedPassword = await global.HASHING_SERVICE.hash(user.password);
                 const userInDb = await global.USER_MODEL.create({
                     ...user,
                     password: hashedPassword,

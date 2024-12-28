@@ -1,10 +1,7 @@
 import request from 'supertest'
-import { HashingService } from "@root/services";
 import { generateValidTokenWithId } from '../../../helpers/token/generate-valid-token-with-id';
 
 describe('GET/', () => {
-    const hashingService = new HashingService(+process.env.BCRYPT_SALT_ROUNDS!);
-
     describe('Find many by pagination', () => {
         describe('Page and limit not provided', () => {
             test('should not throw an error (200 OK)', async () => {
@@ -14,7 +11,7 @@ describe('GET/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 const token = generateValidTokenWithId(userInDb.id);
@@ -35,7 +32,7 @@ describe('GET/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 const token = generateValidTokenWithId(userInDb.id);
@@ -77,7 +74,7 @@ describe('GET/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 const token = generateValidTokenWithId(userInDb.id);
@@ -100,7 +97,7 @@ describe('GET/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 const token = generateValidTokenWithId(userInDb.id);
@@ -124,7 +121,7 @@ describe('GET/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 const token = generateValidTokenWithId(userInDb.id);

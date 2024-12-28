@@ -1,11 +1,8 @@
 import request from 'supertest'
 import { Types } from 'mongoose';
-import { HashingService } from '@root/services';
 import { generateValidTokenWithId } from '../../../helpers/token/generate-valid-token-with-id';
 
-describe('GET/', () => {
-    const hashingService = new HashingService(+process.env.BCRYPT_SALT_ROUNDS!);
-
+describe('GET/', () => {    
     describe('Find by id', () => {
         describe('User is found', () => {
             test('should return: right user, right data and 200 OK', async () => {
@@ -15,7 +12,7 @@ describe('GET/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 // generate a token with user id 
@@ -58,7 +55,7 @@ describe('GET/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
                 const token = generateValidTokenWithId(userInDb.id);
 
@@ -79,7 +76,7 @@ describe('GET/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
                 const token = generateValidTokenWithId(userInDb.id);
 

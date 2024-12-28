@@ -1,12 +1,9 @@
-import { HashingService } from "@root/services";
 import request from 'supertest'
 import { generateValidTokenWithId } from "../../../helpers/token/generate-valid-token-with-id";
 import { Types } from "mongoose";
 
 describe('PATCH/', () => {
-    describe('Update user', () => {
-        const hashingService = new HashingService(+process.env.BCRYPT_SALT_ROUNDS!);
-
+    describe('Update user', () => {        
         describe('User is not found', () => {
             test('should return status 404 NOT FOUND', async () => {
                 const expectedStatus = 404;
@@ -15,7 +12,7 @@ describe('PATCH/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 // generate a token with user id
@@ -40,7 +37,7 @@ describe('PATCH/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 // generate a token with user id
@@ -65,7 +62,7 @@ describe('PATCH/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 // generate a token with user id
@@ -88,7 +85,7 @@ describe('PATCH/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 // generate a token with user id
@@ -126,7 +123,7 @@ describe('PATCH/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 // name is transformed to lowercase
@@ -158,7 +155,7 @@ describe('PATCH/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 const newPassword = global.USER_DATA_GENERATOR.password();
@@ -178,7 +175,7 @@ describe('PATCH/', () => {
                     .findById(userInDb.id)
                     .exec();
 
-                const samePassword = hashingService.compare(
+                const samePassword = global.HASHING_SERVICE.compare(
                     newPassword,
                     userUpdatedInDb!.password
                 );
@@ -192,7 +189,7 @@ describe('PATCH/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
                 const newEmail = global.USER_DATA_GENERATOR.email();
@@ -222,7 +219,7 @@ describe('PATCH/', () => {
                         const userInDb = await global.USER_MODEL.create({
                             name: global.USER_DATA_GENERATOR.name(),
                             email: global.USER_DATA_GENERATOR.email(),
-                            password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                            password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                         });
                         userInDb.emailValidated = true;
                         userInDb.role = 'editor';
@@ -258,7 +255,7 @@ describe('PATCH/', () => {
                         const userInDb = await global.USER_MODEL.create({
                             name: global.USER_DATA_GENERATOR.name(),
                             email: global.USER_DATA_GENERATOR.email(),
-                            password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                            password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                         });
                         userInDb.emailValidated = true;
                         userInDb.role = 'editor';
