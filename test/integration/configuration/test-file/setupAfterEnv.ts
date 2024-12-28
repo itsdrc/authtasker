@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "async_hooks";
 import { AppRoutes } from "@root/routes/server.routes";
-import { ConfigService, LoggerService } from "@root/services";
+import { ConfigService, HashingService, LoggerService } from "@root/services";
 import { MongoDatabase } from "@root/databases/mongo/mongo.database";
 import { Server } from "@root/server/server.init";
 import { SystemLoggerService } from "@root/services/system-logger.service";
@@ -34,6 +34,10 @@ beforeAll(async () => {
     // data generator for tests
     const dataGenerator = new UserDataGenerator({ respectMinAndMaxLength: true });
     global.USER_DATA_GENERATOR = dataGenerator;
+
+    // hash passwords when users in tests are created
+    const hashingService = new HashingService(configService.BCRYPT_SALT_ROUNDS);
+    global.HASHING_SERVICE = hashingService;
 
     // paths
     global.REGISTER_USER_PATH = `/api/users/create`;
