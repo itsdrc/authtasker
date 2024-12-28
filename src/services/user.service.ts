@@ -78,7 +78,7 @@ export class UserService {
         const email = payload.email;
         if (!email) {
             this.loggerService.error('EMAIL NOT IN TOKEN');
-            throw HttpError.internalServer('Email not in token');
+            throw HttpError.badRequest('Email not in token');
         }
 
         // check user existence
