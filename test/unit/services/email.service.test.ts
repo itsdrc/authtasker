@@ -1,64 +1,52 @@
-import { faker } from "@faker-js/faker/.";
-import { EmailService } from "@root/services/email.service";
-import { TransporterOptions } from "@root/types/email/transporter-options.type";
-import nodemailer from 'nodemailer';
+import { ITransporter } from "@root/interfaces/email/transporter.interface";
+import { EmailService } from "@root/services";
+import nodemailer, { SendMailOptions } from "nodemailer";
 
-describe('EmailService', () => {
-    beforeEach(() => {
-        // disable nodemailer.createTransport implementation        
-        jest.spyOn(nodemailer, 'createTransport')
+describe('Email Service', () => {
+    test('nodemailer transporter should be called with the provided options', async () => {
+        const transporterOptions: ITransporter = {
+            host: 'localhost',
+            port: 5379,
+            user: 'test-user',
+            pass: 'test-password'
+        }
+        const nodemailerCreateTransportSpy = jest.spyOn(nodemailer, 'createTransport')
             .mockImplementation();
+
+        new EmailService(transporterOptions);
+
+        expect(nodemailerCreateTransportSpy).toHaveBeenCalledWith({
+            host: transporterOptions.host,
+            port: transporterOptions.port,
+            secure: transporterOptions.port === 465,
+            auth: {
+                user: transporterOptions.user,
+                pass: transporterOptions.pass,
+            },
+        });
     });
 
-    describe('SEND MAIL', () => {
-        describe('constructor', () => {
-            test('nodemailer.createTransport should be called with the tranporter options provided  ', async () => {
-                const testTransporterOptions: TransporterOptions = {
-                    host: faker.internet.domainName(),
-                    port: faker.internet.port(),
-                    user: faker.internet.username(),
-                    pass: faker.internet.password(),
-                };
+    test('transporter.sendMail should be called with the provided options', async () => {
+        const transporterOptions: ITransporter = {
+            host: 'localhost',
+            port: 5379,
+            user: 'test-user',
+            pass: 'test-password'
+        }
 
-                // spy nodemailer.createTransport
-                const createTransportSpy = jest
-                    .spyOn(nodemailer, 'createTransport');
+        const mailOptions: SendMailOptions = {
+            to: 'test-email@gmail.com',
+            subject: 'Hello World',
+            html: `<h1>Hello-World</h1>`
+        };
 
-                // call constructor with test options
-                new EmailService(testTransporterOptions);
+        const emailService = new EmailService(transporterOptions);
+        const transporterSendMailSpy = jest.spyOn(emailService['transporter'], 'sendMail')
+            .mockImplementation();
 
-                // assert secure false and the other properties are
-                // the same as the provided options to constructor.
-                expect(createTransportSpy)
-                    .toHaveBeenCalledWith({
-                        host: testTransporterOptions.host,
-                        port: testTransporterOptions.port,
-                        secure: false,
-                        auth: {
-                            user: testTransporterOptions.user,
-                            pass: testTransporterOptions.pass,
-                        },
-                    })
-            });
-        });
+        emailService.sendMail(mailOptions);
 
-        test('transporter.sendMail should be called with mail options', async () => {
-            const emailService = new EmailService({} as any);
-
-            // spy for transporter.sendMail function
-            const sendMailSpy = jest.fn();
-
-            // mock private object
-            (emailService['transporter'] as any) = {
-                sendMail: sendMailSpy
-            };
-
-            // call method with test options
-            const testOptions = { from: faker.internet.domainName() };
-            emailService.sendMail(testOptions);
-            
-            expect(sendMailSpy)
-                .toHaveBeenCalledWith(testOptions);
-        });
+        expect(transporterSendMailSpy)
+            .toHaveBeenCalledWith(mailOptions);
     });
 });
