@@ -27,12 +27,12 @@ export class JwtService {
         return token;
     }
 
-    verify<T>(token: string): IJwtPayload & T | undefined {
+    verify<T>(token: string): IJwtPayload & T | null {
         try {
             const payload = jwt.verify(token, this.privateKey);
             return payload as any;
         } catch (error) {
-            return undefined;
+            return null;
         }
     }
 }
