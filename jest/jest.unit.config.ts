@@ -6,7 +6,7 @@ const config: Config = {
     restoreMocks: true,
     resetMocks: true,
     collectCoverage: true,
-    coverageDirectory: "./coverage/integration",
+    coverageDirectory: "./coverage/unit",
     coverageProvider: "v8",    
     moduleNameMapper: {
         "^@root/(.*)$": "<rootDir>/src/$1"
