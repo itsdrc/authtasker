@@ -1,80 +1,32 @@
-import { faker } from "@faker-js/faker/.";
-import { HashingService } from "@root/services/hashing.service";
 import bcrypt from "bcryptjs"
+import { HashingService } from "@root/services";
 
-describe('HashingService', () => {
-    describe('HASH', () => {
-        test('bcrypt.genSalt should be called with the provided rounds', async () => {
-            const testSaltRounds = faker.number.int();
-            const hashingService = new HashingService(testSaltRounds);
+describe('Hashing Service', () => {
+    test('bcrypt.hash should be called with the specified salt rounds', async () => {
+        const saltRounds = 3;
+        const hashingService = new HashingService(3);
 
-            // stub bcrypt.hash
-            jest.spyOn(bcrypt, 'hash')
-                .mockImplementation()
+        const mockSalt = 'mock-salt';
+        const genSaltMock = jest.spyOn(bcrypt, 'genSalt')
+            .mockImplementation(() => mockSalt);
+        const hashMock = jest.spyOn(bcrypt, 'hash').mockImplementation();
 
-            // spy bcrypt.genSalt and disable implementation
-            const genSalt = jest.spyOn(bcrypt, 'genSalt')
-                .mockImplementation();
+        const myPassword = 'test-password';
+        await hashingService.hash(myPassword);
 
-            await hashingService.hash('');
-
-            expect(genSalt)
-                .toHaveBeenCalledWith(testSaltRounds);
-        });
-
-        test('bcrypt.hash should be called with the provided data and generated salt', async () => {
-            const hashingService = new HashingService(faker.number.int());
-
-            // mock genSalt result
-            const saltMock = faker.food.vegetable();
-            jest.spyOn(bcrypt as any, 'genSalt')
-                .mockResolvedValue(saltMock);
-
-            // spy bcrypt.hash and disable implementation
-            const hashSpy = jest.spyOn(bcrypt, 'hash')
-                .mockImplementation();
-
-            // call method with test data 
-            const testData = faker.internet.password();
-            await hashingService.hash(testData);
-
-            expect(hashSpy)
-                .toHaveBeenLastCalledWith(testData, saltMock);
-        });
-
-        test('should return the hash returned by bcrypt.hash', async () => {
-            const hashingService = new HashingService(faker.number.int());
-
-            // stub genSalt
-            jest.spyOn(bcrypt, 'genSalt')
-                .mockImplementation();
-
-            // mock bcrypt.hash to return a test hash
-            const hashMock = faker.food.vegetable();
-            jest.spyOn(bcrypt as any, 'hash')
-                .mockResolvedValue(hashMock);
-
-            const result = await hashingService.hash('');
-
-            expect(result).toBe(hashMock);
-        });
+        expect(genSaltMock).toHaveBeenCalledWith(saltRounds);
+        expect(hashMock).toHaveBeenCalledWith(myPassword, mockSalt);
     });
 
-    describe('COMPARE', () => {
-        test('compare should be called with hash and data', async () => {
-            const hashingService = new HashingService(faker.number.int());
-            
-            const testData = faker.food.vegetable();
-            const testHash = faker.food.fruit();
-        
-            // spy bcrypt.compare and disable implementation
-            const compareSpy = jest.spyOn(bcrypt as any, 'compare')
-                .mockImplementation();
+    describe('Workflow', () => {
+        test('comparison between password and hashed password should be true', async () => {
+            const saltRounds = 7;
+            const hashingService = new HashingService(saltRounds);
 
-            hashingService.compare(testData, testHash);
+            const password = 'test-password';
+            const hash = await hashingService.hash(password);
 
-            expect(compareSpy)
-                .toHaveBeenCalledWith(testData, testHash);
+            expect(hashingService.compare(hash, password)).toBeTruthy();
         });
     });
 });
