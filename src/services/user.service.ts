@@ -257,7 +257,7 @@ export class UserService {
     }
 
     // returns the user to modify in order to not have to findOne it again
-    private async IsModificationAuthorized(requestUserInfo: { id: string, role: UserRole }, userIdToUpdate: string): Promise<HydratedDocument<IUser> | undefined> {
+    private async IsModificationAuthorized(requestUserInfo: { id: string, role: UserRole }, userIdToUpdate: string): Promise<HydratedDocument<IUser> | null> {
         const userToModify = await this.findOne(userIdToUpdate);
 
         // users can modify themselves
@@ -269,5 +269,7 @@ export class UserService {
             if (!(userToModify.role === 'admin'))
                 return userToModify;
         }
+
+        return null;
     }
 }
