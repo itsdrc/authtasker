@@ -11,7 +11,7 @@ import { LoggerService } from "./logger.service";
 import { SystemLoggerService } from "./system-logger.service";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 import { UserRole } from "@root/types/user/user-roles.type";
-import { UNAUTHORIZED_MSSG } from "@root/rules/constants/messages";
+import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 
 export class UserService {
 
@@ -220,7 +220,7 @@ export class UserService {
         const userToDelete = await this.IsModificationAuthorized(requestUserInfo, id);
         if (!userToDelete) {
             // TODO: logging
-            throw HttpError.forbidden(UNAUTHORIZED_MSSG);
+            throw HttpError.forbidden(FORBIDDEN_MESSAGE);
         }
         await userToDelete.deleteOne().exec();
         this.loggerService.info(`USER ${id} DELETED`);
@@ -230,7 +230,7 @@ export class UserService {
         const userToUpdate = await this.IsModificationAuthorized(requestUserInfo, id);
         if (!userToUpdate) {
             // TODO: logging
-            throw HttpError.forbidden(UNAUTHORIZED_MSSG);
+            throw HttpError.forbidden(FORBIDDEN_MESSAGE);
         }
 
         if (propertiesUpdated.password) {

@@ -7,8 +7,8 @@ import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.consta
 import { IUser } from "@root/interfaces/user/user.interface";
 import { JwtService } from "@root/services/jwt.service";
 import { LoggerService } from "@root/services/logger.service";
-import { UNAUTHORIZED_MSSG } from "@root/rules/constants/messages";
 import type { UserRole } from "@root/types/user/user-roles.type";
+import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 
 export const rolesMiddlewareFactory = (
     minRoleRequired: UserRole,
@@ -56,7 +56,7 @@ export const rolesMiddlewareFactory = (
             else {
                 loggerService.error('Access denied. Insufficient permissions')
                 res.status(HTTP_STATUS_CODE.FORBIDDEN)
-                    .json({ error: UNAUTHORIZED_MSSG })
+                    .json({ error: FORBIDDEN_MESSAGE })
                 return
             }            
 
