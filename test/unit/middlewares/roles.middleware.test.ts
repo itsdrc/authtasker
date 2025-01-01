@@ -1,247 +1,296 @@
-import { Request, Response } from "express";
-import { mock, mockDeep, MockProxy } from "jest-mock-extended";
-import { Model, Query } from "mongoose";
+import { Model, Query } from 'mongoose';
+import { mock, MockProxy } from 'jest-mock-extended';
+import express, { Request, Response } from "express";
+import { v4 as uuidv4 } from 'uuid';
+import request from 'supertest'
 
-import type { User } from "@root/types/user/user.type";
-import { JwtService } from "@root/services/jwt.service";
-import { LoggerService } from "@root/services/logger.service";
-import { rolesMiddlewareFactory } from "@root/middlewares/roles.middleware";
-import * as GlobalHelpers from "@root/common/helpers/handle-error.helper";
-import * as MiddlewareHelpers from "@root/middlewares/helpers/can-access.helper";
-import { FindMockQuery } from "../test-helpers/types";
-
-type UserModelMocked = MockProxy<Model<User>>;
+import { JwtService, LoggerService } from '@root/services';
+import { IUser } from '@root/interfaces/user/user.interface';
+import { FindMockQuery } from '../helpers/types/find-mock-query.type';
+import { rolesMiddlewareFactory } from '@root/middlewares/roles.middleware';
+import * as MiddlewareHelpers from '@root/middlewares/helpers/can-access.helper';
+import { FORBIDDEN_MESSAGE } from '@root/rules/errors/messages/error.messages';
+import * as Handlers from '@root/common/helpers/handle-error.helper';
 
 describe('Roles middleware', () => {
-    let jwtService: MockProxy<JwtService>;
-    let userModel: FindMockQuery<UserModelMocked> & UserModelMocked;
+    let userModel: FindMockQuery<MockProxy<Model<IUser>>>;
     let loggerService: MockProxy<LoggerService>;
-    let requestMock: MockProxy<Request>;
-    let responseMock: MockProxy<Response> & Response;    
-    let rolesMiddleware: ReturnType<typeof rolesMiddlewareFactory>;
+    const jwtService = new JwtService('10m', '12345test');
+
+    const app = express();
 
     beforeEach(() => {
-        jwtService = mock<JwtService>();
+        userModel = (mock<Model<IUser>>() as any);
         loggerService = mock<LoggerService>();
-        userModel = (mock<Model<User>>() as any);
-        requestMock = mock<Request>();
-        responseMock = mock<Response>();    
-        
-        responseMock.status.mockReturnThis();
-
-        userModel.findById.mockReturnValue(mock<Query<any, any>>());    
-
-        rolesMiddleware = rolesMiddlewareFactory(
-            'readonly',
-            userModel,
-            loggerService,
-            jwtService
-        );
+        userModel.findById.mockReturnValue(mock<Query<any, any>>());
     });
 
-    test('req.header should be called with authorization', async () => {
-        // spy res.header function. This is needed because
-        // calls are deleted on the next line.
-        const reqHeaderMockSpy = jest.spyOn(requestMock, 'header');
+    describe('Token not provided', () => {
+        test('should return 401 UNAUTHORIZED, "No token provided"', async () => {
+            // test endpoint
+            const endpoint = `/test/${uuidv4()}/readonly`;
+            const expectedStatus = 401;
+            const expectedMessage = 'No token provided';
 
-        // stub res.header('authorization')
-        requestMock.header.mockReturnValue('Bearer ...');
-
-        // stub token verification
-        jwtService.verify.mockReturnValue({});
-
-        // stub userModel.findById.exec();
-        userModel.findById().exec
-            .mockResolvedValue({});
-
-        await rolesMiddleware(
-            requestMock,
-            responseMock,
-            jest.fn() // next()
-        );
-
-        expect(reqHeaderMockSpy)
-            .toHaveBeenCalledWith('authorization');
-    });
-
-    test('token verification should be called with the provided token', async () => {
-        // mock res.header('authorization')
-        const token = 'myMockToken';
-        const auth = `Bearer ${token}`;
-        requestMock.header.mockReturnValue(auth);
-
-        await rolesMiddleware(
-            requestMock,
-            responseMock,
-            jest.fn() // next()
-        );
-
-        expect(jwtService.verify).toHaveBeenCalledWith(token);
-    });
-
-    test('userModel.findById should be called with the id in token', async () => {
-        // stub res.header('authorization')
-        requestMock.header.mockReturnValue('Bearer ...');
-
-        // mock token verification        
-        const payload = { id: 'test user id' };
-        jwtService.verify.mockReturnValue(payload);
-
-        await rolesMiddleware(
-            requestMock,
-            responseMock,
-            jest.fn() // next()
-        );
-
-        expect(userModel.findById)
-            .toHaveBeenCalledWith(payload.id);
-    });
-
-    describe('if authorization header is not provided', () => {
-        test('should return status 401 and "No token provided" error', async () => {
-            // mock res.header('authorization')
-            requestMock.header.mockReturnValue(undefined);
-
-            await rolesMiddleware(
-                requestMock,
-                responseMock,
-                jest.fn() // next()
+            const middleware = rolesMiddlewareFactory(
+                'readonly',
+                userModel as unknown as Model<IUser>,
+                loggerService,
+                jwtService
             );
 
-            const expectedStatus = 401;
-            const expectedErrMssg = 'No token provided';
-            expect(responseMock.status)
-                .toHaveBeenCalledWith(expectedStatus);
-            expect(responseMock.json)
-                .toHaveBeenCalledWith({ error: expectedErrMssg });
+            app.get(endpoint, middleware, (req, res) => {
+                res.status(204).end();
+            });
+
+            const response = await request(app)
+                .get(endpoint)
+
+            expect(response.statusCode).toBe(expectedStatus);
+            expect(response.body.error).toBe(expectedMessage);
         });
     });
 
-    describe('if token is not valid', () => {
-        test('should return status 401 and "Invalid bearer token" error', async () => {
-            // stub res.header('authorization')
-            requestMock.header.mockReturnValue('Bearer ...');
+    describe('Token is not valid', () => {
+        test('should return 401 UNAUTHORIZED, "Invalid bearer token"', async () => {
+            // test endpoint
+            const endpoint = `/test/${uuidv4()}/readonly`;
+            const expectedStatus = 401;
+            const expectedMessage = 'Invalid bearer token';
 
-            // mock token verification
-            jwtService.verify.mockReturnValue(undefined)
-
-            await rolesMiddleware(
-                requestMock,
-                responseMock,
-                jest.fn() // next()
+            const middleware = rolesMiddlewareFactory(
+                'readonly',
+                userModel as unknown as Model<IUser>,
+                loggerService,
+                jwtService
             );
 
-            const expectedStatus = 401;
-            const expectedErrMssg = 'Invalid bearer token'
-            expect(responseMock.status)
-                .toHaveBeenCalledWith(expectedStatus);
-            expect(responseMock.json)
-                .toHaveBeenCalledWith({ error: expectedErrMssg })
+            app.get(endpoint, middleware, (req, res) => {
+                res.status(204).end();
+            });
+
+            // generate a valid token
+            const invalidToken = '12345';
+
+            const response = await request(app)
+                .get(endpoint)
+                .set('Authorization', `Bearer ${invalidToken}`);
+
+            expect(response.statusCode).toBe(expectedStatus);
+            expect(response.body.error).toBe(expectedMessage);
         });
     });
 
-    describe('if user is not found', () => {
-        test('should return status 401 and "User not found" error', async () => {
-            // stub res.header('authorization')
-            requestMock.header.mockReturnValue('Bearer ...');
+    describe('User in token not found', () => {
+        test('should return 401 UNAUTHORIZED, "User not found"', async () => {
+            // test endpoint
+            const endpoint = `/test/${uuidv4()}/readonly`;
+            const expectedStatus = 401;
+            const expectedMessage = 'User not found';
 
-            // stub token verification
-            jwtService.verify.mockReturnValue({});
+            // mock user not found
+            userModel
+                .findById()
+                .exec
+                .mockResolvedValue(null);
 
-            // mock user found
-            userModel.findById().exec
-                .mockResolvedValue(undefined);
-
-            await rolesMiddleware(
-                requestMock,
-                responseMock,
-                jest.fn() // next()
+            const middleware = rolesMiddlewareFactory(
+                'readonly',
+                userModel as unknown as Model<IUser>,
+                loggerService,
+                jwtService
             );
 
-            const expectedStatus = 401;
-            const expectedErrMssg = 'User not found';
-            expect(responseMock.status)
-                .toHaveBeenCalledWith(expectedStatus);
-            expect(responseMock.json)
-                .toHaveBeenCalledWith({ error: expectedErrMssg });
+            app.get(endpoint, middleware, (req, res) => {
+                res.status(204).end();
+            });
+
+            // generate a valid token
+            const validToken = jwtService.generate({ id: '12345' });
+
+            const response = await request(app)
+                .get(endpoint)
+                .set('Authorization', `Bearer ${validToken}`);
+
+            expect(response.statusCode).toBe(expectedStatus);
+            expect(response.body.error).toBe(expectedMessage);
         });
     });
 
-    describe('if the role is not allowed', () => {
-        test('should return status 401 and "You do not have permission to perform this action" error', async () => {
-            // stub res.header('authorization')
-            requestMock.header.mockReturnValue('Bearer ...');
+    describe('canAccess helper returns false (role does not have permission to access)', () => {
+        test('should return 401 UNAUTHORIZED, forbidden message', async () => {
+            // test endpoint
+            const endpoint = `/test/${uuidv4()}/readonly`;
+            const expectedStatus = 403;
+            const expectedMessage = FORBIDDEN_MESSAGE;
 
-            // stub token verification
-            jwtService.verify.mockReturnValue({});
+            const middleware = rolesMiddlewareFactory(
+                'readonly',
+                userModel as unknown as Model<IUser>,
+                loggerService,
+                jwtService
+            );
+
+            app.get(endpoint, middleware, (req, res) => {
+                res.status(204).end();
+            });
+
+            // generate a valid token
+            const validToken = jwtService.generate({ id: '12345' });
 
             // stub user found
-            userModel.findById().exec
-                .mockResolvedValue({});
+            userModel
+                .findById()
+                .exec
+                .mockResolvedValue({} as any);
 
-            // mock role validation
-            jest.spyOn(MiddlewareHelpers, 'canAccess')
+            // mock canAccess helper
+            const canAccessHelperMock = jest.spyOn(MiddlewareHelpers, 'canAccess')
                 .mockReturnValue(false);
 
-            await rolesMiddleware(
-                requestMock,
-                responseMock,
-                jest.fn() // next()
-            );
+            const response = await request(app)
+                .get(endpoint)
+                .set('Authorization', `Bearer ${validToken}`);
 
-            const expectedStatus = 401;
-            const expectedErrMssg = 'You do not have permission to perform this action';
-            expect(responseMock.status)
-                .toHaveBeenCalledWith(expectedStatus);
-            expect(responseMock.json)
-                .toHaveBeenCalledWith({ error: expectedErrMssg });
+            expect(canAccessHelperMock).toHaveBeenCalled();
+            expect(response.statusCode).toBe(expectedStatus);
+            expect(response.body.error).toBe(expectedMessage);
         });
     });
 
+    describe('Operation success', () => {
+        test('request should contain userId and userRole', async () => {
+            const middleware = rolesMiddlewareFactory(
+                'readonly',
+                userModel as unknown as Model<IUser>,
+                loggerService,
+                jwtService
+            );
 
-    describe('if rol is allowed', () => {
-        test('next should be called', async () => {
-            // stub res.header('authorization')
-            requestMock.header.mockReturnValue('Bearer ...');
+            const requestMock = mock<Request>();
+            const responseMock = mock<Response>();
+
+            // stub token provided
+            requestMock.header.mockReturnValue('something');
+
+            // stub res.status().json();
+            responseMock.status.mockReturnThis();
+            const requestUserId = 'test-id-123';
 
             // stub token verification
-            jwtService.verify.mockReturnValue({});
+            const tokenVerificationMock = jest.spyOn(jwtService, 'verify')
+                .mockReturnValue({ id: requestUserId } as any);
 
-            // stub user found
-            userModel.findById().exec
-                .mockResolvedValue({});
+            // mock user found, obviously, the same as in the token payload
+            const userFound = {
+                id: requestUserId,
+                role: 'editor'
+            };
 
-            // mock role validation
-            jest.spyOn(MiddlewareHelpers, 'canAccess')
+            userModel
+                .findById()
+                .exec
+                .mockResolvedValue(userFound);
+
+            // mock canAccess helper
+            const canAccessHelperMock = jest.spyOn(MiddlewareHelpers, 'canAccess')
                 .mockReturnValue(true);
 
-            const nextMock = jest.fn();
-
-            await rolesMiddleware(
+            await middleware(
                 requestMock,
                 responseMock,
-                nextMock
+                jest.fn()
             );
 
-            expect(nextMock).toHaveBeenCalled();
+            expect(tokenVerificationMock).toHaveBeenCalled();
+            expect(canAccessHelperMock).toHaveBeenCalled();
+            expect((requestMock as any).userId).toBe(userFound.id);
+            expect((requestMock as any).userRole).toBe(userFound.role);
+        });
+
+        test('Express.next() should be called', async () => {
+            const middleware = rolesMiddlewareFactory(
+                'readonly',
+                userModel as unknown as Model<IUser>,
+                loggerService,
+                jwtService
+            );
+
+            const requestMock = mock<Request>();
+            const responseMock = mock<Response>();
+            const nextFunctionMock = jest.fn();
+
+            // stub token provided
+            requestMock.header.mockReturnValue('something');
+
+            // stub res.status().json();
+            responseMock.status.mockReturnThis();
+
+            // stub token verification
+            const tokenVerificationMock = jest.spyOn(jwtService, 'verify')
+                .mockReturnValue({} as any);
+
+            // stub user found
+            userModel
+                .findById()
+                .exec
+                .mockResolvedValue({} as any);
+
+            // mock canAccess helper
+            const canAccessHelperMock = jest.spyOn(MiddlewareHelpers, 'canAccess')
+                .mockReturnValue(true);
+
+            await middleware(
+                requestMock,
+                responseMock,
+                nextFunctionMock
+            );
+
+            expect(tokenVerificationMock).toHaveBeenCalled();
+            expect(canAccessHelperMock).toHaveBeenCalled();
+            expect(nextFunctionMock).toHaveBeenCalled();
         });
     });
 
-    describe('if an unexpected error occurs', () => {
+    describe('An unexpected error occurs', () => {
         test('handleError helper should be called', async () => {
-            const handleErrorSpy = jest
-                .spyOn(GlobalHelpers, 'handleError');
+            const handleErrorHelperSpy = jest.spyOn(Handlers, 'handleError')
+                .mockImplementation();
 
-            requestMock.header
-                .mockImplementation(() => { throw new Error() });
-
-            await rolesMiddleware(
-                requestMock,
-                responseMock,
-                jest.fn() // next()
+            const middleware = rolesMiddlewareFactory(
+                'readonly',
+                userModel as unknown as Model<IUser>,
+                loggerService,
+                jwtService
             );
 
-            expect(handleErrorSpy).toHaveBeenCalled();
+            const requestMock = mock<Request>();
+            const responseMock = mock<Response>();
+            const nextFunctionMock = jest.fn();
+
+            // stub token provided
+            requestMock.header.mockReturnValue('something');
+
+            // stub res.status().json();
+            responseMock.status.mockReturnThis();
+
+            // stub token verification
+            jest.spyOn(jwtService, 'verify')
+                .mockReturnValue({} as any);
+
+            // mock findById().exec() to cause an error
+            userModel
+                .findById()
+                .exec
+                .mockRejectedValue(new Error('test-error'));
+
+            await middleware(
+                requestMock,
+                responseMock,
+                nextFunctionMock
+            );
+
+            expect(handleErrorHelperSpy).toHaveBeenCalled();
         });
     });
 });
