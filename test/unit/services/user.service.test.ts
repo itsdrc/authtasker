@@ -1,628 +1,898 @@
-import { faker } from '@faker-js/faker/.';
-import { mock, mockDeep, MockProxy } from 'jest-mock-extended';
-import mongoose, { Model, Query } from "mongoose";
+import { Model, Query, Types } from "mongoose";
+import { mock, MockProxy } from 'jest-mock-extended';
+import { IUser } from "@root/interfaces/user/user.interface";
+import { ConfigService, EmailService, HashingService, JwtService, LoggerService, UserService } from "@root/services";
+import { NoReadonly } from "../helpers/types/no-readonly.type";
+import { SystemLoggerService } from "@root/services/system-logger.service";
+import { FindMockQuery } from "../helpers/types/find-mock-query.type";
+import { faker } from "@faker-js/faker/.";
+import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 
-import type { FindMockQuery, NoReadonly } from '../test-helpers/types';
-
-import { EmailService } from "@root/services/email.service";
-import { HashingService } from "@root/services/hashing.service";
-import { JwtService } from "@root/services/jwt.service";
-import { User } from "@root/types/user/user.type";
-import { UserService } from "@root/services/user.service";
-import { ConfigService } from '@root/services/config.service';
-import { LoggerService } from '@root/services/logger.service';
-import { SystemLoggerService } from '@root/services/system-logger.service';
-
-// These tests only test the most critical parts of the service:
-// validateEmail, sendEmailValidationLink, create and login
-
-type UserModelMocked = MockProxy<Model<User>>;
-
-describe('UserService', () => {
-    let hashingServiceMock: MockProxy<HashingService>;
-    let jwtServiceMock: MockProxy<JwtService>;
-    let configServiceMock: MockProxy<NoReadonly<ConfigService>>;
-    let emailServiceMock: MockProxy<EmailService>;
-    let userModelMock: FindMockQuery<UserModelMocked> & UserModelMocked;
+describe('User Service', () => {
+    let configService: MockProxy<NoReadonly<ConfigService>>;
+    let userModel: FindMockQuery<MockProxy<Model<IUser>>>;
+    let hashingService: MockProxy<HashingService>;
+    let jwtService: MockProxy<JwtService>;
     let loggerService: MockProxy<LoggerService>;
+    let emailService: MockProxy<EmailService>;
     let userService: UserService;
 
-    // Disables systemLoggerService.error printing
-    SystemLoggerService.error = jest.fn(); 
+    beforeAll(() => {
+        SystemLoggerService.info = jest.fn();
+        SystemLoggerService.error = jest.fn();
+        SystemLoggerService.warn = jest.fn();
+    });
 
     beforeEach(() => {
-        hashingServiceMock = mock<HashingService>();
-        jwtServiceMock = mock<JwtService>();
-        userModelMock = (mock<Model<User>>() as any);
-        configServiceMock = mock<NoReadonly<ConfigService>>();
-        emailServiceMock = mock<EmailService>();
+        // properties are not readonly
+        configService = mock<NoReadonly<ConfigService>>();
+        userModel = (mock<Model<IUser>>() as any);
+        hashingService = mock<HashingService>();
+        jwtService = mock<JwtService>();
         loggerService = mock<LoggerService>();
+        emailService = mock<EmailService>();
+        userService = new UserService(
+            configService as unknown as ConfigService,
+            userModel as unknown as Model<IUser>,
+            hashingService,
+            jwtService,
+            loggerService,
+            emailService,
+        );
 
         // this allows, for example, findOne().exec() to be a mock...
-        userModelMock.findOne.mockReturnValue(mock<Query<any, any>>());
-        userModelMock.findById.mockReturnValue(mock<Query<any, any>>());
-        userModelMock.findByIdAndDelete.mockReturnValue(mock<Query<any, any>>());
-        userModelMock.findByIdAndUpdate.mockReturnValue(mock<Query<any, any>>());
+        userModel.find.mockReturnValue(mock<Query<any, any>>());
+        userModel.findOne.mockReturnValue(mock<Query<any, any>>());
+        userModel.findById.mockReturnValue(mock<Query<any, any>>());
+        userModel.findByIdAndDelete.mockReturnValue(mock<Query<any, any>>());
+        userModel.findByIdAndUpdate.mockReturnValue(mock<Query<any, any>>());
 
-        userService = new UserService(
-            configServiceMock as any,
-            userModelMock,
-            hashingServiceMock,
-            jwtServiceMock,
-            loggerService,
-            emailServiceMock
-        );
+        userModel.countDocuments.mockReturnValue(mock<Query<any, any>>());
     });
 
-    describe('VALIDATE EMAIL', () => {
-        describe('Token verification', () => {
-            test('jwtService.verify should be called with the token', async () => {
-                // stub token verification (email must be in token)
-                jwtServiceMock.verify
-                    .mockReturnValue({ email: faker.string.alpha() });
+    describe('sendEmailValidationLink', () => {
+        describe('If email service is not injected', () => {
+            test('should throw internal server error', async () => {
+                const expectedErrorMessage = `Email can not be validated due to a server error`;
+                const expectedErrorStatus = 500;
 
-                // stub user in db (must contain a save function)
-                userModelMock.findOne().exec
-                    .mockResolvedValue({ save: jest.fn(), });
+                // null email service
+                (userService['emailService'] as any) = null;
 
-                // call method with test token
-                const testToken = faker.string.alpha();
-                await userService.validateEmail(testToken);
-
-                expect(jwtServiceMock.verify)
-                    .toHaveBeenCalledWith(testToken);
-            });
-
-            describe('if jwtService.verify fails', () => {
-                describe('if does not return the payload', () => {
-                    test('should throw bad request http error', async () => {
-                        // mock token verification
-                        jwtServiceMock.verify
-                            .mockReturnValue(undefined);
-
-                        // assert it throws any message and 400 status code
-                        expect(userService.validateEmail(''))
-                            .rejects
-                            .toThrow(
-                                expect.objectContaining({
-                                    message: expect.any(String),
-                                    statusCode: 400,
-                                })
-                            );
-                    });
-                });
-
-                describe('if email is not in payload', () => {
-                    test('should throw internal server http error', async () => {
-                        // mock token verification with an object with no email
-                        jwtServiceMock.verify.mockReturnValue({});
-
-                        // assert it throws any message and 500 status code
-                        expect(userService.validateEmail(''))
-                            .rejects
-                            .toThrow(
-                                expect.objectContaining({
-                                    message: expect.any(String),
-                                    statusCode: 500,
-                                })
-                            );
-                    });
-                });
+                expect(userService['sendEmailValidationLink']('test-email'))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
             });
         });
 
-        describe('Find user in db', () => {
-            test('userModel.findOne should be called with the email in payload', async () => {
-                // mock token verification to return a test email
-                const testEmail = faker.internet.email();
-                jwtServiceMock.verify
-                    .mockReturnValue({ email: testEmail });
+        test('email should be sent to the provided email', async () => {
+            const email = 'test-email@gmail.com';
+            await userService['sendEmailValidationLink'](email);
+            expect(emailService.sendMail).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    to: email
+                })
+            );
+        });
 
-                // stub user found in db (must contain a save function)
-                userModelMock.findOne().exec
-                    .mockResolvedValue({ save: jest.fn(), });
+        describe('Link sent in email message', () => {
+            test('should contain the confirmEmailValidation url and token', async () => {
+                const mockTokenGenerated = '12345';
+                jwtService.generate.mockReturnValue(mockTokenGenerated);
 
-                await userService.validateEmail('');
+                const webURL = 'test-url/';
+                configService.WEB_URL = webURL;
 
-                expect(userModelMock.findOne)
-                    .toHaveBeenCalledWith({ email: testEmail });
+                const expectedLink = `${webURL}api/users/confirmEmailValidation/${mockTokenGenerated}`;
+
+                await userService['sendEmailValidationLink']('test-email');
+
+                expect(emailService.sendMail).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        html: expect.stringContaining(expectedLink)
+                    })
+                );
             });
+        });
+    });
 
-            describe('if user is not found', () => {
-                test('should throw not found error', async () => {
-                    // stub token verification (email must be in token)
-                    jwtServiceMock.verify
-                        .mockReturnValue({ email: faker.string.alpha() });
+    describe('requestEmailValidation', () => {
+        describe('If MAIL_SERVICE env is false', () => {
+            test('sendEmailValidationLink should not be called', async () => {
+                configService.mailServiceIsDefined.mockReturnValue(false);
 
-                    // mock findOne().exec() to return a undefined user
-                    userModelMock.findOne().exec
-                        .mockResolvedValue(undefined);
+                // return something to avoid error when user is not found
+                userModel
+                    .findById()
+                    .exec
+                    .mockReturnValue({} as any);
 
-                    // assert it throws any message and 404 status code
-                    expect(userService.validateEmail(''))
-                        .rejects
-                        .toThrow(
-                            expect.objectContaining({
-                                message: expect.any(String),
-                                statusCode: 404,
-                            })
-                        );
-                });
+                const sendEmailValidationLinkSpy = jest.spyOn(userService as any, 'sendEmailValidationLink')
+                    .mockImplementation();
+
+                await userService.requestEmailValidation('test-id');
+                expect(sendEmailValidationLinkSpy)
+                    .not
+                    .toHaveBeenCalled();
             });
         });
 
-        describe('If everything sucess', () => {
-            test('user.validateEmail should be udpated to true', async () => {
-                // stub token verification (email must be in token)
-                jwtServiceMock.verify
-                    .mockReturnValue({ email: faker.string.alpha() });
+        describe('If MAIL_SERVICE env is true', () => {
+            test('sendEmailValidationLink should be called', async () => {
+                configService.mailServiceIsDefined.mockReturnValue(true);
 
-                // mock user found in db 
-                const mockUserFound = {
+                // return something to avoid error when user is not found
+                userModel
+                    .findById()
+                    .exec
+                    .mockResolvedValue({} as any);
+
+                const sendEmailValidationLinkSpy = jest.spyOn(userService as any, 'sendEmailValidationLink')
+                    .mockImplementation();
+
+                await userService.requestEmailValidation('test-id');
+
+                expect(sendEmailValidationLinkSpy).toHaveBeenCalled();
+            });
+        });
+
+        describe('If user is not found', () => {
+            test('should throw bad request exception', async () => {
+                const expectedErrorMessage = `User not found`;
+                const expectedErrorStatus = 400;
+
+                userModel
+                    .findById()
+                    .exec
+                    .mockResolvedValue(null);
+
+                expect(userService.requestEmailValidation('test-id'))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }))
+            });
+        });
+    });
+
+    describe('confirmEmailValidation', () => {
+        describe('Token is not valid', () => {
+            test('should throw bad request exception', async () => {
+                const expectedErrorMessage = `Invalid token`;
+                const expectedErrorStatus = 400;
+
+                jwtService.verify.mockReturnValue(null);
+
+                expect(userService.confirmEmailValidation('test-token'))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Email not in token', () => {
+            test('should throw bad request exception', async () => {
+                const expectedErrorMessage = `Email not in token`;
+                const expectedErrorStatus = 400;
+
+                // id is not expected
+                jwtService.verify.mockReturnValue({ id: '12345' } as any);
+
+                expect(userService.confirmEmailValidation('test-token'))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('User in token does not exists', () => {
+            test('should throw not found exception', async () => {
+                const expectedErrorMessage = `User not found`;
+                const expectedErrorStatus = 404;
+
+                // return a valid token
+                jwtService.verify.mockReturnValue({ email: 'test-email' } as any);
+
+                // user not found
+                userModel.findOne().exec.mockResolvedValue(null);
+
+                expect(userService.confirmEmailValidation('test-token'))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Operation success', () => {
+            test('user emailValidated and role should be updated', async () => {
+                // return a valid token
+                jwtService.verify.mockReturnValue({ email: 'test-email' } as any);
+
+                const userFound = {
                     emailValidated: false,
+                    role: 'readonly',
+                    // make sure "save" is called only when the other properties
+                    // were updated.
+                    save: jest.fn().mockImplementation(() => {
+                        expect(userFound.role).toBe('editor');
+                        expect(userFound.emailValidated).toBeTruthy();
+                    }),
+                };
+
+                userModel
+                    .findOne()
+                    .exec
+                    .mockResolvedValue(userFound);
+
+                await userService.confirmEmailValidation('test-token');
+
+                expect(userFound.save).toHaveBeenCalledTimes(1);
+            });
+        });
+    });
+
+    describe('Create', () => {
+        describe('User already exists (code 11000)', () => {
+            test('should throw bad request exception', async () => {
+                userModel.create.mockRejectedValue({ code: 11000, keyValue: [] });
+                expect(userService.create({} as any))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: 400
+                    }));
+            });
+        });
+
+        describe('Unexpected error occurs', () => {
+            test('should be rethrown', async () => {
+                const unexpectedError = new Error('test-error');
+
+                userModel.create.mockRejectedValue(unexpectedError);
+
+                expect(userService.create({} as any))
+                    .rejects
+                    .toThrow(unexpectedError);
+            });
+        });
+
+        describe('Operation success', () => {
+            test('should return the created user and generated token', async () => {
+                const tokenMock = '12345';
+                jwtService.generate.mockReturnValue(tokenMock);
+
+                const createdUserMock = 'createdUserMock';
+                userModel.create.mockResolvedValue(createdUserMock as any);
+
+                const result = await userService.create({
+                    name: faker.food.vegetable(),
+                    password: faker.food.vegetable(),
+                    email: faker.food.vegetable()
+                });
+
+                expect(result).toStrictEqual({
+                    user: createdUserMock,
+                    token: tokenMock
+                });
+            });
+        });
+    });
+
+    describe('Login', () => {
+        describe('User is not found', () => {
+            test('should throw bad request exception', async () => {
+                userModel
+                    .findOne()
+                    .exec
+                    .mockResolvedValue(null);
+
+                const userToLogin = {
+                    email: 'test-email',
+                    password: 'test-password'
+                }
+
+                const expectedErrorMessage = `User with email ${userToLogin.email} not found`;
+                const expectedErrorStatus = 400;
+
+                expect(userService.login(userToLogin))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Password does not match', () => {
+            test('should throw bad request exception', async () => {
+                const expectedErrorMessage = 'Incorrect password';
+                const expectedErrorStatus = 400;
+
+                // stub user found
+                userModel
+                    .findOne()
+                    .exec
+                    .mockResolvedValue({} as any);
+
+                hashingService.compare.mockResolvedValue(false);
+
+                expect(userService.login({
+                    email: 'test-email',
+                    password: 'test-password'
+                }))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Process success', () => {
+            test('should return user logged in and generated token', async () => {
+                // mock user found
+                const userFound = { id: 'test-id' };
+                userModel
+                    .findOne()
+                    .exec
+                    .mockResolvedValue({ id: userFound.id } as any);
+
+                // stub password comparison
+                hashingService.compare.mockResolvedValue(true);
+
+                // mock token generation
+                const generatedTokenMock = 'test-token';
+                jwtService.generate.mockReturnValue(generatedTokenMock);
+
+                const result = await userService.login({
+                    email: 'test-email',
+                    password: 'test-password'
+                });
+
+                expect(result).toStrictEqual({
+                    user: userFound,
+                    token: generatedTokenMock
+                });
+            });
+        });
+    });
+
+    describe('Find one', () => {
+        describe('Id is not valid', () => {
+            test('should throw not found exception', async () => {
+                const expectedErrorStatus = 404;
+                const invalidMongoId = '123abc';
+                const expectedErrorMessage = `User with id ${invalidMongoId} not found`;
+
+                expect(userService.findOne(invalidMongoId))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('User not found', () => {
+            test('should throw not found exception', async () => {
+                const expectedErrorStatus = 404;
+                const mongoID = new Types.ObjectId();
+                const expectedErrorMessage = `User with id ${mongoID.toString()} not found`;
+
+                userModel
+                    .findById()
+                    .exec
+                    .mockResolvedValue(null);
+
+                expect(userService.findOne(mongoID.toString()))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Operation success', () => {
+            test('should return the found user', async () => {
+                // mock user found
+                const userFound = 'mock-userFound';
+                userModel
+                    .findById()
+                    .exec
+                    .mockResolvedValue(userFound);
+
+                const mongoID = new Types.ObjectId();
+                const found = await userService.findOne(mongoID.toString())
+
+                expect(found).toBe(userFound);
+            });
+        });
+    });
+
+    describe('Find all', () => {
+        describe('limit is 0 or less', () => {
+            test('should throw bad request exception', async () => {
+                const expectedErrorMessage = 'Limit must be a valid number';
+                const expectedErrorStatus = 400;
+                const invalidLimit = -10
+
+                expect(userService.findAll(invalidLimit, 11))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('limit is greater than 100', () => {
+            test('should throw bad request exception', async () => {
+                const expectedErrorMessage = 'Limit is too large';
+                const expectedErrorStatus = 400;
+                const invalidLimit = 101
+
+                expect(userService.findAll(invalidLimit, 11))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Total documents are zero', () => {
+            test('should return an empty array', async () => {
+                (userModel
+                    .countDocuments()
+                    .exec as any)
+                    .mockResolvedValue(0);
+
+                const result = await userService.findAll(50, 10);
+
+                expect(result.length).toBe(0);
+            });
+        });
+
+        describe('page is 0 or less', () => {
+            test('should throw bad request exception', async () => {
+                // stub countDocuments to not return 0
+                (userModel
+                    .countDocuments()
+                    .exec as any)
+                    .mockResolvedValue(10);
+
+                const expectedErrorMessage = 'Page must be a valid number';
+                const expectedErrorStatus = 400;
+                const invalidPage = -1;
+
+                expect(userService.findAll(11, invalidPage))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('page is greater than total pages', () => {
+            test('should throw bad request exception', async () => {
+                // stub countDocuments to not return 0
+                (userModel
+                    .countDocuments()
+                    .exec as any)
+                    .mockResolvedValue(10);
+
+                const expectedErrorMessage = 'Invalid page';
+                const expectedErrorStatus = 400;
+                const totalPages = 20;
+                const invalidPage = totalPages + 1;
+
+                const mathCeilMock = jest.spyOn(Math, 'ceil')
+                    .mockReturnValue(totalPages);
+
+                expect(userService.findAll(11, invalidPage))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Operation success', () => {
+            test('should return the find() result after skip and limit were applied', async () => {
+                const limit = 10;
+                const page = 6;
+                const offset = (page - 1) * limit;
+
+                // stub countDocuments to not return 0
+                (userModel
+                    .countDocuments()
+                    .exec as any)
+                    .mockResolvedValue(10);
+
+                // mock find().skip()
+                userModel.find().skip.mockReturnThis();
+                // mock find().skip().limit()
+                (userModel.find().skip(offset).limit as any).mockReturnThis();
+
+                // return a greater page than the provided one
+                const mathCeilMock = jest.spyOn(Math, 'ceil')
+                    .mockReturnValue(page + 1);
+
+                // mock find().skip().limit().exec()
+                const mockResult = 'findAllResult';
+                (userModel.find().skip(offset).limit(limit).exec as any)
+                    .mockResolvedValue(mockResult);
+
+                const result = await userService.findAll(limit, page);
+
+                expect(userModel.find().skip).toHaveBeenCalledWith(offset);
+                expect(userModel.find().skip(offset).limit).toHaveBeenCalledWith(limit);
+                expect(result).toBe(mockResult);
+            });
+        });
+    });
+
+    describe('Delete one', () => {
+        describe('isModificationAuthorized returns null', () => {
+            test('should throw forbidden exception', async () => {
+                const expectedErrorStatus = 403
+                const expectedErrorMessage = FORBIDDEN_MESSAGE;
+
+                jest.spyOn(userService as any, 'IsModificationAuthorized')
+                    .mockResolvedValue(null);
+
+                expect(userService.deleteOne({} as any, 'test-id'))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+    });
+
+    describe('Update one', () => {
+        describe('isModificationAuthorized returns null', () => {
+            test('should throw forbidden exception', async () => {
+                const expectedErrorStatus = 403
+                const expectedErrorMessage = FORBIDDEN_MESSAGE;
+
+                jest.spyOn(userService as any, 'IsModificationAuthorized')
+                    .mockResolvedValue(null);
+
+                expect(userService.updateOne({} as any, 'test-id', {} as any))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Password is being updated', () => {
+            test('user should be save with the password hashed', async () => {
+                // user returned by IsModificationAuthorized function
+                const userToUpdate = {
+                    password: undefined,
+                    // save should be called when the password was already assigned
+                    save: jest.fn().mockImplementation(() => {
+                        expect(userToUpdate.password).toBe(hashResultMock);
+                    }),
+                };
+
+                jest.spyOn(userService as any, 'IsModificationAuthorized')
+                    .mockResolvedValue(userToUpdate);
+
+                // mock the hashed password
+                const hashResultMock = 'test-hash';
+                hashingService.hash.mockResolvedValue(hashResultMock);
+
+                await userService.updateOne(
+                    {} as any,
+                    'test-id',
+                    { password: 'test-password' }
+                );
+
+                expect(userToUpdate.save).toHaveBeenCalled();
+            });
+        });
+
+        describe('Email is being updated', () => {
+            describe('Former email was validated', () => {
+                describe('New email is different', () => {
+                    test('role should be updated to readonly', async () => {
+                        // user returned by IsModificationAuthorized function
+                        const userToUpdate = {
+                            email: 'former_email@gmail.com',
+                            role: 'editor',
+                            // save should be called when the role was already assigned
+                            save: jest.fn().mockImplementation(() => {
+                                expect(userToUpdate.role).toBe('readonly');
+                            })
+                        };
+
+                        jest.spyOn(userService as any, 'IsModificationAuthorized')
+                            .mockResolvedValue(userToUpdate);
+
+                        // update with a new email
+                        await userService.updateOne(
+                            {} as any,
+                            'test-id',
+                            { email: 'new_test_email@gmail.com' }
+                        );
+
+                        expect(userToUpdate.save).toHaveBeenCalled();
+                    });
+
+                    test('emailValidated should be updated to false', async () => {
+                        // user returned by IsModificationAuthorized function
+                        const userToUpdate = {
+                            email: 'former_email@gmail.com',
+                            emailValidated: true,
+                            // save should be called when the emailValidated was already assigned
+                            save: jest.fn().mockImplementation(() => {
+                                expect(userToUpdate.emailValidated).toBeFalsy();
+                            })
+                        };
+
+                        jest.spyOn(userService as any, 'IsModificationAuthorized')
+                            .mockResolvedValue(userToUpdate);
+
+                        // update with a new email
+                        await userService.updateOne(
+                            {} as any,
+                            'test-id',
+                            { email: 'new_test_email@gmail.com' }
+                        );
+
+                        expect(userToUpdate.save).toHaveBeenCalled();
+                    });
+                });
+
+                describe('New email is the same', () => {
+                    test('role should not change', async () => {
+                        // user returned by IsModificationAuthorized function
+                        const userToUpdate = {
+                            email: 'former_email@gmail.com',
+                            role: 'editor',
+                            // save should be called when the role was already assigned
+                            save: jest.fn().mockImplementation(() => {
+                                expect(userToUpdate.role).toBe('editor');
+                            })
+                        };
+
+                        jest.spyOn(userService as any, 'IsModificationAuthorized')
+                            .mockResolvedValue(userToUpdate);
+
+                        // update with the same email
+                        await userService.updateOne(
+                            {} as any,
+                            'test-id',
+                            { email: userToUpdate.email }
+                        );
+
+                        expect(userToUpdate.save).toHaveBeenCalled();
+                    });
+
+                    test('emailValidated should not change', async () => {
+                        // user returned by IsModificationAuthorized function
+                        const userToUpdate = {
+                            email: 'former_email@gmail.com',
+                            emailValidated: true,
+                            // save should be called when the emailValidated was already assigned
+                            save: jest.fn().mockImplementation(() => {
+                                expect(userToUpdate.emailValidated).toBeTruthy();
+                            })
+                        };
+
+                        jest.spyOn(userService as any, 'IsModificationAuthorized')
+                            .mockResolvedValue(userToUpdate);
+
+                        // update with the same email
+                        await userService.updateOne(
+                            {} as any,
+                            'test-id',
+                            { email: userToUpdate.email }
+                        );
+
+                        expect(userToUpdate.save).toHaveBeenCalled();
+                    });
+                });
+            });
+        });
+
+        describe('Process success', () => {
+            test('should return the updated user', async () => {
+                // user returned by IsModificationAuthorized function
+                const userToUpdate = {
                     save: jest.fn(),
                 };
-                userModelMock.findOne().exec
-                    .mockResolvedValue(mockUserFound);
 
-                await userService.validateEmail('');
+                jest.spyOn(userService as any, 'IsModificationAuthorized')
+                    .mockResolvedValue(userToUpdate);
 
-                // assert emailValidated is true and save was called
-                expect(mockUserFound.emailValidated)
-                    .toBeTruthy();
-                expect(mockUserFound.save)
-                    .toHaveBeenCalledTimes(1)
+                // update with the same email
+                const result = await userService.updateOne(
+                    {} as any,
+                    'test-id',
+                    { password: '12345' }
+                );
+
+                expect(result).toStrictEqual(userToUpdate);
             });
         });
     });
 
-    describe('CREATE', () => {
-        describe('Password hashing', () => {
-            test('hashingService.hash should be called with user password', async () => {
-                // stub userModel.create() to return an object
-                // so "created.id" does not throw an error
-                userModelMock.create
-                    .mockResolvedValue({} as any);
-
-                // create a test user with a test password. Password is changed
-                // across the function so we need to pass a copy.
-                const testPassword = faker.internet.password()
-                const testUser = { password: testPassword };
-
-                await userService.create(testUser as any);
-
-                expect(hashingServiceMock.hash)
-                    .toHaveBeenCalledWith(testPassword);
-            });
-        });
-
-        describe('User creation in db', () => {
-            test('userModel.create should be called with user with a hashed password', async () => {
-                // mock hash result
-                const mockHashedPassword = faker.food.vegetable();
-                hashingServiceMock.hash
-                    .mockResolvedValue(mockHashedPassword);
-
-                // stub userModel.create() to return an object
-                // so "created.id" not throws an error
-                userModelMock.create
-                    .mockResolvedValue({} as any);
-
-                await userService.create({} as any);
-
-                expect(userModelMock.create)
-                    .toHaveBeenCalledWith(
-                        expect.objectContaining({
-                            password: mockHashedPassword,
-                        })
-                    );
-            });
-
-            describe('if create fails with code 11000 (duplicate key)', () => {
-                test('should return bad request http error', async () => {
-                    // mock userModel.create to throw a error with 11000 code
-                    const mockCreationError = {
-                        code: 11000,
-                        keyValue: [],
-                    };
-                    userModelMock.create
-                        .mockRejectedValue(mockCreationError);
-
-                    // assert it throws any message and 400 status code
-                    expect(userService.create({} as any))
-                        .rejects
-                        .toThrow(
-                            expect.objectContaining({
-                                message: expect.any(String),
-                                statusCode: 400,
-                            })
-                        );
-                });
-            });
-        });
-
-        describe('Token generation', () => {
-            test('jwtService.generate should be called with the created user id', async () => {
-                // mock userModel.create to return a test user
-                const testUser = {
-                    id: faker.food.vegetable()
+    describe('IsModificationAuthorized', () => {
+        describe('Administrators', () => {
+            test('admin should be authorized to modify any non-admin users', async () => {
+                const userToModify = {
+                    role: Math.round(Math.random()) ? 'readonly': 'editor',
+                    id: faker.food.fruit(),
                 };
-                userModelMock.create
-                    .mockResolvedValue(testUser as any);
 
-                await userService.create(testUser as any);
+                const requestUser = {
+                    id: faker.food.fruit(),
+                    role: 'admin'
+                } as const;
 
-                // assert the id is the same 
-                expect(jwtServiceMock.generate)
-                    .toHaveBeenCalledWith({ id: testUser.id });
+                const userServiceFindOneMock = jest.spyOn(userService, 'findOne')
+                    .mockResolvedValue(userToModify as any);
+
+                const result = await userService['IsModificationAuthorized'](requestUser, userToModify.id);
+
+                expect(userServiceFindOneMock).toHaveBeenCalled();
+                // the user to modify returned indicates the user is authorized 
+                // to perform this action
+                expect(result).toStrictEqual(userToModify);
+            });
+
+            test('should be not authorized to modify other admins', async () => {
+                const userToModify = {
+                    role: 'admin',
+                    id: faker.food.fruit(),
+                };
+
+                const requestUser = {
+                    id: faker.food.fruit(),
+                    role: 'admin'
+                } as const;
+
+                const userServiceFindOneMock = jest.spyOn(userService, 'findOne')
+                    .mockResolvedValue(userToModify as any);
+
+                const result = await userService['IsModificationAuthorized'](requestUser, userToModify.id);
+
+                expect(userServiceFindOneMock).toHaveBeenCalled();
+                // null indicates the user not is authorized to perform this action
+                expect(result).toBeNull()
+            });
+
+            test('should be authorized to modify themselves', async () => {
+                const userID = faker.food.fruit();
+                const userToModify = {
+                    role: 'admin',
+                    id: userID,
+                };
+
+                const requestUser = {
+                    id: userID,
+                    role: 'admin'
+                } as const;
+
+                const userServiceFindOneMock = jest.spyOn(userService, 'findOne')
+                    .mockResolvedValue(userToModify as any);
+
+                const result = await userService['IsModificationAuthorized'](requestUser, userToModify.id);
+
+                expect(userServiceFindOneMock).toHaveBeenCalled();
+                // the user to modify returned indicates the user is authorized 
+                // to perform this action
+                expect(result).toStrictEqual(userToModify);
             });
         });
 
-        describe('if everything success', () => {
-            test('should return the created user and the generated token', async () => {
-                // mock created user
-                const userCreatedMock = { name: faker.internet.username() };
-                userModelMock.create
-                    .mockResolvedValue(userCreatedMock as any);
+        describe('Editors', () => {
+            test('should be not authorized to modify other users', async () => {
+                const userToModify = {
+                    role: Math.round(Math.random()) ? 'readonly' : 'editor',
+                    id: faker.food.fruit(),
+                };
 
-                // mock token generation
-                const tokenMock = faker.food.vegetable();
-                jwtServiceMock.generate
-                    .mockReturnValue(tokenMock);
+                const requestUser = {
+                    id: faker.food.fruit(),
+                    role: 'editor'
+                } as const;
 
-                expect(userService.create({} as any))
-                    .resolves
-                    .toStrictEqual({
-                        token: tokenMock,
-                        user: userCreatedMock,
-                    });
+                const userServiceFindOneMock = jest.spyOn(userService, 'findOne')
+                    .mockResolvedValue(userToModify as any);
+
+                const result = await userService['IsModificationAuthorized'](requestUser, userToModify.id);
+
+                expect(userServiceFindOneMock).toHaveBeenCalled();
+                // null indicates the user not is authorized to perform this action
+                expect(result).toBeNull()
+            });
+
+            test('should be authorized to modify themselves', async () => {
+                const userID = faker.food.fruit();
+                const userToModify = {
+                    role: 'editor',
+                    id: userID,
+                };
+
+                const requestUser = {
+                    id: userID,
+                    role: 'editor'
+                } as const;
+
+                const userServiceFindOneMock = jest.spyOn(userService, 'findOne')
+                    .mockResolvedValue(userToModify as any);
+
+                const result = await userService['IsModificationAuthorized'](requestUser, userToModify.id);
+
+                expect(userServiceFindOneMock).toHaveBeenCalled();
+                // the user to modify returned indicates the user is authorized 
+                // to perform this action
+                expect(result).toStrictEqual(userToModify);
             });
         });
 
-        describe('Email validation', () => {
-            describe('if configService.MAIL_SERVICE is enabled', () => {
-                test('sendEmailValidationLink should be called with user email', async () => {
-                    // mock to enable mock service
-                    configServiceMock.mailServiceIsDefined
-                        .mockReturnValue(true);
+        describe('Readonlys', () => {
+            test('should be not authorized to modify other users', async () => {
+                const userToModify = {
+                    role: Math.round(Math.random()) ? 'readonly' : 'editor',
+                    id: faker.food.fruit(),
+                };
 
-                    // stub userModel.create() to return an object
-                    // so "created.id" does not throw an error
-                    userModelMock.create
-                        .mockResolvedValue({} as any);
+                const requestUser = {
+                    id: faker.food.fruit(),
+                    role: 'readonly'
+                } as const;
 
-                    // spy private method
-                    const sendEmailValidationLinkSpy = jest
-                        .spyOn(userService as any, 'sendEmailValidationLink');
+                const userServiceFindOneMock = jest.spyOn(userService, 'findOne')
+                    .mockResolvedValue(userToModify as any);
 
-                    // call method with a test user
-                    const testUser = { email: faker.internet.email() };
-                    await userService.create(testUser as any)
+                const result = await userService['IsModificationAuthorized'](requestUser, userToModify.id);
 
-                    expect(sendEmailValidationLinkSpy)
-                        .toHaveBeenCalledWith(testUser.email);
-                });
-            });
-        });
-
-        describe('if an unexpected error is thrown', () => {
-            test('should rethrow it', async () => {
-                // mock hash function to throw an error
-                const testError = new Error(faker.food.description());
-                hashingServiceMock.hash
-                    .mockRejectedValue(testError);
-
-                expect(userService.create({} as any))
-                    .rejects
-                    .toThrow(testError);
-            });
-        });
-    });
-
-    describe('SEND EMAIL VALIDATION (private)', () => {
-        describe('if this.emailService DI is not provided and the function was called', () => {
-            test('should throw internal server error', async () => {
-                // inject everything but email service
-                const testUserService = new UserService(
-                    configServiceMock as any,
-                    userModelMock,
-                    hashingServiceMock,
-                    jwtServiceMock,
-                    loggerService,
-                    undefined,
-                );
-
-                // assert it throws any message and 500 status code
-                expect(testUserService['sendEmailValidationLink'](''))
-                    .rejects
-                    .toThrow(
-                        expect.objectContaining({
-                            message: expect.any(String),
-                            statusCode: 500,
-                        })
-                    );
+                expect(userServiceFindOneMock).toHaveBeenCalled();
+                // null indicates the user not is authorized to perform this action
+                expect(result).toBeNull()
             });
 
-            test('should call systemLogs.error', async () => {
-                const systemLoggerServiceSpy = jest.spyOn(SystemLoggerService, 'error');
+            test('should be authorized to modify themselves', async () => {
+                const userID = faker.food.fruit();
+                const userToModify = {
+                    role: 'readonly',
+                    id: userID,
+                };
 
-                // inject everything but email service
-                const testUserService = new UserService(
-                    configServiceMock as any,
-                    userModelMock,
-                    hashingServiceMock,
-                    jwtServiceMock,
-                    loggerService,
-                    undefined,
-                );
+                const requestUser = {
+                    id: userID,
+                    role: 'readonly'
+                } as const;
 
-                expect(testUserService['sendEmailValidationLink'](''))
-                    .rejects
-                    .toThrow();
+                const userServiceFindOneMock = jest.spyOn(userService, 'findOne')
+                    .mockResolvedValue(userToModify as any);
 
-                expect(systemLoggerServiceSpy).toHaveBeenCalledTimes(1);
-            });
-        });
+                const result = await userService['IsModificationAuthorized'](requestUser, userToModify.id);
 
-        describe('Token generation', () => {
-            test('jwtService.generate should be called with the email', async () => {
-                const testEmail = faker.internet.email();
-
-                // its a private function!
-                userService['sendEmailValidationLink'](testEmail);
-
-                // assert the email is the same 
-                expect(jwtServiceMock.generate)
-                    .toHaveBeenCalledWith({ email: testEmail });
-            });
-        });
-
-        describe('emailService.sendMail should be called with...', () => {
-            test('link containing email web_url and the generatedtoken', async () => {
-                // mock web url in configService
-                const webUrlMock = faker.internet.domainName();
-                configServiceMock.WEB_URL = webUrlMock;
-
-                // mock token generation
-                const tokenMock = faker.food.vegetable();
-                jwtServiceMock.generate
-                    .mockReturnValue(tokenMock);
-
-                // its a private function
-                userService['sendEmailValidationLink']('');
-
-                // assert html field contains the token 
-                expect(emailServiceMock.sendMail)
-                    .toHaveBeenCalledWith(
-                        expect.objectContaining({
-                            html: expect.stringContaining(tokenMock),
-                        })
-                    );
-
-                // assert html field contains the web url
-                expect(emailServiceMock.sendMail)
-                    .toHaveBeenCalledWith(
-                        expect.objectContaining({
-                            html: expect.stringContaining(webUrlMock),
-                        })
-                    );
-            });
-
-            test('the email passed', async () => {
-                const testEmail = faker.internet.email();
-
-                // its a private function
-                userService['sendEmailValidationLink'](testEmail);
-
-                // assert html field contains the email
-                expect(emailServiceMock.sendMail)
-                    .toHaveBeenCalledWith(
-                        expect.objectContaining({
-                            html: expect.stringContaining(testEmail),
-                        })
-                    );
-            });
-        });
-    });
-
-    describe('LOGIN', () => {
-        describe('Find user in db', () => {
-            test('userModel.findOne should be called with user email', async () => {
-                // stub userModel.findOne().exec()
-                userModelMock.findOne().exec
-                    .mockResolvedValue({});
-
-                // stub password comparison
-                hashingServiceMock.compare
-                    .mockResolvedValue(true);
-
-                // call method with a test user
-                const testUser = { email: faker.internet.email() };
-                await userService.login(testUser as any);
-
-                expect(userModelMock.findOne)
-                    .toHaveBeenCalledWith({ email: testUser.email });
-            });
-
-            describe('if user is not found', () => {
-                test('should throw bad request http error', async () => {
-                    // mock userModel.findOne().exec() to return undefined
-                    userModelMock.findOne().exec
-                        .mockResolvedValue(undefined);
-
-                    // stub password comparison
-                    hashingServiceMock.compare
-                        .mockResolvedValue(true);
-
-                    // assert it throws any message and 400 status code
-                    expect(userService.login({} as any))
-                        .rejects
-                        .toThrow(expect.objectContaining({
-                            message: expect.any(String),
-                            statusCode: 400,
-                        }));
-                });
-            });
-        });
-
-        describe('Password matching', () => {
-            test('hashingService.compare should be called with user password and userInDb password', async () => {
-                // mock userModel.findOne().exec() to return a user with a password
-                const userInDb = { password: faker.internet.password() };
-                userModelMock.findOne().exec
-                    .mockResolvedValue(userInDb);
-
-                // stub password comparison to avoid error
-                hashingServiceMock.compare
-                    .mockResolvedValue(true);
-
-                // call method with a test user
-                const testUser = { password: faker.internet.password() };
-                await userService.login(testUser as any);
-
-                expect(hashingServiceMock.compare)
-                    .toHaveBeenCalledWith(testUser.password,
-                        userInDb.password
-                    );
-            });
-
-            describe('if hashingService.compare returns false', () => {
-                test('should throw bad request http error', async () => {
-                    // stub userModel.findOne().exec()
-                    userModelMock.findOne().exec
-                        .mockResolvedValue({});
-
-                    // mock comparison to fail
-                    hashingServiceMock.compare
-                        .mockResolvedValue(false);
-
-                    // assert it throws any message and 400 status code
-                    expect(userService.login({} as any))
-                        .rejects
-                        .toThrow(expect.objectContaining({
-                            message: expect.any(String),
-                            statusCode: 400
-                        }));
-                });
-            });
-        });
-
-        describe('Token generation', () => {
-            test('jwtService.jwt should be called with user found id', async () => {
-                // mock userModel.findOne().exec() to return a user with id
-                const userInDbMock = { id: faker.food.vegetable() };
-                userModelMock.findOne().exec
-                    .mockResolvedValue(userInDbMock);
-
-                // stub password comparison
-                hashingServiceMock.compare
-                    .mockResolvedValue(true);
-
-                await userService.login({} as any)
-
-                // assert the id is the same
-                expect(jwtServiceMock.generate)
-                    .toHaveBeenCalledWith({ id: userInDbMock.id });
-            });
-        });
-
-        describe('if everything sucess', () => {
-            test('should return token and user', async () => {
-                // mock userModel.findOne().exec()
-                const userInDbMock = { email: faker.internet.email() };
-                userModelMock.findOne().exec
-                    .mockResolvedValue(userInDbMock);
-
-                // stub password comparison
-                hashingServiceMock.compare
-                    .mockResolvedValue(true);
-
-                // mock token generation
-                const token = faker.food.vegetable();
-                jwtServiceMock.generate.mockReturnValue(token);
-
-                expect(userService.login({} as any))
-                    .resolves
-                    .toStrictEqual({
-                        token,
-                        user: userInDbMock,
-                    });
-            });
-        });
-    });
-
-    describe('UPDATE ONE', () => {
-        describe('user found', () => {
-            describe('if password is being updated', () => {
-                test('hashingService.hash should be called with the new password', async () => {
-                    // mock user found to avoid bad request error
-                    userModelMock.findByIdAndUpdate().exec
-                        .mockResolvedValue({} as any);
-
-                    // provide a valid id to avoid bad request exception
-                    const validMongoId = new mongoose.Types.ObjectId().toString();
-                    const propertiesUpdated = {
-                        password: 'unhashed password'
-                    };
-
-                    // mock hashing
-                    const hashMock = 'hash mock';
-                    hashingServiceMock.hash.mockResolvedValue(hashMock);
-
-                    // this function should be called with the hash
-                    const objectAssignSpy = jest.spyOn(Object, 'assign')
-                        .mockImplementation();
-
-                    await userService.updateOne(validMongoId, propertiesUpdated);
-
-                    expect(objectAssignSpy)
-                        .toHaveBeenCalledWith({ password: hashMock }, propertiesUpdated)
-                });
-            });
-
-            describe('if updating an user email whose former email was validated', () => {
-                describe('if email is different', () => {
-                    test('emailValidated should be updated to false', async () => {
-                        // mock user found with a validated email
-                        const userFoundMock = {
-                            emailValidated: true,
-                            email: faker.internet.email(),
-                        };
-                        userModelMock.findByIdAndUpdate().exec
-                            .mockResolvedValue(userFoundMock);
-
-                        // provide a valid id to avoid bad request exception
-                        const validMongoId = new mongoose.Types.ObjectId().toString();
-                        const propertiesUpdated = {
-                            email: 'new email'
-                        };
-
-                        await userService.updateOne(validMongoId, propertiesUpdated);
-
-                        expect(userFoundMock.emailValidated).toBeFalsy();
-                    });
-                });
-
-                describe('if the email is the same', () => {
-                    test('emailValidated should remain true', async () => {
-                        const email = faker.internet.email();
-                        // mock user found with a validated email
-                        const userFoundMock = {
-                            emailValidated: true,
-                            email,
-                        };
-                        userModelMock.findByIdAndUpdate().exec
-                            .mockResolvedValue(userFoundMock);
-
-                        // provide a valid id to avoid bad request exception
-                        const validMongoId = new mongoose.Types.ObjectId().toString();
-                        const propertiesUpdated = { email };
-
-                        await userService.updateOne(validMongoId, propertiesUpdated);
-
-                        expect(userFoundMock.emailValidated).toBeTruthy();
-                    });
-                });
+                expect(userServiceFindOneMock).toHaveBeenCalled();
+                // the user to modify returned indicates the user is authorized 
+                // to perform this action
+                expect(result).toStrictEqual(userToModify);
             });
         });
     });
