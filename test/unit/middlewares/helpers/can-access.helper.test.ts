@@ -13,14 +13,14 @@ describe('CanAcess helper', () => {
     });
 
     describe('given "editor" as the min role required', () => {
-        test('should return false if user rol is "readonly"', async () => {
+        test('should return false if user role is "readonly"', async () => {
             const minRoleRequired = 'editor';
             const userRol = 'readonly';
             const accessGranted = canAccess(minRoleRequired, userRol);
             expect(accessGranted).toBeFalsy();
         });
 
-        test('should return true if user rol is "admin"', async () => {
+        test('should return true if user role is "admin"', async () => {
             const minRoleRequired = 'editor';
             const userRol = 'admin';
             const accessGranted = canAccess(minRoleRequired, userRol);
@@ -42,6 +42,14 @@ describe('CanAcess helper', () => {
                 const valid = canAccess(minRoleRequired, rol);
                 expect(valid).toBeTruthy();
             });
+        });
+    });
+
+    describe('Role provided is not a valid role', () => {
+        test('should return false', async () => {
+            const invalidRole = 'randomRole';
+            const accessGranted = canAccess('editor', invalidRole as any);
+            expect(accessGranted).toBeFalsy();
         });
     });
 });
