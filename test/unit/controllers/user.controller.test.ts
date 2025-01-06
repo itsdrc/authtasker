@@ -4,6 +4,7 @@ import { UserController } from '@root/controllers/user.controller';
 import { CreateUserValidator, LoginUserValidator } from '@root/rules/validators/models/user';
 import { UpdateUserValidator } from '@root/rules/validators/models/user/update-user.validator';
 import { LoggerService, UserService } from '@root/services';
+import { SystemLoggerService } from '@root/services/system-logger.service';
 import { Request, Response } from 'express';
 import { mock, MockProxy } from 'jest-mock-extended';
 
@@ -16,6 +17,10 @@ describe('User Controller', () => {
         userService = mock<UserService>();
         loggerService = mock<LoggerService>();
         userController = new UserController(userService, loggerService);
+
+        jest.spyOn(SystemLoggerService, 'error').mockImplementation();
+        jest.spyOn(SystemLoggerService, 'info').mockImplementation();
+        jest.spyOn(SystemLoggerService, 'warn').mockImplementation();
     });
 
     describe('getUserInfoOrHandleError', () => {
