@@ -1,86 +1,69 @@
-import { faker } from "@faker-js/faker/.";
-import { JwtService } from "@root/services/jwt.service";
 import jwt from "jsonwebtoken";
+import * as UUID from 'uuid';
+import { JwtService } from "@root/services";
 
-describe('JwtService', () => {
-    describe('GENERATE', () => {
-        test('jwt.sign should be called with: payload, key and expiration time', async () => {
-            const testExpiratonTime = faker.number.int().toString();
-            const testPrivateKey = faker.food.vegetable();
+describe('Jwt Service', () => {
+    test('should return null if token is not valid', async () => {
+        const jwtService = new JwtService('10m', '1234');
 
-            // create service with exp time and private key
-            const jwtService = new JwtService(testExpiratonTime, testPrivateKey);
+        const tokenVerified = jwtService.verify<{ id: string }>('invalid-token');
 
-            // create a spy and disable implementation
-            const signSpy = jest.spyOn(jwt, 'sign')
-                .mockImplementation();
-
-            const testPayload = { email: faker.internet.email() };
-            jwtService.generate(testPayload);
-
-            expect(signSpy).toHaveBeenCalledWith(
-                testPayload,
-                testPrivateKey,
-                { expiresIn: testExpiratonTime }
-            );
-        });
-
-        test('should return the token generate by jwt.sign', () => {
-            const jwtService = new JwtService('', '');
-
-            // mock sign returned value
-            const tokenMock = faker.food.vegetable();
-            jest.spyOn(jwt, 'sign')
-                .mockReturnValue(tokenMock as any);
-
-            const result = jwtService.generate({});
-
-            expect(result).toBe(tokenMock);
-        });
+        expect(tokenVerified).toBeNull();
     });
 
-    describe('VERIFY', () => {
-        test('jwt.verify should be called with the provided token and private key', async () => {
-            const testPrivateKey = faker.food.vegetable();
+    test('jwt.sign should be called with the provided payload, expiration time and private key', async () => {
+        const expirationTime = '10m';
+        const privateKey = 'my-private-key';
 
-            // create service with the test private key
-            const jwtService = new JwtService('', testPrivateKey);
+        const jwtSignSpy = jest.spyOn(jwt, 'sign');
+        const testPayload = { id: '123' };
 
-            // spies and disable implementation
-            const verifySpy = jest.spyOn(jwt, 'verify')
-                .mockImplementation();
+        const jwtService = new JwtService(expirationTime, privateKey);
+        jwtService.generate(testPayload);
 
-            // call method with a test token
-            const testToken = faker.food.description();
-            jwtService.verify(testToken);
+        expect(jwtSignSpy).toHaveBeenCalledWith(
+            testPayload, privateKey,
+            { expiresIn: expirationTime }
+        );
+    });
 
-            expect(verifySpy)
-                .toHaveBeenCalledWith(testToken, testPrivateKey);
-        });
+    test('jwt.verify should be called with the provided hash and private key', async () => {
+        const privateKey = 'my-private-key';
 
-        test('if jwt.verify throws, should return undefined', async () => {
-            const jwtService = new JwtService('', '');
+        const jwtVerifySpy = jest.spyOn(jwt, 'verify');
+        const testHash = 'abc1234';
 
-            // mock jwt.verify to throws an error
-            jest.spyOn(jwt, 'verify')
-                .mockImplementation(() => { throw new Error('') });
+        const jwtService = new JwtService('10m', privateKey);
+        jwtService.verify(testHash);
 
-            const result = jwtService.verify('');
+        expect(jwtVerifySpy).toHaveBeenCalledWith(testHash, privateKey);
+    });
 
-            expect(result).toBeUndefined();
-        });
+    test('a valid jti (uuid) should be in payload when token is verified', async () => {
+        const jwtService = new JwtService('10m', '1234');
 
-        test('should return the payload returned by verify', async () => {
-            const jwtService = new JwtService('', '');
+        // mock uuid generated
+        const testUuid = '12345';
+        const uuidMock = jest.spyOn(UUID, 'v4')
+            .mockReturnValue(testUuid as any);
 
-            // mock jwt.verify returned payload 
-            const mockPayload = faker.food.fruit();
-            jest.spyOn(jwt, 'verify')
-                .mockReturnValue(mockPayload as any);
+        const generatedToken = jwtService.generate({ id: '123' });
+        const payload = jwtService.verify(generatedToken);
 
-            const result = jwtService.verify('');
+        expect(uuidMock).toHaveBeenCalledTimes(1);
+        expect(payload?.jti).toBe(testUuid);
+    });
 
-            expect(result).toBe(mockPayload);
+    describe('Workflow', () => {
+        test('generated token should be successfully verified and return the payload', async () => {
+            const jwtService = new JwtService('10m', '1234');
+
+            const testId = '12345fgj';
+            const generatedToken = jwtService.generate({ id: testId });
+
+            const tokenVerified = jwtService.verify<{ id: string }>(generatedToken);
+
+            expect(tokenVerified?.id).toBe(testId);
         });
     });
 });
