@@ -17,7 +17,7 @@ export class JwtService {
         Object.defineProperty(
             payload,
             'jti',
-            { value: uuidv4() }
+            { value: uuidv4(), enumerable: true }
         );
 
         const token = jwt.sign(payload,
