@@ -12,6 +12,7 @@ import { SystemLoggerService } from "./system-logger.service";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 import { UserRole } from "@root/types/user/user-roles.type";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
+import { urlencoded } from "express";
 
 export class UserService {
 
@@ -59,6 +60,11 @@ export class UserService {
         const user = await this.userModel
             .findById(id)
             .exec();
+
+        if(user?.emailValidated === true){
+            // todo: logging
+            throw HttpError.badRequest('User email is already validated');
+        }
 
         if (!user) {
             // todo: logging
