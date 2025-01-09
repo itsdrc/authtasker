@@ -34,7 +34,12 @@ export class UserService {
             throw HttpError.internalServer('Email can not be validated due to a server error');
         }
 
-        const token = this.jwtService.generate('10m', { email });
+        const jwtExpirationTime = '10m';
+        const token = this.jwtService.generate(jwtExpirationTime, { 
+            purpose: 'emailValidation',
+            email: email,
+        });
+
         // web url is appended with a default "/" when read
         const link = `${this.configService.WEB_URL}api/users/confirmEmailValidation/${token}`;
 
@@ -69,8 +74,8 @@ export class UserService {
 
     async confirmEmailValidation(token: string): Promise<void> {
         // token verification
-        const payload = this.jwtService.verify<{ email: string }>(token);
-        if (!payload) {
+        const payload = this.jwtService.verify<{ email: string, purpose: string}>(token);
+        if (!payload || payload.purpose != 'emailValidation') {
             this.loggerService.error('INVALID TOKEN');
             throw HttpError.badRequest('Invalid token')
         }
