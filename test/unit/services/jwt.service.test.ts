@@ -4,7 +4,7 @@ import { JwtService } from "@root/services";
 
 describe('Jwt Service', () => {
     test('should return null if token is not valid', async () => {
-        const jwtService = new JwtService('10m', '1234');
+        const jwtService = new JwtService('1234');
 
         const tokenVerified = jwtService.verify<{ id: string }>('invalid-token');
 
@@ -18,8 +18,8 @@ describe('Jwt Service', () => {
         const jwtSignSpy = jest.spyOn(jwt, 'sign');
         const testPayload = { id: '123' };
 
-        const jwtService = new JwtService(expirationTime, privateKey);
-        jwtService.generate(testPayload);
+        const jwtService = new JwtService(privateKey);
+        jwtService.generate(expirationTime, testPayload);
 
         expect(jwtSignSpy).toHaveBeenCalledWith(
             testPayload, privateKey,
@@ -33,21 +33,21 @@ describe('Jwt Service', () => {
         const jwtVerifySpy = jest.spyOn(jwt, 'verify');
         const testHash = 'abc1234';
 
-        const jwtService = new JwtService('10m', privateKey);
+        const jwtService = new JwtService(privateKey);
         jwtService.verify(testHash);
 
         expect(jwtVerifySpy).toHaveBeenCalledWith(testHash, privateKey);
     });
 
     test('a valid jti (uuid) should be in payload when token is verified', async () => {
-        const jwtService = new JwtService('10m', '1234');
+        const jwtService = new JwtService('1234');
 
         // mock uuid generated
         const testUuid = '12345';
         const uuidMock = jest.spyOn(UUID, 'v4')
             .mockReturnValue(testUuid as any);
 
-        const generatedToken = jwtService.generate({ id: '123' });
+        const generatedToken = jwtService.generate('1m', { id: '123' });
         const payload = jwtService.verify(generatedToken);
 
         expect(uuidMock).toHaveBeenCalledTimes(1);
@@ -56,10 +56,10 @@ describe('Jwt Service', () => {
 
     describe('Workflow', () => {
         test('generated token should be successfully verified and return the payload', async () => {
-            const jwtService = new JwtService('10m', '1234');
+            const jwtService = new JwtService('1234');
 
             const testId = '12345fgj';
-            const generatedToken = jwtService.generate({ id: testId });
+            const generatedToken = jwtService.generate('1m', { id: testId });
 
             const tokenVerified = jwtService.verify<{ id: string }>(generatedToken);
 
