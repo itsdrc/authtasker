@@ -75,6 +75,8 @@ export class UserService {
             throw HttpError.badRequest('Invalid token')
         }
 
+        // TODO: invalid token
+
         const email = payload.email;
         if (!email) {
             this.loggerService.error('EMAIL NOT IN TOKEN');
@@ -92,7 +94,7 @@ export class UserService {
         user.emailValidated = true;
         user.role = 'editor';
 
-        await user.save();
+        await user.save();        
 
         this.loggerService.info(`User ${user.id} email validated, now is editor`);
     }
