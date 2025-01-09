@@ -1,5 +1,6 @@
 import { HashingService, JwtService } from '@root/services';
 import request from 'supertest';
+import { jwtService } from '../../../helpers/token/jwt-service';
 
 describe('POST/', () => {
     describe('Register', () => {
@@ -196,11 +197,6 @@ describe('POST/', () => {
                 const userId = userInDb?.id;
 
                 // get token's payload
-                const jwtService = new JwtService(
-                    global.CONFIG_SERVICE.JWT_EXPIRATION_TIME,
-                    global.CONFIG_SERVICE.JWT_PRIVATE_KEY
-                );
-
                 const payload = jwtService.verify<{ id: string }>(tokenInResponse);
 
                 // expect id in token is the same as the user id

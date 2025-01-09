@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { JwtService } from '@root/services';
+import { jwtService } from '../../../helpers/token/jwt-service';
 
 describe('POST/', () => {
     describe('Login', () => {
@@ -84,11 +85,6 @@ describe('POST/', () => {
                 const tokenInResponse = response.body.token;
 
                 // get token's payload
-                const jwtService = new JwtService(
-                    global.CONFIG_SERVICE.JWT_EXPIRATION_TIME,
-                    global.CONFIG_SERVICE.JWT_PRIVATE_KEY
-                );
-
                 const payload = jwtService.verify<{ id: string }>(tokenInResponse);
 
                 expect(payload?.id).toBe(userInDb.id);

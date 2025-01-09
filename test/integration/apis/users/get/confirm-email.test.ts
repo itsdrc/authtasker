@@ -5,7 +5,7 @@ import { faker } from "@faker-js/faker/.";
 import { JwtService } from '@root/services';
 
 describe('GET/', () => {
-    describe('Confirm email validation', () => {        
+    describe('Confirm email validation', () => {
         describe('Operation success', () => {
             test('should return status 200 OK', async () => {
                 const expectedStatus = 200;
@@ -62,11 +62,10 @@ describe('GET/', () => {
 
                     // generate a token with a different seed but 
                     // the data refers an existing user (the previous one created)
-                    const jwtService = new JwtService(
-                        process.env.JWT_EXPIRATION_TIME!,
+                    const newJwtService = new JwtService(
                         faker.food.fruit(),
                     );
-                    const token = jwtService.generate({ email: user.email });
+                    const token = newJwtService.generate('1m', { email: user.email });
 
                     // confirm email validation
                     await request(global.SERVER_APP)
