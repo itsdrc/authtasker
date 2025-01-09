@@ -9,11 +9,10 @@ interface IJwtPayload {
 export class JwtService {
 
     constructor(
-        private readonly expirationTime: string,
         private readonly privateKey: string,
     ) {}
 
-    generate(payload: object): string {
+    generate(expirationTime: string, payload: object): string {
         Object.defineProperty(
             payload,
             'jti',
@@ -22,7 +21,7 @@ export class JwtService {
 
         const token = jwt.sign(payload,
             this.privateKey,
-            { expiresIn: this.expirationTime }
+            { expiresIn: expirationTime}
         );
         return token;
     }

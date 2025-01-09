@@ -29,8 +29,7 @@ export class AppRoutes {
         private readonly asyncLocalStorage: AsyncLocalStorage<IAsyncLocalStorageStore>
     ) {
         this.jwtService = new JwtService(
-            this.configService.JWT_EXPIRATION_TIME,
-            this.configService.JWT_PRIVATE_KEY
+            this.configService.JWT_PRIVATE_KEY,            
         );
 
         this.hashingService = new HashingService(

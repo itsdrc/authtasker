@@ -34,7 +34,7 @@ export class UserService {
             throw HttpError.internalServer('Email can not be validated due to a server error');
         }
 
-        const token = this.jwtService.generate({ email });
+        const token = this.jwtService.generate('10m', { email });
         // web url is appended with a default "/" when read
         const link = `${this.configService.WEB_URL}api/users/confirmEmailValidation/${token}`;
 
@@ -61,7 +61,7 @@ export class UserService {
         }
 
         if (this.configService.mailServiceIsDefined()) {
-            await this.sendEmailValidationLink(user.email);            
+            await this.sendEmailValidationLink(user.email);
         } else {
             this.loggerService.debug('Email validation not sent because is not enabled')
         }
@@ -94,7 +94,7 @@ export class UserService {
         user.emailValidated = true;
         user.role = 'editor';
 
-        await user.save();        
+        await user.save();
 
         this.loggerService.info(`User ${user.id} email validated, now is editor`);
     }
@@ -109,7 +109,9 @@ export class UserService {
             const created = await this.userModel.create(user);
 
             // token generation
-            const token = this.jwtService.generate({ id: created.id });
+            const token = this.jwtService.generate(this.configService.JWT_SESSION_EXPIRATION_TIME, {
+                id: created.id
+            });
 
             this.loggerService.info(`USER ${created.id} CREATED`);
 
@@ -149,7 +151,9 @@ export class UserService {
         }
 
         // token generation
-        const token = this.jwtService.generate({ id: userDb.id });
+        const token = this.jwtService.generate(this.configService.JWT_SESSION_EXPIRATION_TIME, {
+            id: userDb.id
+        });
 
         this.loggerService.info(`USER ${userDb.id} LOGGED IN`);
 
@@ -236,19 +240,19 @@ export class UserService {
         }
 
         if (propertiesUpdated.password) {
-            userToUpdate.password = await this.hashingService.hash(propertiesUpdated.password);        
+            userToUpdate.password = await this.hashingService.hash(propertiesUpdated.password);
         }
 
         // if email is different change "emailValidated" prop        
         if (propertiesUpdated.email) {
-            if (userToUpdate.email !== propertiesUpdated.email) {                
+            if (userToUpdate.email !== propertiesUpdated.email) {
                 userToUpdate.emailValidated = false;
                 userToUpdate.role = 'readonly';
             }
-            userToUpdate.email = propertiesUpdated.email;            
+            userToUpdate.email = propertiesUpdated.email;
         }
 
-        if(propertiesUpdated.name){
+        if (propertiesUpdated.name) {
             userToUpdate.name = propertiesUpdated.name
         }
 

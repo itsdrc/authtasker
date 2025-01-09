@@ -7,7 +7,7 @@ export class ConfigService {
     public readonly MONGO_URI: string;
     public readonly PORT: number;
     public readonly BCRYPT_SALT_ROUNDS: number;
-    public readonly JWT_EXPIRATION_TIME: string;
+    public readonly JWT_SESSION_EXPIRATION_TIME: string;
     public readonly JWT_PRIVATE_KEY: string;
     private readonly MAIL_SERVICE: boolean; // private, use mailServiceIsDefined() instead
     public readonly MAIL_SERVICE_HOST: string | undefined;
@@ -45,7 +45,7 @@ export class ConfigService {
             .default(10)
             .asInt();
 
-        this.JWT_EXPIRATION_TIME = env.get('JWT_EXPIRATION_TIME')
+        this.JWT_SESSION_EXPIRATION_TIME = env.get('JWT_SESSION_EXPIRATION_TIME')
             .required()
             .asString();
 
