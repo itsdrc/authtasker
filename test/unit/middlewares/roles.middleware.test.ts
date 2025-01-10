@@ -15,7 +15,7 @@ import * as Handlers from '@root/common/helpers/handle-error.helper';
 describe('Roles middleware', () => {
     let userModel: FindMockQuery<MockProxy<Model<IUser>>>;
     let loggerService: MockProxy<LoggerService>;
-    const jwtService = new JwtService('10m', '12345test');
+    const jwtService = new JwtService('12345test');
 
     const app = express();
 
@@ -106,7 +106,7 @@ describe('Roles middleware', () => {
             });
 
             // generate a valid token
-            const validToken = jwtService.generate({ id: '12345' });
+            const validToken = jwtService.generate('1m',{ id: '12345' });
 
             const response = await request(app)
                 .get(endpoint)
@@ -136,7 +136,7 @@ describe('Roles middleware', () => {
             });
 
             // generate a valid token
-            const validToken = jwtService.generate({ id: '12345' });
+            const validToken = jwtService.generate('1m',{ id: '12345' });
 
             // stub user found
             userModel

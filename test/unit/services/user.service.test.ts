@@ -157,6 +157,26 @@ describe('User Service', () => {
                     }))
             });
         });
+
+        describe('User email is already validated', () => {
+            test('should throw bad request exception', async () => {
+                const expectedErrorMessage = `User email is already validated`;
+                const expectedErrorStatus = 400;
+                userModel
+                    .findById()
+                    .exec
+                    .mockResolvedValue({
+                        emailValidated: true
+                    });
+
+                expect(userService.requestEmailValidation('test-id'))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }))
+            });
+        });
     });
 
     describe('confirmEmailValidation', () => {
@@ -182,7 +202,10 @@ describe('User Service', () => {
                 const expectedErrorStatus = 400;
 
                 // id is not expected
-                jwtService.verify.mockReturnValue({ id: '12345' } as any);
+                jwtService.verify.mockReturnValue({
+                    id: '12345',
+                    purpose: 'emailValidation'
+                } as any);
 
                 expect(userService.confirmEmailValidation('test-token'))
                     .rejects
@@ -199,7 +222,10 @@ describe('User Service', () => {
                 const expectedErrorStatus = 404;
 
                 // return a valid token
-                jwtService.verify.mockReturnValue({ email: 'test-email' } as any);
+                jwtService.verify.mockReturnValue({
+                    email: 'test-email',
+                    purpose: 'emailValidation'
+                } as any);
 
                 // user not found
                 userModel.findOne().exec.mockResolvedValue(null);
@@ -216,7 +242,10 @@ describe('User Service', () => {
         describe('Operation success', () => {
             test('user emailValidated and role should be updated', async () => {
                 // return a valid token
-                jwtService.verify.mockReturnValue({ email: 'test-email' } as any);
+                jwtService.verify.mockReturnValue({
+                    email: 'test-email',
+                    purpose: 'emailValidation'
+                } as any);
 
                 const userFound = {
                     emailValidated: false,
@@ -739,7 +768,7 @@ describe('User Service', () => {
         describe('Administrators', () => {
             test('admin should be authorized to modify any non-admin users', async () => {
                 const userToModify = {
-                    role: Math.round(Math.random()) ? 'readonly': 'editor',
+                    role: Math.round(Math.random()) ? 'readonly' : 'editor',
                     id: faker.food.fruit(),
                 };
 
