@@ -35,8 +35,9 @@ export class UserService {
             throw HttpError.internalServer('Email can not be validated due to a server error');
         }
 
+        // TODO: TEST
         const jwtExpirationTime = '10m';
-        const token = this.jwtService.generate(jwtExpirationTime, { 
+        const token = this.jwtService.generate(jwtExpirationTime, {
             purpose: 'emailValidation',
             email: email,
         });
@@ -61,7 +62,7 @@ export class UserService {
             .findById(id)
             .exec();
 
-        if(user?.emailValidated === true){
+        if (user?.emailValidated === true) {
             // todo: logging
             throw HttpError.badRequest('User email is already validated');
         }
@@ -80,7 +81,7 @@ export class UserService {
 
     async confirmEmailValidation(token: string): Promise<void> {
         // token verification
-        const payload = this.jwtService.verify<{ email: string, purpose: string}>(token);
+        const payload = this.jwtService.verify<{ email: string, purpose: string }>(token);
         if (!payload || payload.purpose != 'emailValidation') {
             this.loggerService.error('INVALID TOKEN');
             throw HttpError.badRequest('Invalid token')
