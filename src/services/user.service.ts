@@ -12,7 +12,6 @@ import { SystemLoggerService } from "./system-logger.service";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 import { UserRole } from "@root/types/user/user-roles.type";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
-import { urlencoded } from "express";
 
 export class UserService {
 
@@ -35,7 +34,6 @@ export class UserService {
             throw HttpError.internalServer('Email can not be validated due to a server error');
         }
 
-        // TODO: TEST
         const jwtExpirationTime = '10m';
         const token = this.jwtService.generate(jwtExpirationTime, {
             purpose: 'emailValidation',
