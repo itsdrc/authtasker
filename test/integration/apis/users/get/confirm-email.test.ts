@@ -1,8 +1,8 @@
 import request from 'supertest'
 import { generateValidTokenWithId } from "../../../helpers/token/generate-valid-token-with-id";
-import { generateValidTokenWithEmail } from "../../../helpers/token/generate-valid-token-with-email";
 import { faker } from "@faker-js/faker/.";
 import { JwtService } from '@root/services';
+import { getEmailValidationToken } from '../../../helpers/token/email-validation.token';
 
 describe('GET/', () => {
     describe('Confirm email validation', () => {
@@ -17,7 +17,7 @@ describe('GET/', () => {
                 });
 
                 // generate a token with user id
-                const token = generateValidTokenWithEmail(user.email);
+                const token = getEmailValidationToken(user.email);
 
                 // confirm email validation
                 await request(global.SERVER_APP)
@@ -33,7 +33,7 @@ describe('GET/', () => {
                 });
 
                 // generate a token with user id
-                const token = generateValidTokenWithEmail(user.email);
+                const token = getEmailValidationToken(user.email);
 
                 // confirm email validation
                 await request(global.SERVER_APP)
@@ -99,7 +99,7 @@ describe('GET/', () => {
                     const expectedStatus = 404;
 
                     // email does not match any user 
-                    const token = generateValidTokenWithEmail(`${faker.food.vegetable()}@gmail.com`);
+                    const token = getEmailValidationToken(`${faker.food.vegetable()}@gmail.com`);
 
                     // confirm email validation
                     await request(global.SERVER_APP)
