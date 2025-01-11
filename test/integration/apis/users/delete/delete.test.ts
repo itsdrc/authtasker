@@ -1,7 +1,7 @@
 import request from 'supertest'
 import { Types } from 'mongoose';
 import { HashingService } from "@root/services";
-import { generateValidTokenWithId } from '../../../helpers/token/generate-valid-token-with-id';
+import { getSessionToken } from '../../../helpers/token/session.token';
 
 describe('DELETE/', () => {
     describe('Delete user', () => {
@@ -19,7 +19,7 @@ describe('DELETE/', () => {
                 });
 
                 // generate token with user id
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 // generate a valid mongo id
                 const mongoId = new Types.ObjectId();
@@ -43,7 +43,7 @@ describe('DELETE/', () => {
                 });
 
                 // generate token with user id
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 const invalidMongoId = 123;
 
@@ -78,7 +78,7 @@ describe('DELETE/', () => {
                 });
 
                 // generate token with user id
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 await request(global.SERVER_APP)
                     .delete(`${global.USERS_PATH}/${userInDb.id}`)

@@ -1,6 +1,6 @@
 import request from 'supertest'
-import { generateValidTokenWithId } from "../../../helpers/token/generate-valid-token-with-id";
 import { Types } from "mongoose";
+import { getSessionToken } from '../../../helpers/token/session.token';
 
 describe('PATCH/', () => {
     describe('Update user', () => {        
@@ -16,7 +16,7 @@ describe('PATCH/', () => {
                 });
 
                 // generate a token with user id
-                const validToken = generateValidTokenWithId(userInDb.id);
+                const validToken = getSessionToken(userInDb.id);
 
                 const validMongoId = new Types.ObjectId();
 
@@ -41,7 +41,7 @@ describe('PATCH/', () => {
                 });
 
                 // generate a token with user id
-                const validToken = generateValidTokenWithId(userInDb.id);
+                const validToken = getSessionToken(userInDb.id);
 
                 const invalidMongoId = 123;
 
@@ -66,7 +66,7 @@ describe('PATCH/', () => {
                 });
 
                 // generate a token with user id
-                const validToken = generateValidTokenWithId(userInDb.id);
+                const validToken = getSessionToken(userInDb.id);
 
                 const response = await request(global.SERVER_APP)
                     .patch(`${global.USERS_PATH}/${userInDb.id}`)
@@ -89,7 +89,7 @@ describe('PATCH/', () => {
                 });
 
                 // generate a token with user id
-                const validToken = generateValidTokenWithId(userInDb.id);
+                const validToken = getSessionToken(userInDb.id);
 
                 const response = await request(global.SERVER_APP)
                     .patch(`${global.USERS_PATH}/${userInDb.id}`)
@@ -131,7 +131,7 @@ describe('PATCH/', () => {
                 const expectedNameInDatabase = newName.toLowerCase();
 
                 // generate a token with user id
-                const validToken = generateValidTokenWithId(userInDb.id);
+                const validToken = getSessionToken(userInDb.id);
 
                 // update
                 await request(global.SERVER_APP)
@@ -161,7 +161,7 @@ describe('PATCH/', () => {
                 const newPassword = global.USER_DATA_GENERATOR.password();
 
                 // generate a token with user id
-                const validToken = generateValidTokenWithId(userInDb.id);
+                const validToken = getSessionToken(userInDb.id);
 
                 // update
                 await request(global.SERVER_APP)
@@ -195,7 +195,7 @@ describe('PATCH/', () => {
                 const newEmail = global.USER_DATA_GENERATOR.email();
 
                 // generate a token with user id
-                const validToken = generateValidTokenWithId(userInDb.id);
+                const validToken = getSessionToken(userInDb.id);
 
                 // update
                 await request(global.SERVER_APP)
@@ -228,7 +228,7 @@ describe('PATCH/', () => {
                         const newEmail = global.USER_DATA_GENERATOR.email();
 
                         // generate a token with user id
-                        const validToken = generateValidTokenWithId(userInDb.id);
+                        const validToken = getSessionToken(userInDb.id);
 
                         // update
                         await request(global.SERVER_APP)
@@ -262,7 +262,7 @@ describe('PATCH/', () => {
                         await userInDb.save();
 
                         // generate a token with user id
-                        const validToken = generateValidTokenWithId(userInDb.id);
+                        const validToken = getSessionToken(userInDb.id);
 
                         // update
                         await request(global.SERVER_APP)

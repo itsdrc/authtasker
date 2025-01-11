@@ -1,6 +1,6 @@
 import request from 'supertest'
 import { Types } from 'mongoose';
-import { generateValidTokenWithId } from '../../../helpers/token/generate-valid-token-with-id';
+import { getSessionToken } from '../../../helpers/token/session.token';
 
 describe('GET/', () => {    
     describe('Find by id', () => {
@@ -16,7 +16,7 @@ describe('GET/', () => {
                 });
 
                 // generate a token with user id 
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 const response = await request(global.SERVER_APP)
                     .get(`${global.USERS_PATH}/${userInDb.id}`)
@@ -57,7 +57,7 @@ describe('GET/', () => {
                     email: global.USER_DATA_GENERATOR.email(),
                     password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 const invalidMongoId = 123;
 
@@ -78,7 +78,7 @@ describe('GET/', () => {
                     email: global.USER_DATA_GENERATOR.email(),
                     password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 const validMongoId = new Types.ObjectId();
 

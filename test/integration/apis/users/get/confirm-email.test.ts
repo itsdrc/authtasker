@@ -1,8 +1,8 @@
 import request from 'supertest'
-import { generateValidTokenWithId } from "../../../helpers/token/generate-valid-token-with-id";
 import { faker } from "@faker-js/faker/.";
 import { JwtService } from '@root/services';
 import { getEmailValidationToken } from '../../../helpers/token/email-validation.token';
+import { getSessionToken } from '../../../helpers/token/session.token';
 
 describe('GET/', () => {
     describe('Confirm email validation', () => {
@@ -85,7 +85,7 @@ describe('GET/', () => {
                     });
 
                     // server expects email in token not id
-                    const invalidToken = generateValidTokenWithId(user.id);
+                    const invalidToken = getSessionToken(user.id);
 
                     // confirm email validation
                     await request(global.SERVER_APP)

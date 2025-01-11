@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { generateValidTokenWithId } from '../../../helpers/token/generate-valid-token-with-id';
+import { getSessionToken } from '../../../helpers/token/session.token';
 
 describe('GET/', () => {
     describe('Find many by pagination', () => {
@@ -14,7 +14,7 @@ describe('GET/', () => {
                     password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 await request(global.SERVER_APP)
                     .get(`${global.USERS_PATH}`)
@@ -35,7 +35,7 @@ describe('GET/', () => {
                     password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 const response = await request(global.SERVER_APP)
                     .get(`${global.USERS_PATH}`)
@@ -77,7 +77,7 @@ describe('GET/', () => {
                     password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 const invalidLimit = 101;
 
@@ -100,7 +100,7 @@ describe('GET/', () => {
                     password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 // sometimes 0, sometimes -1
                 const invalidLimit = -(Math.round(Math.random()));
@@ -124,7 +124,7 @@ describe('GET/', () => {
                     password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
                 });
 
-                const token = generateValidTokenWithId(userInDb.id);
+                const token = getSessionToken(userInDb.id);
 
                 // sometimes 0, sometimes -1
                 const invalidPage = -(Math.round(Math.random()));
