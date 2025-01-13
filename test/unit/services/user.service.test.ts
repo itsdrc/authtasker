@@ -205,12 +205,12 @@ describe('User Service', () => {
                 const expectedErrorMessage = `Invalid token`;
                 const expectedErrorStatus = 400;
 
-                // valid token but email is not in payload
-                const token = jwtService.generate('1m', {
+                // token is verified but the payload does not include email
+                jwtService.verify.mockReturnValue({
                     purpose: TOKEN_PURPOSES.EMAIL_VALIDATION,
-                });
+                } as any);
 
-                expect(userService.confirmEmailValidation(token))
+                expect(userService.confirmEmailValidation('test'))
                     .rejects
                     .toThrow(expect.objectContaining({
                         statusCode: expectedErrorStatus,
@@ -224,13 +224,13 @@ describe('User Service', () => {
                 const expectedErrorMessage = `Invalid token`;
                 const expectedErrorStatus = 400;
 
-                // valid token but it is a session token
-                const token = jwtService.generate('1m', {
+                // token is verified but the payload does not include a correct purpose
+                jwtService.verify.mockReturnValue({
                     purpose: TOKEN_PURPOSES.SESSION,
                     email: 'test@gmail.com'
-                });
+                } as any);
 
-                expect(userService.confirmEmailValidation(token))
+                expect(userService.confirmEmailValidation('test'))
                     .rejects
                     .toThrow(expect.objectContaining({
                         statusCode: expectedErrorStatus,
@@ -244,18 +244,18 @@ describe('User Service', () => {
                 const expectedErrorMessage = `Invalid token`;
                 const expectedErrorStatus = 400;
 
-                // valid token 
-                const token = jwtService.generate('1m', {
+                // token is verified
+                jwtService.verify.mockReturnValue({
                     purpose: TOKEN_PURPOSES.EMAIL_VALIDATION,
                     email: 'test@gmail.com'
-                });
+                } as any);
 
                 // mock blacklisting
                 jwtBlackListService
                     .isBlacklisted
                     .mockResolvedValue(true);
 
-                expect(userService.confirmEmailValidation(token))
+                expect(userService.confirmEmailValidation('test'))
                     .rejects
                     .toThrow(expect.objectContaining({
                         statusCode: expectedErrorStatus,
