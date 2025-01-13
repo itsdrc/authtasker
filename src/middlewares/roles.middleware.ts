@@ -9,6 +9,7 @@ import { JwtService } from "@root/services/jwt.service";
 import { LoggerService } from "@root/services/logger.service";
 import type { UserRole } from "@root/types/user/user-roles.type";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
+import { TOKEN_PURPOSES } from "@root/rules/constants/token-purposes.constants";
 
 export const rolesMiddlewareFactory = (
     minRoleRequired: UserRole,
@@ -30,7 +31,7 @@ export const rolesMiddlewareFactory = (
             const token = authorizationHeader.split(' ').at(1) || '';
             const payload = jwtService.verify(token);
 
-            if (!payload) {
+            if (!payload || payload.purpose !== TOKEN_PURPOSES.SESSION) {
                 loggerService.error('Access denied, invalid bearer token');
                 res.status(HTTP_STATUS_CODE.UNAUTHORIZED).json({ error: 'Invalid bearer token' });
                 return;
@@ -57,8 +58,8 @@ export const rolesMiddlewareFactory = (
                 loggerService.error('Access denied. Insufficient permissions')
                 res.status(HTTP_STATUS_CODE.FORBIDDEN)
                     .json({ error: FORBIDDEN_MESSAGE })
-                return
-            }            
+                return;
+            }
 
         } catch (error) {
             handleError(res, error, loggerService);

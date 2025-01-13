@@ -44,6 +44,15 @@ export class UserService {
         throw HttpError.badRequest(error);
     }
 
+    private generateSessionToken(userId: string): string {
+        const token = this.jwtService.generate(this.configService.JWT_SESSION_EXPIRATION_TIME, {
+            id: userId,
+            purpose: TOKEN_PURPOSES.SESSION
+        });
+
+        return token;
+    }
+
     private async sendEmailValidationLink(email: string): Promise<void> {
         // this function shouldn't be called if emailService is not provided 
         if (!this.emailService) {
@@ -103,16 +112,19 @@ export class UserService {
 
         const emailInToken = payload.email;
         if (!emailInToken) {
+            this.loggerService.debug('Email not in token');
             this.throwInvalidTokenError();
         }
 
-        const validPurpose = payload.purpose !== TOKEN_PURPOSES.EMAIL_VALIDATION;
+        const validPurpose = payload.purpose === TOKEN_PURPOSES.EMAIL_VALIDATION;
         if (!validPurpose) {
+            this.loggerService.debug('Unexpected token purpose');
             this.throwInvalidTokenError();
         }
 
         const tokenIsBlacklisted = await this.jwtBlacklistService.isBlacklisted(payload.jti)
         if (tokenIsBlacklisted) {
+            this.loggerService.debug('Token is blacklisted');
             this.throwInvalidTokenError();
         }
 
@@ -145,9 +157,7 @@ export class UserService {
             const created = await this.userModel.create(user);
 
             // token generation
-            const token = this.jwtService.generate(this.configService.JWT_SESSION_EXPIRATION_TIME, {
-                id: created.id
-            });
+            const token = this.generateSessionToken(created.id);
 
             this.loggerService.info(`USER ${created.id} CREATED`);
 
@@ -187,9 +197,7 @@ export class UserService {
         }
 
         // token generation
-        const token = this.jwtService.generate(this.configService.JWT_SESSION_EXPIRATION_TIME, {
-            id: userDb.id
-        });
+        const token = this.generateSessionToken(userDb.id);
 
         this.loggerService.info(`USER ${userDb.id} LOGGED IN`);
 
