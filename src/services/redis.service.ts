@@ -29,7 +29,7 @@ export class RedisService {
             await this.redis.set(key, data);
     }
 
-    async get<T>(key: string): Promise<T | undefined> {
+    async get<T>(key: string): Promise<T | null> {
         const data = await this.redis.get(key);
         if (data) {
             try {
@@ -38,6 +38,7 @@ export class RedisService {
                 return data as T;
             }
         }
+        return null;
     }
 
     async delete(key: string): Promise<void> {
