@@ -1,10 +1,6 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { IJwtPayload } from "@root/interfaces/token/jwt-payload.interface";
+import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from 'uuid';
-
-interface IJwtPayload {
-    jti: string;
-    [key: string]: any,
-}
 
 export class JwtService {
 
@@ -21,12 +17,12 @@ export class JwtService {
 
         const token = jwt.sign(payload,
             this.privateKey,
-            { expiresIn: expirationTime}
+            { expiresIn: expirationTime }
         );
         return token;
     }
 
-    verify<T>(token: string): IJwtPayload & JwtPayload  & T | null {
+    verify<T>(token: string): IJwtPayload & T | null {
         try {
             const payload = jwt.verify(token, this.privateKey);
             return payload as any;
