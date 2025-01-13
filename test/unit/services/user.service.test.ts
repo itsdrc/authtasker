@@ -1,12 +1,13 @@
 import { Model, Query, Types } from "mongoose";
 import { mock, MockProxy } from 'jest-mock-extended';
 import { IUser } from "@root/interfaces/user/user.interface";
-import { ConfigService, EmailService, HashingService, JwtService, LoggerService, UserService } from "@root/services";
+import { ConfigService, EmailService, HashingService, JwtBlackListService, JwtService, LoggerService, UserService } from "@root/services";
 import { NoReadonly } from "../helpers/types/no-readonly.type";
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { FindMockQuery } from "../helpers/types/find-mock-query.type";
 import { faker } from "@faker-js/faker/.";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
+import { TOKEN_PURPOSES } from "@root/rules/constants/token-purposes.constants";
 
 describe('User Service', () => {
     let configService: MockProxy<NoReadonly<ConfigService>>;
@@ -16,6 +17,7 @@ describe('User Service', () => {
     let loggerService: MockProxy<LoggerService>;
     let emailService: MockProxy<EmailService>;
     let userService: UserService;
+    let jwtBlackListService: MockProxy<JwtBlackListService>;
 
     beforeAll(() => {
         SystemLoggerService.info = jest.fn();
@@ -31,11 +33,13 @@ describe('User Service', () => {
         jwtService = mock<JwtService>();
         loggerService = mock<LoggerService>();
         emailService = mock<EmailService>();
+        jwtBlackListService = mock<JwtBlackListService>();
         userService = new UserService(
             configService as unknown as ConfigService,
             userModel as unknown as Model<IUser>,
             hashingService,
             jwtService,
+            jwtBlackListService,
             loggerService,
             emailService,
         );
@@ -180,7 +184,7 @@ describe('User Service', () => {
     });
 
     describe('confirmEmailValidation', () => {
-        describe('Token is not valid', () => {
+        describe('Token is not a valid token', () => {
             test('should throw bad request exception', async () => {
                 const expectedErrorMessage = `Invalid token`;
                 const expectedErrorStatus = 400;
@@ -196,18 +200,62 @@ describe('User Service', () => {
             });
         });
 
-        describe('Email not in token', () => {
+        describe('Email is not in token', () => {
             test('should throw bad request exception', async () => {
-                const expectedErrorMessage = `Email not in token`;
+                const expectedErrorMessage = `Invalid token`;
                 const expectedErrorStatus = 400;
 
-                // id is not expected
-                jwtService.verify.mockReturnValue({
-                    id: '12345',
-                    purpose: 'emailValidation'
-                } as any);
+                // valid token but email is not in payload
+                const token = jwtService.generate('1m', {
+                    purpose: TOKEN_PURPOSES.EMAIL_VALIDATION,
+                });
 
-                expect(userService.confirmEmailValidation('test-token'))
+                expect(userService.confirmEmailValidation(token))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Token purpose is not the expected one', () => {
+            test('should throw bad request exception', async () => {
+                const expectedErrorMessage = `Invalid token`;
+                const expectedErrorStatus = 400;
+
+                // valid token but it is a session token
+                const token = jwtService.generate('1m', {
+                    purpose: TOKEN_PURPOSES.SESSION,
+                    email: 'test@gmail.com'
+                });
+
+                expect(userService.confirmEmailValidation(token))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Token is blacklisted', () => {
+            test('should throw bad request exception', async () => {
+                const expectedErrorMessage = `Invalid token`;
+                const expectedErrorStatus = 400;
+
+                // valid token 
+                const token = jwtService.generate('1m', {
+                    purpose: TOKEN_PURPOSES.EMAIL_VALIDATION,
+                    email: 'test@gmail.com'
+                });
+
+                // mock blacklisting
+                jwtBlackListService
+                    .isBlacklisted
+                    .mockResolvedValue(true);
+
+                expect(userService.confirmEmailValidation(token))
                     .rejects
                     .toThrow(expect.objectContaining({
                         statusCode: expectedErrorStatus,
@@ -223,12 +271,20 @@ describe('User Service', () => {
 
                 // return a valid token
                 jwtService.verify.mockReturnValue({
-                    email: 'test-email',
-                    purpose: 'emailValidation'
+                    purpose: TOKEN_PURPOSES.EMAIL_VALIDATION,
+                    email: 'test@gmail.com',
                 } as any);
 
+                // stub blacklisting
+                jwtBlackListService
+                    .isBlacklisted
+                    .mockResolvedValue(false);
+
                 // user not found
-                userModel.findOne().exec.mockResolvedValue(null);
+                userModel
+                    .findOne()
+                    .exec
+                    .mockResolvedValue(null);
 
                 expect(userService.confirmEmailValidation('test-token'))
                     .rejects
@@ -243,9 +299,14 @@ describe('User Service', () => {
             test('user emailValidated and role should be updated', async () => {
                 // return a valid token
                 jwtService.verify.mockReturnValue({
-                    email: 'test-email',
-                    purpose: 'emailValidation'
+                    purpose: TOKEN_PURPOSES.EMAIL_VALIDATION,
+                    email: 'test@gmail.com',
                 } as any);
+
+                // stub blacklisting
+                jwtBlackListService
+                    .isBlacklisted
+                    .mockResolvedValue(false);
 
                 const userFound = {
                     emailValidated: false,

@@ -11,6 +11,7 @@ import { rolesMiddlewareFactory } from '@root/middlewares/roles.middleware';
 import * as MiddlewareHelpers from '@root/middlewares/helpers/can-access.helper';
 import { FORBIDDEN_MESSAGE } from '@root/rules/errors/messages/error.messages';
 import * as Handlers from '@root/common/helpers/handle-error.helper';
+import { TOKEN_PURPOSES } from '@root/rules/constants/token-purposes.constants';
 
 describe('Roles middleware', () => {
     let userModel: FindMockQuery<MockProxy<Model<IUser>>>;
@@ -106,7 +107,10 @@ describe('Roles middleware', () => {
             });
 
             // generate a valid token
-            const validToken = jwtService.generate('1m',{ id: '12345' });
+            const validToken = jwtService.generate('1m', {
+                id: '12345',
+                purpose: TOKEN_PURPOSES.SESSION,
+            });
 
             const response = await request(app)
                 .get(endpoint)
@@ -136,7 +140,10 @@ describe('Roles middleware', () => {
             });
 
             // generate a valid token
-            const validToken = jwtService.generate('1m',{ id: '12345' });
+            const validToken = jwtService.generate('1m', {
+                id: '12345',
+                purpose: TOKEN_PURPOSES.SESSION,
+            });
 
             // stub user found
             userModel
@@ -175,11 +182,14 @@ describe('Roles middleware', () => {
 
             // stub res.status().json();
             responseMock.status.mockReturnThis();
-            const requestUserId = 'test-id-123';
-
+            
             // stub token verification
+            const requestUserId = 'test-id-123';
             const tokenVerificationMock = jest.spyOn(jwtService, 'verify')
-                .mockReturnValue({ id: requestUserId } as any);
+                .mockReturnValue({ 
+                    id: requestUserId,
+                    purpose: TOKEN_PURPOSES.SESSION,
+                } as any);
 
             // mock user found, obviously, the same as in the token payload
             const userFound = {
@@ -228,7 +238,10 @@ describe('Roles middleware', () => {
 
             // stub token verification
             const tokenVerificationMock = jest.spyOn(jwtService, 'verify')
-                .mockReturnValue({} as any);
+                .mockReturnValue({
+                    id: '123',
+                    purpose: TOKEN_PURPOSES.SESSION,
+                } as any);
 
             // stub user found
             userModel
@@ -276,7 +289,10 @@ describe('Roles middleware', () => {
 
             // stub token verification
             jest.spyOn(jwtService, 'verify')
-                .mockReturnValue({} as any);
+                .mockReturnValue({
+                    id: '123',
+                    purpose: TOKEN_PURPOSES.SESSION,
+                } as any);
 
             // mock findById().exec() to cause an error
             userModel
