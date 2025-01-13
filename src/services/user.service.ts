@@ -14,6 +14,7 @@ import { UserRole } from "@root/types/user/user-roles.type";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 import { JwtBlackListService } from "./jwt-blacklist.service";
 import { IJwtPayload } from "@root/interfaces/token/jwt-payload.interface";
+import { TOKEN_PURPOSES } from "@root/rules/constants/token-purposes.constants";
 
 export class UserService {
 
@@ -52,7 +53,7 @@ export class UserService {
 
         const jwtExpirationTime = '10m';
         const token = this.jwtService.generate(jwtExpirationTime, {
-            purpose: 'emailValidation',
+            purpose: TOKEN_PURPOSES.EMAIL_VALIDATION,
             email: email,
         });
 
@@ -96,7 +97,7 @@ export class UserService {
     async confirmEmailValidation(token: string): Promise<void> {
         // token verification        
         const payload = this.jwtService.verify<{ email: string }>(token);
-        if (!payload){
+        if (!payload) {
             this.throwInvalidTokenError();
         }
 
@@ -105,13 +106,13 @@ export class UserService {
             this.throwInvalidTokenError();
         }
 
-        const validPurpose = payload.purpose !== 'emailValidation';
-        if(!validPurpose){
+        const validPurpose = payload.purpose !== TOKEN_PURPOSES.EMAIL_VALIDATION;
+        if (!validPurpose) {
             this.throwInvalidTokenError();
         }
 
         const tokenIsBlacklisted = await this.jwtBlacklistService.isBlacklisted(payload.jti)
-        if(tokenIsBlacklisted){
+        if (tokenIsBlacklisted) {
             this.throwInvalidTokenError();
         }
 
