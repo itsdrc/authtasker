@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { v4 as uuidv4 } from 'uuid';
 
 interface IJwtPayload {
@@ -26,7 +26,7 @@ export class JwtService {
         return token;
     }
 
-    verify<T>(token: string): IJwtPayload & T | null {
+    verify<T>(token: string): IJwtPayload & JwtPayload  & T | null {
         try {
             const payload = jwt.verify(token, this.privateKey);
             return payload as any;
