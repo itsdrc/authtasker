@@ -12,6 +12,7 @@ import { SystemLoggerService } from "@root/services/system-logger.service";
 import { UserController } from "@root/controllers/user.controller";
 import { UserService } from "@root/services/user.service";
 import { createAdmin } from "@root/admin/create-admin";
+import { JwtBlackListService } from "@root/services";
 
 export class UserRoutes {
 
@@ -23,6 +24,7 @@ export class UserRoutes {
         private readonly userModel: Model<IUser>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
+        private readonly jwtBlacklistService: JwtBlackListService,
         private readonly loggerService: LoggerService,
         private readonly emailService?: EmailService,
     ) {
@@ -31,6 +33,7 @@ export class UserRoutes {
             this.userModel,
             this.hashingService,
             this.jwtService,
+            this.jwtBlacklistService,
             this.loggerService,
             this.emailService
         );

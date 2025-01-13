@@ -12,6 +12,8 @@ import { SystemLoggerService } from "./system-logger.service";
 import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
 import { UserRole } from "@root/types/user/user-roles.type";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
+import { JwtBlackListService } from "./jwt-blacklist.service";
+import { IJwtPayload } from "@root/interfaces/token/jwt-payload.interface";
 
 export class UserService {
 
@@ -20,11 +22,25 @@ export class UserService {
         private readonly userModel: Model<IUser>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
+        private readonly jwtBlacklistService: JwtBlackListService,
         private readonly loggerService: LoggerService,
         private readonly emailService?: EmailService,
     ) {
         if (!this.configService.mailServiceIsDefined())
             SystemLoggerService.warn('Email validation is not enabled');
+    }
+
+    private async blackListToken(tokenPayload: IJwtPayload) {
+        const currentTime = Math.floor(Date.now() / 1000);
+        const remainingTokenTTL = tokenPayload.exp! - currentTime;
+        const jti = tokenPayload.jti;
+        await this.jwtBlacklistService.blacklist(jti, remainingTokenTTL);
+    }
+
+    private throwInvalidTokenError(): never {
+        const error = 'Invalid token';
+        this.loggerService.error(error);
+        throw HttpError.badRequest(error);
     }
 
     private async sendEmailValidationLink(email: string): Promise<void> {
@@ -78,25 +94,34 @@ export class UserService {
     }
 
     async confirmEmailValidation(token: string): Promise<void> {
-        // token verification
-        const payload = this.jwtService.verify<{ email: string, purpose: string }>(token);
-        if (!payload || payload.purpose != 'emailValidation') {
-            this.loggerService.error('INVALID TOKEN');
-            throw HttpError.badRequest('Invalid token')
+        // token verification        
+        const payload = this.jwtService.verify<{ email: string }>(token);
+        if (!payload){
+            this.throwInvalidTokenError();
         }
 
-        // TODO: invalid token
-
-        const email = payload.email;
-        if (!email) {
-            this.loggerService.error('EMAIL NOT IN TOKEN');
-            throw HttpError.badRequest('Email not in token');
+        const emailInToken = payload.email;
+        if (!emailInToken) {
+            this.throwInvalidTokenError();
         }
+
+        const validPurpose = payload.purpose !== 'emailValidation';
+        if(!validPurpose){
+            this.throwInvalidTokenError();
+        }
+
+        const tokenIsBlacklisted = await this.jwtBlacklistService.isBlacklisted(payload.jti)
+        if(tokenIsBlacklisted){
+            this.throwInvalidTokenError();
+        }
+
+        // single-use token
+        await this.blackListToken(payload);
 
         // check user existence
-        const user = await this.userModel.findOne({ email }).exec();
+        const user = await this.userModel.findOne({ email: payload.email }).exec();
         if (!user) {
-            this.loggerService.error(`USER ${email} NOT FOUND`);
+            this.loggerService.error(`User ${payload.email} not found`);
             throw HttpError.notFound('User not found');
         }
 

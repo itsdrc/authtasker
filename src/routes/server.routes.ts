@@ -6,8 +6,10 @@ import {
     ConfigService,
     EmailService,
     HashingService,
+    JwtBlackListService,
     JwtService,
-    LoggerService
+    LoggerService,
+    RedisService
 } from "@root/services";
 import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
 import { IUser } from "@root/interfaces/user/user.interface";
@@ -22,6 +24,7 @@ export class AppRoutes {
     private readonly hashingService: HashingService;
     private readonly emailService?: EmailService;
     private readonly userModel: Model<IUser>;
+    private readonly jwtBlacklistService: JwtBlackListService;
 
     constructor(
         private readonly configService: ConfigService,
@@ -46,6 +49,9 @@ export class AppRoutes {
                 pass: this.configService.MAIL_SERVICE_PASS,
             });
         }
+
+        const redisService = new RedisService(configService);
+        this.jwtBlacklistService = new JwtBlackListService(redisService);
     }
 
     private buildGlobalMiddlewares() {
@@ -63,6 +69,7 @@ export class AppRoutes {
             this.userModel,
             this.hashingService,
             this.jwtService,
+            this.jwtBlacklistService,
             this.loggerService,
             this.emailService,
         );
