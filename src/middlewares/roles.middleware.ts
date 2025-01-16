@@ -69,7 +69,7 @@ export const rolesMiddlewareFactory = (
             // user in token not exists
             const user = await userModel.findById(userId).exec();
             if (!user) {
-                loggerService.debug('User in token does not exists');
+                loggerService.debug('User in token does not exist');
                 return returnInvalidBearerToken();
             }
 
