@@ -77,7 +77,9 @@ export const rolesMiddlewareFactory = (
                 loggerService.info(`Access granted for user ${userId} with role "${user.role}"`)
                 Object.defineProperties(req, {
                     userId: { value: userId },
-                    userRole: { value: user.role }
+                    userRole: { value: user.role },
+                    jti: { value: payload.jti },
+                    tokenExp: { value: payload.exp }
                 });
                 next();
             }

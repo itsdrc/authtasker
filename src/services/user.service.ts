@@ -206,6 +206,10 @@ export class UserService {
         }
     }
 
+    async logout(jti: string, tokenExpTime: number): Promise<void> {
+        await this.blackListToken(jti, tokenExpTime);
+    }
+
     async findOne(id: string): Promise<HydratedDocument<IUser>> {
         let userDb;
 

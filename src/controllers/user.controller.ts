@@ -7,8 +7,8 @@ import { LoggerService } from "@root/services/logger.service";
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
 import { UserService } from "@root/services/user.service";
-import { UserRole } from "@root/types/user/user-roles.type";
 import { PAGINATION_SETTINGS } from "@root/rules/constants/pagination.constants";
+import { UserFromRequest } from "@root/interfaces/user/user-from-request.interface";
 
 export class UserController {
 
@@ -17,27 +17,39 @@ export class UserController {
         private readonly loggerService: LoggerService,
     ) {}
 
-    private getUserInfoOrHandleError(req: Request, res: Response): { id: string, role: UserRole } | undefined {
-        const requestUserRole = (req as any).userRole;
-        const requestUserId = (req as any).userId;
+    private getUserInfoOrHandleError(req: Request, res: Response): UserFromRequest | undefined {
+        const role = (req as any).userRole;
+        const id = (req as any).userId;
+        const jti = (req as any).jti;
+        const tokenExp = (req as any).tokenExp;
 
-        if (!requestUserId) {
-            res.status(HTTP_STATUS_CODE.INTERNALSERVER)
-                .json({ error: 'Can not deduce the request user id' });
+        if (!id) {
+            res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Can not deduce the request user id' });
             SystemLoggerService.error('User id was not stablished in middleware');
             return;
         }
 
-        if (!requestUserRole) {
-            res.status(HTTP_STATUS_CODE.INTERNALSERVER)
-                .json({ error: 'Can not deduce the request user role' });
+        if (!role) {
+            res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Can not deduce the request user role' });
             SystemLoggerService.error('User role was not stablished in middleware');
             return;
         }
 
+        if (!jti) {
+            res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unexpected error' });
+            SystemLoggerService.error('jti was not stablished in middleware');
+        }
+
+        if (!tokenExp) {
+            res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unexpected error' });
+            SystemLoggerService.error('Token expiration time was not stablished in middleware');
+        }
+
         return {
-            id: requestUserId,
-            role: requestUserRole
+            id,
+            role,
+            jti,
+            tokenExp
         };
     }
 
@@ -83,17 +95,31 @@ export class UserController {
         }
     }
 
-    readonly requestEmailValidation = async (req:Request, res:Response): Promise<void> => {
+    readonly logout = async (req: Request, res: Response): Promise<void> => {
+        try {
+            this.loggerService.info('Logout attemp');
+            const requestUserInfo = this.getUserInfoOrHandleError(req, res);
+            if (requestUserInfo) {
+                await this.userService.logout(requestUserInfo.jti, requestUserInfo.tokenExp);
+                res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
+                this.loggerService.info('User successfully logged out');
+            }
+        } catch (error) {
+            handleError(res, error, this.loggerService);
+        }
+    }
+
+    readonly requestEmailValidation = async (req: Request, res: Response): Promise<void> => {
         try {
             this.loggerService.info('Email validation requested');
-            const requestUserInfo = this.getUserInfoOrHandleError(req,res);
-            if(requestUserInfo){
+            const requestUserInfo = this.getUserInfoOrHandleError(req, res);
+            if (requestUserInfo) {
                 await this.userService.requestEmailValidation(requestUserInfo.id);
                 res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
             }
 
         } catch (error) {
-            handleError(res,error,this.loggerService);
+            handleError(res, error, this.loggerService);
         }
     }
 
@@ -142,7 +168,7 @@ export class UserController {
 
             const userIdToUpdate = req.params.id;
             const requestUserInfo = this.getUserInfoOrHandleError(req, res);
-            
+
             if (requestUserInfo) {
                 await this.userService.deleteOne(requestUserInfo, userIdToUpdate);
                 res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
