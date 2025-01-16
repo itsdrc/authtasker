@@ -310,15 +310,13 @@ export class UserService {
     private async IsModificationAuthorized(requestUserInfo: { id: string, role: UserRole }, userIdToUpdate: string): Promise<HydratedDocument<IUser> | null> {
         const userToModify = await this.findOne(userIdToUpdate);
 
+        // admin users can modify other users (but not other admins)
+        if (requestUserInfo.role === 'admin' && userToModify.role !== 'admin')
+            return userToModify;
+
         // users can modify themselves
         if (requestUserInfo.id === userToModify.id)
             return userToModify;
-
-        // admins can modify other users (except for other admins)
-        if (requestUserInfo.role === 'admin') {
-            if (!(userToModify.role === 'admin'))
-                return userToModify;
-        }
 
         return null;
     }
