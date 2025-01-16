@@ -91,7 +91,7 @@ describe('Roles middleware', () => {
             // test endpoint
             const endpoint = `/test/${uuidv4()}/readonly`;
             const expectedStatus = 401;
-            const expectedMessage = 'User not found';
+            const expectedMessage = 'Invalid bearer token';
 
             // mock user not found
             userModel
@@ -114,6 +114,81 @@ describe('Roles middleware', () => {
             // generate a valid token
             const validToken = jwtService.generate('1m', {
                 id: '12345',
+                purpose: TOKEN_PURPOSES.SESSION,
+            });
+
+            // stub blacklist
+            jwtBlackListService.isBlacklisted
+                .mockResolvedValue(false);
+
+            const response = await request(app)
+                .get(endpoint)
+                .set('Authorization', `Bearer ${validToken}`);
+
+            expect(response.statusCode).toBe(expectedStatus);
+            expect(response.body.error).toBe(expectedMessage);
+        });
+    });
+
+    describe('Token purpose is not the expected', () => {
+        test('should return 401 UNAUTHORIZED, "Invalid bearer token"', async () => {
+            // test endpoint
+            const endpoint = `/test/${uuidv4()}/readonly`;
+            const expectedStatus = 401;
+            const expectedMessage = 'Invalid bearer token';
+
+            const middleware = rolesMiddlewareFactory(
+                'readonly',
+                userModel as unknown as Model<IUser>,
+                loggerService,
+                jwtService,
+                jwtBlackListService
+            );
+
+            app.get(endpoint, middleware, (req, res) => {
+                res.status(204).end();
+            });
+
+            // generate a valid token but purpose is not the expected
+            const validToken = jwtService.generate('1m', {
+                id: '12345',
+                purpose: TOKEN_PURPOSES.EMAIL_VALIDATION,
+            });
+
+            // stub blacklist
+            jwtBlackListService.isBlacklisted
+                .mockResolvedValue(false);
+
+            const response = await request(app)
+                .get(endpoint)
+                .set('Authorization', `Bearer ${validToken}`);
+
+            expect(response.statusCode).toBe(expectedStatus);
+            expect(response.body.error).toBe(expectedMessage);
+        });
+    });
+
+    describe('User id not in token', () => {
+        test('should return 401 UNAUTHORIZED, "Invalid bearer token"', async () => {
+            // test endpoint
+            const endpoint = `/test/${uuidv4()}/readonly`;
+            const expectedStatus = 401;
+            const expectedMessage = 'Invalid bearer token';
+
+            const middleware = rolesMiddlewareFactory(
+                'readonly',
+                userModel as unknown as Model<IUser>,
+                loggerService,
+                jwtService,
+                jwtBlackListService
+            );
+
+            app.get(endpoint, middleware, (req, res) => {
+                res.status(204).end();
+            });
+
+            // generate a valid token with no user id
+            const validToken = jwtService.generate('1m', {                
                 purpose: TOKEN_PURPOSES.SESSION,
             });
 
