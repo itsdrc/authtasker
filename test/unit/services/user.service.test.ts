@@ -944,11 +944,11 @@ describe('User Service', () => {
             test('should be not authorized to modify other users', async () => {
                 const userToModify = {
                     role: Math.round(Math.random()) ? 'readonly' : 'editor',
-                    id: faker.food.fruit(),
+                    id: 'test-user-id',
                 };
 
                 const requestUser = {
-                    id: faker.food.fruit(),
+                    id: 'test-request-user-id',
                     role: 'readonly'
                 } as const;
 
