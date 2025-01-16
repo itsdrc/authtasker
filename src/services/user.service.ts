@@ -31,10 +31,9 @@ export class UserService {
             SystemLoggerService.warn('Email validation is not enabled');
     }
 
-    private async blackListToken(tokenPayload: IJwtPayload) {
+    private async blackListToken(jti: string, tokenExp: number) {
         const currentTime = Math.floor(Date.now() / 1000);
-        const remainingTokenTTL = tokenPayload.exp! - currentTime;
-        const jti = tokenPayload.jti;
+        const remainingTokenTTL = tokenExp! - currentTime;
         await this.jwtBlacklistService.blacklist(jti, remainingTokenTTL);
     }
 
@@ -129,7 +128,7 @@ export class UserService {
         }
 
         // single-use token
-        await this.blackListToken(payload);
+        await this.blackListToken(payload.jti, payload.exp!);
 
         // check user existence
         const user = await this.userModel.findOne({ email: payload.email }).exec();
