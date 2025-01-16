@@ -62,7 +62,8 @@ export class UserRoutes {
             'readonly',
             this.userModel,
             this.loggerService,
-            this.jwtService
+            this.jwtService,
+            this.jwtBlacklistService
         );
 
         router.post('/create', this.userController.create);

@@ -10,12 +10,14 @@ import { LoggerService } from "@root/services/logger.service";
 import type { UserRole } from "@root/types/user/user-roles.type";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 import { TOKEN_PURPOSES } from "@root/rules/constants/token-purposes.constants";
+import { JwtBlackListService } from "@root/services";
 
 export const rolesMiddlewareFactory = (
     minRoleRequired: UserRole,
     userModel: Model<IUser>,
     loggerService: LoggerService,
     jwtService: JwtService,
+    jwtBlacklistService: JwtBlackListService,
 ) => {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -29,9 +31,9 @@ export const rolesMiddlewareFactory = (
             }
 
             const token = authorizationHeader.split(' ').at(1) || '';
-            const payload = jwtService.verify(token);
+            const payload = jwtService.verify(token);                        
 
-            if (!payload || payload.purpose !== TOKEN_PURPOSES.SESSION) {
+            if (!payload || payload.purpose !== TOKEN_PURPOSES.SESSION || await jwtBlacklistService.isBlacklisted(payload.jti)) {
                 loggerService.error('Access denied, invalid bearer token');
                 res.status(HTTP_STATUS_CODE.UNAUTHORIZED).json({ error: 'Invalid bearer token' });
                 return;
