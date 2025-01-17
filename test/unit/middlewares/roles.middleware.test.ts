@@ -74,12 +74,43 @@ describe('Roles middleware', () => {
                 res.status(204).end();
             });
 
-            // generate a valid token
+            // generate an invalid token
             const invalidToken = '12345';
 
             const response = await request(app)
                 .get(endpoint)
                 .set('Authorization', `Bearer ${invalidToken}`);
+
+            expect(response.statusCode).toBe(expectedStatus);
+            expect(response.body.error).toBe(expectedMessage);
+        });
+    });
+
+    describe('Token is not a bearer token', () => {
+        test('should return 401 UNAUTHORIZED, "Invalid bearer token"', async () => {
+            // test endpoint
+            const endpoint = `/test/${uuidv4()}/readonly`;
+            const expectedStatus = 401;
+            const expectedMessage = 'Invalid bearer token';
+
+            const middleware = rolesMiddlewareFactory(
+                'readonly',
+                userModel as unknown as Model<IUser>,
+                loggerService,
+                jwtService,
+                jwtBlackListService
+            );
+
+            app.get(endpoint, middleware, (req, res) => {
+                res.status(204).end();
+            });
+
+            // generate a valid token
+            const token = jwtService.generate('1m', {});
+
+            const response = await request(app)
+                .get(endpoint)
+                .set('Authorization', `BlaBlaBla ${token}`);
 
             expect(response.statusCode).toBe(expectedStatus);
             expect(response.body.error).toBe(expectedMessage);
@@ -188,7 +219,7 @@ describe('Roles middleware', () => {
             });
 
             // generate a valid token with no user id
-            const validToken = jwtService.generate('1m', {                
+            const validToken = jwtService.generate('1m', {
                 purpose: TOKEN_PURPOSES.SESSION,
             });
 
@@ -306,15 +337,14 @@ describe('Roles middleware', () => {
             const responseMock = mock<Response>();
 
             // stub token provided
-            requestMock.header.mockReturnValue('something');
+            requestMock.header.mockReturnValue('Bearer something');
 
             // stub res.status().json();
             responseMock.status.mockReturnThis();
 
             // mock token verification to include a test jti and exp in payload
             const testJti = '12345JtiTest';
-            const testTokenExpirationTime = 1099319237;
-
+            const testTokenExpirationTime = 1099319237;            
             const requestUserId = 'test-id-123';
             const tokenVerificationMock = jest.spyOn(jwtService, 'verify')
                 .mockReturnValue({
@@ -371,7 +401,7 @@ describe('Roles middleware', () => {
             const nextFunctionMock = jest.fn();
 
             // stub token provided
-            requestMock.header.mockReturnValue('something');
+            requestMock.header.mockReturnValue('Bearer something');
 
             // stub res.status().json();
             responseMock.status.mockReturnThis();
@@ -427,7 +457,7 @@ describe('Roles middleware', () => {
             const nextFunctionMock = jest.fn();
 
             // stub token provided
-            requestMock.header.mockReturnValue('something');
+            requestMock.header.mockReturnValue('Bearer something');
 
             // stub res.status().json();
             responseMock.status.mockReturnThis();
@@ -473,7 +503,7 @@ describe('Roles middleware', () => {
         const nextFunctionMock = jest.fn();
 
         // stub token provided
-        requestMock.header.mockReturnValue('something');
+        requestMock.header.mockReturnValue('Bearer something');
 
         // stub res.status().json();
         responseMock.status.mockReturnThis();

@@ -36,6 +36,13 @@ export const rolesMiddlewareFactory = (
                 return;
             }
 
+            // token is not a bearer token
+            const isBearerToken = authorizationHeader.startsWith('Bearer');
+            if(!isBearerToken){
+                loggerService.debug('Token provided is not a bearer token');
+                return returnInvalidBearerToken();
+            }
+
             const token = authorizationHeader.split(' ').at(1) || '';
 
             // token is not valid
