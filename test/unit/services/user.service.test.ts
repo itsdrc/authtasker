@@ -8,6 +8,7 @@ import { FindMockQuery } from "../helpers/types/find-mock-query.type";
 import { faker } from "@faker-js/faker/.";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 import { TOKEN_PURPOSES } from "@root/rules/constants/token-purposes.constants";
+import { doesNotMatch } from "node:assert";
 
 describe('User Service', () => {
     let configService: MockProxy<NoReadonly<ConfigService>>;
@@ -100,6 +101,29 @@ describe('User Service', () => {
                     })
                 );
             });
+        });
+    });
+
+    describe('blackListToken', () => {
+        test('jwtBlacklistService.blacklist should be called with jti and remaining token exp. time', (done) => {
+            const jwtService = new JwtService('randomKey');
+            const token = jwtService.generate('5s', {});
+            const payload = jwtService.verify(token);
+
+            const expirationTime = payload!.exp!;
+            const jti = payload!.jti;
+
+            // run after 3 seconds
+            setTimeout(() => {
+                userService['blackListToken'](jti, expirationTime)
+                    .then(() => {
+                        const expectedRemainingTTL = 2; // 2 seconds remaining
+                        expect(jwtBlackListService.blacklist).toHaveBeenCalledWith(jti, expectedRemainingTTL);
+                        done();
+                    }).catch((error) => {
+                        done(error);
+                    });
+            }, 3000);
         });
     });
 
@@ -453,6 +477,20 @@ describe('User Service', () => {
                     token: generatedTokenMock
                 });
             });
+        });
+    });
+
+    describe('Logout', () => {
+        test('blackListToken should be called with jti and token expiration provided', async () => {
+            const mockblackListToken = jest.spyOn(userService as any, 'blackListToken')
+                .mockImplementation();
+
+            const testJti = 'test-jti';
+            const testTokenExpiration = 9974331312;
+
+            await userService.logout(testJti, testTokenExpiration);
+
+            expect(mockblackListToken).toHaveBeenCalledWith(testJti, testTokenExpiration);
         });
     });
 
