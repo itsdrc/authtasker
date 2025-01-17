@@ -29,7 +29,8 @@ export class AppRoutes {
     constructor(
         private readonly configService: ConfigService,
         private readonly loggerService: LoggerService,
-        private readonly asyncLocalStorage: AsyncLocalStorage<IAsyncLocalStorageStore>
+        private readonly asyncLocalStorage: AsyncLocalStorage<IAsyncLocalStorageStore>,
+        private readonly redisService: RedisService,
     ) {
         this.jwtService = new JwtService(
             this.configService.JWT_PRIVATE_KEY,            
@@ -48,9 +49,7 @@ export class AppRoutes {
                 user: this.configService.MAIL_SERVICE_USER,
                 pass: this.configService.MAIL_SERVICE_PASS,
             });
-        }
-
-        const redisService = new RedisService(configService);
+        }        
         this.jwtBlacklistService = new JwtBlackListService(redisService);
     }
 

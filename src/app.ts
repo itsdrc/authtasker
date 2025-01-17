@@ -6,6 +6,7 @@ import { SystemLoggerService } from "./services/system-logger.service";
 import { MongooseEventsListener } from "./events/mongoose.events";
 import { LoggerService } from "./services/logger.service";
 import { IAsyncLocalStorageStore } from "./interfaces/common/async-local-storage.interface";
+import { RedisService } from "./services";
 
 async function main() {
     const configService = new ConfigService();
@@ -21,7 +22,13 @@ async function main() {
         // Allows the models to be loaded only if db is connected.
         const { AppRoutes } = await import('./routes/server.routes');
 
-        const appRoutes = new AppRoutes(configService, loggerService, asyncLocalStorage);
+        const redisService = new RedisService(configService);
+        const appRoutes = new AppRoutes(
+            configService,
+            loggerService,
+            asyncLocalStorage,
+            redisService
+        );
         const server = new Server(configService.PORT, await appRoutes.buildApp());
         server.start();
     }

@@ -1,11 +1,13 @@
 import { AsyncLocalStorage } from "async_hooks";
 import { AppRoutes } from "@root/routes/server.routes";
-import { ConfigService, HashingService, LoggerService } from "@root/services";
+import { ConfigService, HashingService, LoggerService, RedisService } from "@root/services";
 import { MongoDatabase } from "@root/databases/mongo/mongo.database";
 import { Server } from "@root/server/server.init";
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { UserDataGenerator } from "@root/seed/generators/user.generator";
 import * as ModelLoader from "@root/databases/mongo/models/users/user.model.load";
+
+let redisService: RedisService;
 
 beforeAll(async () => {
     // disable info and warn logs during tests
@@ -27,7 +29,13 @@ beforeAll(async () => {
     // get server
     const asyncLocalStorage = new AsyncLocalStorage<any>();
     const loggerService = new LoggerService(configService, asyncLocalStorage);
-    const appRoutes = new AppRoutes(configService, loggerService, asyncLocalStorage);
+    redisService = new RedisService(configService);
+    const appRoutes = new AppRoutes(
+        configService,
+        loggerService,
+        asyncLocalStorage,
+        redisService,
+    );
     const server = new Server(configService.PORT, await appRoutes.buildApp());
     global.SERVER_APP = server['app'];
 
@@ -47,4 +55,5 @@ beforeAll(async () => {
 
 afterAll(async () => {
     await MongoDatabase.disconnect();
+    await redisService.close();
 })
