@@ -293,7 +293,7 @@ describe('Roles middleware', () => {
     });
 
     describe('Operation success', () => {
-        test('request should contain userId and userRole', async () => {
+        test('request should contain: userId, userRole, jti and tokenExp', async () => {
             const middleware = rolesMiddlewareFactory(
                 'readonly',
                 userModel as unknown as Model<IUser>,
@@ -311,13 +311,18 @@ describe('Roles middleware', () => {
             // stub res.status().json();
             responseMock.status.mockReturnThis();
 
-            // stub token verification
+            // mock token verification to include a test jti and exp in payload
+            const testJti = '12345JtiTest';
+            const testTokenExpirationTime = 1099319237;
+
             const requestUserId = 'test-id-123';
             const tokenVerificationMock = jest.spyOn(jwtService, 'verify')
                 .mockReturnValue({
                     id: requestUserId,
                     purpose: TOKEN_PURPOSES.SESSION,
-                } as any);
+                    jti: testJti,
+                    exp: testTokenExpirationTime
+                });
 
             // stub blacklist
             jwtBlackListService.isBlacklisted
@@ -348,6 +353,8 @@ describe('Roles middleware', () => {
             expect(canAccessHelperMock).toHaveBeenCalled();
             expect((requestMock as any).userId).toBe(userFound.id);
             expect((requestMock as any).userRole).toBe(userFound.role);
+            expect((requestMock as any).jti).toBe(testJti);
+            expect((requestMock as any).tokenExp).toBe(testTokenExpirationTime);
         });
 
         test('Express.next() should be called', async () => {
