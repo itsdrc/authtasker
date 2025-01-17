@@ -21,7 +21,7 @@ export class UserController {
         const role = (req as any).userRole;
         const id = (req as any).userId;
         const jti = (req as any).jti;
-        const tokenExp = (req as any).tokenExp;
+        const tokenExp = (req as any).tokenExp;        
 
         if (!id) {
             res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Can not deduce the request user id' });
@@ -38,11 +38,13 @@ export class UserController {
         if (!jti) {
             res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unexpected error' });
             SystemLoggerService.error('jti was not stablished in middleware');
+            return;
         }
 
         if (!tokenExp) {
             res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unexpected error' });
             SystemLoggerService.error('Token expiration time was not stablished in middleware');
+            return; 
         }
 
         return {
