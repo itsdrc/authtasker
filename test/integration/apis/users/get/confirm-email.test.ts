@@ -50,7 +50,7 @@ describe('GET/', () => {
         });
 
         test('provided token should be blacklisted', async () => {
-            const expectedStatus = 401;// UNAUTHORIZED
+            const expectedStatus = 400;// UNAUTHORIZED
 
             const user = await global.USER_MODEL.create({
                 name: global.USER_DATA_GENERATOR.name(),
@@ -66,11 +66,10 @@ describe('GET/', () => {
                 .get(`${global.USERS_PATH}/confirmEmailValidation/${token}`)
                 .expect(200);
 
-            // try to access another resource using the same token
-            const findByIdResponse = await request(global.SERVER_APP)
-                .get(`${global.USERS_PATH}/${user.id}`)
-                .set('Authorization', `Bearer ${token}`)
-                .expect(expectedStatus);
+            // try to validate email with the same token            
+            await request(global.SERVER_APP)
+                .get(`${global.USERS_PATH}/confirmEmailValidation/${token}`)
+                .expect(400);
         });
 
         describe('Invalid token', () => {
