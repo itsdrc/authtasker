@@ -86,12 +86,12 @@ export class UserService {
             .exec();
 
         if (user?.emailValidated === true) {
-            // todo: logging
+            this.loggerService.error(`Email ${user.email} is already validated`);
             throw HttpError.badRequest('User email is already validated');
         }
 
         if (!user) {
-            // todo: logging
+            this.loggerService.error(`User with id ${id} not found`);
             throw HttpError.badRequest('User not found');
         }
 
@@ -224,19 +224,15 @@ export class UserService {
     }
 
     async findAll(limit: number, page: number): Promise<HydratedDocument<IUser>[]> {
-        // if (!Number.isInteger(limit) || !Number.isInteger(!page)) {
-        //     // TODO: logging
-        //     throw HttpError.badRequest('Limit and page must be a valid integer');
-        // }
-
         if (limit <= 0) {
-            // TODO: logging
+            this.loggerService.error('Limit is not a valid number');
             throw HttpError.badRequest('Limit must be a valid number');
         }
 
         if (limit > 100) {
-            // TODO: logging
-            throw HttpError.badRequest('Limit is too large');
+            const error = 'Limit is too large';
+            this.loggerService.error(error);
+            throw HttpError.badRequest(error);
         }
 
         const totalDocuments = await this.userModel
@@ -244,20 +240,21 @@ export class UserService {
             .exec();
 
         if (totalDocuments === 0) {
-            // TODO: logging
+            this.loggerService.info('No documents found');
             return [];
         }
 
         const totalPages = Math.ceil(totalDocuments / limit);
 
         if (page <= 0) {
-            // TODO: logging
+            this.loggerService.error('Page is not a valid number');
             throw HttpError.badRequest('Page must be a valid number');
         }
 
         if (page > totalPages) {
-            // TODO: logging
-            throw HttpError.badRequest('Invalid page');
+            const error = 'Invalid page';
+            this.loggerService.error(error);
+            throw HttpError.badRequest(error);
         }
 
         const offset = (page - 1) * limit;
@@ -272,7 +269,7 @@ export class UserService {
     async deleteOne(requestUserInfo: { id: string, role: UserRole }, id: string): Promise<void> {
         const userToDelete = await this.IsModificationAuthorized(requestUserInfo, id);
         if (!userToDelete) {
-            // TODO: logging
+            this.loggerService.error('User is not authorized to perform this action');
             throw HttpError.forbidden(FORBIDDEN_MESSAGE);
         }
         await userToDelete.deleteOne().exec();
@@ -282,7 +279,7 @@ export class UserService {
     async updateOne(requestUserInfo: { id: string, role: UserRole }, id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<IUser>> {
         const userToUpdate = await this.IsModificationAuthorized(requestUserInfo, id);
         if (!userToUpdate) {
-            // TODO: logging
+            this.loggerService.error('User is not authorized to perform this action');
             throw HttpError.forbidden(FORBIDDEN_MESSAGE);
         }
 
