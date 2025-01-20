@@ -105,25 +105,14 @@ describe('User Service', () => {
     });
 
     describe('blackListToken', () => {
-        test('jwtBlacklistService.blacklist should be called with jti and remaining token exp. time', (done) => {
-            const jwtService = new JwtService('randomKey');
-            const token = jwtService.generate('5s', {});
-            const payload = jwtService.verify(token);
+        test('jwtBlacklistService.blacklist should be called with jti and remaining token exp. time', async () => {
+            const testJti = 'test-jti';
+            const remainingTokenExpirationTime = 60;
+            const tokenExpirationTime = Math.floor(Date.now() / 1000) + remainingTokenExpirationTime;
 
-            const expirationTime = payload!.exp!;
-            const jti = payload!.jti;
+            await userService['blackListToken'](testJti, tokenExpirationTime);
 
-            // run after 3 seconds
-            setTimeout(() => {
-                userService['blackListToken'](jti, expirationTime)
-                    .then(() => {
-                        const expectedRemainingTTL = 2; // 2 seconds remaining
-                        expect(jwtBlackListService.blacklist).toHaveBeenCalledWith(jti, expectedRemainingTTL);
-                        done();
-                    }).catch((error) => {
-                        done(error);
-                    });
-            }, 3000);
+            expect(jwtBlackListService.blacklist).toHaveBeenCalledWith(testJti, remainingTokenExpirationTime);
         });
     });
 
