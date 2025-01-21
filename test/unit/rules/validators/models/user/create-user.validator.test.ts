@@ -11,15 +11,33 @@ describe('CreateUserValidator', () => {
             test('should return an error indicating name is needed', async () => {
                 const [error, validated] = await CreateUserValidator
                     .validateAndTransform({
+                        // no name sent
                         email: dataGenerator.email(),
                         password: dataGenerator.password()
                     });
+
                 expect(validated).not.toBeDefined();
                 expect(error).toBe('name should not be null or undefined');
             });
         });
 
-        describe('Name is too large', () => {
+        describe('Name is not a string', () => {
+            test('should return an error indicating name must be a string', async () => {
+                const invalidName = 2247248923;
+
+                const [error, validated] = await CreateUserValidator
+                    .validateAndTransform({
+                        email: dataGenerator.email(),
+                        password: dataGenerator.password(),
+                        name: invalidName
+                    });
+
+                expect(validated).not.toBeDefined();
+                expect(error).toBe('name must be a string');
+            });
+        });
+
+        describe('Name is too long', () => {
             test('should return an error indicating that name must be shorter', async () => {
                 const invalidName = faker
                     .string
@@ -83,12 +101,29 @@ describe('CreateUserValidator', () => {
             test('should return an error indicating email is needed', async () => {
                 const [error, validated] = await CreateUserValidator
                     .validateAndTransform({
+                        // no email sent
                         name: dataGenerator.name(),
                         password: dataGenerator.password()
                     });
 
                 expect(validated).not.toBeDefined();
                 expect(error).toBe('email should not be null or undefined');
+            });
+        });
+
+        describe('Email is not a string', () => {
+            test('should return an error indicating email must be an email', async () => {
+                const invalidEmail = 1111;
+
+                const [error, validated] = await CreateUserValidator
+                    .validateAndTransform({
+                        name: dataGenerator.name(),
+                        password: dataGenerator.password(),
+                        email: invalidEmail,
+                    });
+
+                expect(validated).not.toBeDefined();
+                expect(error).toBe('email must be an email');
             });
         });
 
@@ -114,6 +149,7 @@ describe('CreateUserValidator', () => {
             test('should return an error indicating password is needed', async () => {
                 const [error, validated] = await CreateUserValidator
                     .validateAndTransform({
+                        // no password sent
                         name: dataGenerator.name(),
                         email: dataGenerator.email(),
                     });
@@ -123,7 +159,23 @@ describe('CreateUserValidator', () => {
             });
         });
 
-        describe('Password is too large', () => {
+        describe('Password is not a string', () => {
+            test('should return an error indicating password must be a string', async () => {
+                const invalidPassword = 113433;
+
+                const [error, validated] = await CreateUserValidator
+                    .validateAndTransform({
+                        name: dataGenerator.name(),
+                        email: dataGenerator.email(),
+                        password: invalidPassword
+                    });
+
+                expect(validated).not.toBeDefined();
+                expect(error).toBe('password must be a string');
+            });
+        });
+
+        describe('Password is too long', () => {
             test('should return an error indicating that password must be shorter', async () => {
                 const invalidPassword = faker
                     .string
@@ -162,8 +214,8 @@ describe('CreateUserValidator', () => {
         });
     });
 
-    describe('Unexpected property is sent', () => {
-        test('should return an indicating the property must not exist', async () => {
+    describe('Unexpected property is provided', () => {
+        test('should return an error indicating the property must not exist', async () => {
             const invalidProperty = 10;
 
             const [error, validated] = await CreateUserValidator
@@ -190,7 +242,7 @@ describe('CreateUserValidator', () => {
             const [error, validated] = await CreateUserValidator
                 .validateAndTransform(userData);
 
-            expect(error).not.toBeDefined();            
+            expect(error).not.toBeDefined();
             expect(validated).toMatchObject({
                 ...userData,
                 name: userData.name.toLowerCase().trim()

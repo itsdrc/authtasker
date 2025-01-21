@@ -1,4 +1,4 @@
-import { IsDefined, IsEmail, MaxLength, MinLength, validate } from "class-validator";
+import { IsDefined, IsEmail, IsString, MaxLength, MinLength, validate } from "class-validator";
 import { plainToInstance, Transform } from "class-transformer";
 
 import { Exact } from "@root/types/shared/exact.type";
@@ -14,6 +14,7 @@ export class CreateUserValidator implements Exact<CreateUserValidator, UserReque
     @IsDefined()
     @MinLength(USER_CONSTANTS.MIN_NAME_LENGTH)
     @MaxLength(USER_CONSTANTS.MAX_NAME_LENGTH)
+    @IsString()
     @Transform(toLowerCase)
     name!: string;
 
@@ -24,15 +25,16 @@ export class CreateUserValidator implements Exact<CreateUserValidator, UserReque
     @IsDefined()
     @MinLength(USER_CONSTANTS.MIN_PASSWORD_LENGTH)
     @MaxLength(USER_CONSTANTS.MAX_PASSWORD_LENGTH)
+    @IsString()
     password!: string;
 
     static async validateAndTransform(data: object): ValidationResult<CreateUserValidator> {
         const user = new CreateUserValidator();
         Object.assign(user, data);
 
-        const errors = await validate(user, validationOptionsConfig);        
+        const errors = await validate(user, validationOptionsConfig);
 
-        if (errors.length > 0) 
+        if (errors.length > 0)
             return [returnFirstError(errors), undefined];
 
         return [undefined, plainToInstance(CreateUserValidator, user)];
