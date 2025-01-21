@@ -7,7 +7,7 @@ import { LoggerService } from "@root/services/logger.service";
 import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
 import { UserService } from "@root/services/user.service";
 import { PAGINATION_SETTINGS } from "@root/rules/constants/pagination.constants";
-import { getUserInfoOrHandleError } from "./helpers/get-user-info-or-handle-error.helper";
+import { getUserInfoOrHandleError } from "./handlers/get-user-info.handler";
 
 export class UserController {
 
