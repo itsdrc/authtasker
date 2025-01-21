@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { UserSeedService } from "../services/user.seed.service";
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { LoggerService } from "@root/services/logger.service";
-import { handleError } from "@root/common/helpers/handle-error.helper";
+import { handleError } from "@root/common/handlers/error.handler";
 
 export class UserSeedController {
 

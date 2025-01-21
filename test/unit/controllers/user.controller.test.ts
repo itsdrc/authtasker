@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/.';
-import * as Handlers from '@root/common/helpers/handle-error.helper';
+import * as Handlers from '@root/common/handlers/error.handler';
 import * as ControllerHelpers from '@root/controllers/helpers/get-user-info-or-handle-error.helper';
 import { UserController } from '@root/controllers/user.controller';
 import { CreateUserValidator, LoginUserValidator } from '@root/rules/validators/models/user';

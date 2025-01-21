@@ -1,4 +1,4 @@
-import { handleError } from "@root/common/helpers/handle-error.helper";
+import { handleError } from "@root/common/handlers/error.handler";
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { JwtBlackListService } from "@root/services/jwt-blacklist.service";
 import { JwtService } from "@root/services/jwt.service";

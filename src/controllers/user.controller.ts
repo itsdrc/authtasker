@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 import { CreateUserValidator, LoginUserValidator } from "@root/rules/validators/models/user";
-import { handleError } from "@root/common/helpers/handle-error.helper";
+import { handleError } from "@root/common/handlers/error.handler";
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { LoggerService } from "@root/services/logger.service";
 import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";

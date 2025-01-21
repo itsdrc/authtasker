@@ -10,7 +10,7 @@ import { FindMockQuery } from '../helpers/types/find-mock-query.type';
 import { rolesMiddlewareFactory } from '@root/middlewares/roles.middleware';
 import * as MiddlewareHelpers from '@root/middlewares/helpers/can-access.helper';
 import { FORBIDDEN_MESSAGE } from '@root/rules/errors/messages/error.messages';
-import * as Handlers from '@root/common/helpers/handle-error.helper';
+import * as Handlers from '@root/common/handlers/error.handler';
 import { TOKEN_PURPOSES } from '@root/rules/constants/token-purposes.constants';
 
 describe('Roles middleware', () => {

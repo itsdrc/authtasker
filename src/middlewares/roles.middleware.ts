@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { Model } from "mongoose";
 
 import { canAccess } from "./helpers/can-access.helper";
-import { handleError } from "@root/common/helpers/handle-error.helper";
+import { handleError } from "@root/common/handlers/error.handler";
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { IUser } from "@root/interfaces/user/user.interface";
 import { JwtService } from "@root/services/jwt.service";

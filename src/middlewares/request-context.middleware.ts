@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { NextFunction, Request, Response } from "express";
 import { AsyncLocalStorage } from 'async_hooks';
 import { LoggerService } from '@root/services/logger.service';
-import { handleError } from '@root/common/helpers/handle-error.helper';
+import { handleError } from '@root/common/handlers/error.handler';
 
 export const requestContextMiddlewareFactory = (
     asyncLocalStorage: AsyncLocalStorage<unknown>,
