@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/.';
 import * as Handlers from '@root/common/helpers/handle-error.helper';
+import * as ControllerHelpers from '@root/controllers/helpers/get-user-info-or-handle-error.helper';
 import { UserController } from '@root/controllers/user.controller';
 import { CreateUserValidator, LoginUserValidator } from '@root/rules/validators/models/user';
 import { UpdateUserValidator } from '@root/rules/validators/models/user/update-user.validator';
@@ -21,93 +22,6 @@ describe('User Controller', () => {
         jest.spyOn(SystemLoggerService, 'error').mockImplementation();
         jest.spyOn(SystemLoggerService, 'info').mockImplementation();
         jest.spyOn(SystemLoggerService, 'warn').mockImplementation();
-    });
-
-    describe('getUserInfoOrHandleError', () => {
-        describe('User id was not set', () => {
-            test('should return internal server error', async () => {
-                const expectedStatus = 500;
-
-                const requestMock = mock<Request>();
-                const responseMock = mock<Response>();
-                // mock res.status(..).json()
-                responseMock.status.mockReturnThis();
-
-                (requestMock as any).userRole = 'editor';
-                (requestMock as any).userId = undefined;
-                (requestMock as any).jti = 'test jti';
-                (requestMock as any).tokenExp = undefined;
-
-                userController['getUserInfoOrHandleError'](requestMock, responseMock);
-
-                expect(responseMock.status)
-                    .toHaveBeenCalledWith(expectedStatus);
-            });
-        });
-
-        describe('User role was not set', () => {
-            test('should return internal server error', async () => {
-                const expectedStatus = 500;
-
-                const requestMock = mock<Request>();
-                const responseMock = mock<Response>();
-                // mock res.status(..).json()
-                responseMock.status.mockReturnThis();
-
-                (requestMock as any).userRole = undefined;
-                (requestMock as any).userId = 'test user id';
-                (requestMock as any).jti = 'test jti';
-                (requestMock as any).tokenExp = undefined;
-
-                userController['getUserInfoOrHandleError'](requestMock, responseMock);
-
-                expect(responseMock.status)
-                    .toHaveBeenCalledWith(expectedStatus);
-            });
-        });
-
-        describe('jti was not set', () => {
-            test('should return internal server error', async () => {
-                const expectedStatus = 500;
-
-                const requestMock = mock<Request>();
-                const responseMock = mock<Response>();
-                // mock res.status(..).json()
-                responseMock.status.mockReturnThis();
-
-
-                (requestMock as any).userRole = 'editor';
-                (requestMock as any).userId = 'test user id';
-                (requestMock as any).jti = undefined;
-                (requestMock as any).tokenExp = undefined;
-
-                userController['getUserInfoOrHandleError'](requestMock, responseMock);
-
-                expect(responseMock.status)
-                    .toHaveBeenCalledWith(expectedStatus);
-            });
-        });
-
-        describe('tokenExp was not set', () => {
-            test('should return internal server error', async () => {
-                const expectedStatus = 500;
-
-                const requestMock = mock<Request>();
-                const responseMock = mock<Response>();
-                // mock res.status(..).json()
-                responseMock.status.mockReturnThis();
-
-                (requestMock as any).userRole = 'editor';
-                (requestMock as any).userId = 'test user id';
-                (requestMock as any).jti = 'test jti';
-                (requestMock as any).tokenExp = undefined;
-
-                userController['getUserInfoOrHandleError'](requestMock, responseMock);
-
-                expect(responseMock.status)
-                    .toHaveBeenCalledWith(expectedStatus);
-            });
-        });
     });
 
     describe('create', () => {
@@ -246,12 +160,14 @@ describe('User Controller', () => {
         describe('getUserInfoOrHandleError returns the expected information', () => {
             test('userService.logout should be called with jti and token expiration', async () => {
                 const testJti = 'test-jti';
-                const testTokenExpiration = 'test-token-exp';
+                const testTokenExpiration = 9890284;
 
-                const getUserInfoOrHandleErrorMock = jest.spyOn(userController as any, 'getUserInfoOrHandleError')
+                const getUserInfoOrHandleErrorMock = jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
                     .mockReturnValue({
                         jti: testJti,
                         tokenExp: testTokenExpiration,
+                        id: '123',
+                        role: 'editor',
                     });
 
                 const requestMock = mock<Request>();

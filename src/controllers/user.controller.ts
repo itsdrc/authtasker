@@ -4,11 +4,10 @@ import { CreateUserValidator, LoginUserValidator } from "@root/rules/validators/
 import { handleError } from "@root/common/helpers/handle-error.helper";
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { LoggerService } from "@root/services/logger.service";
-import { SystemLoggerService } from "@root/services/system-logger.service";
 import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
 import { UserService } from "@root/services/user.service";
 import { PAGINATION_SETTINGS } from "@root/rules/constants/pagination.constants";
-import { UserFromRequest } from "@root/interfaces/user/user-from-request.interface";
+import { getUserInfoOrHandleError } from "./helpers/get-user-info-or-handle-error.helper";
 
 export class UserController {
 
@@ -16,44 +15,6 @@ export class UserController {
         private readonly userService: UserService,
         private readonly loggerService: LoggerService,
     ) {}
-
-    private getUserInfoOrHandleError(req: Request, res: Response): UserFromRequest | undefined {
-        const role = (req as any).userRole;
-        const id = (req as any).userId;
-        const jti = (req as any).jti;
-        const tokenExp = (req as any).tokenExp;        
-
-        if (!id) {
-            res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Can not deduce the request user id' });
-            SystemLoggerService.error('User id was not stablished in middleware');
-            return;
-        }
-
-        if (!role) {
-            res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Can not deduce the request user role' });
-            SystemLoggerService.error('User role was not stablished in middleware');
-            return;
-        }
-
-        if (!jti) {
-            res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unexpected error' });
-            SystemLoggerService.error('jti was not stablished in middleware');
-            return;
-        }
-
-        if (!tokenExp) {
-            res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unexpected error' });
-            SystemLoggerService.error('Token expiration time was not stablished in middleware');
-            return; 
-        }
-
-        return {
-            id,
-            role,
-            jti,
-            tokenExp
-        };
-    }
 
     readonly create = async (req: Request, res: Response): Promise<void> => {
         try {
@@ -100,7 +61,7 @@ export class UserController {
     readonly logout = async (req: Request, res: Response): Promise<void> => {
         try {
             this.loggerService.info('Logout attemp');
-            const requestUserInfo = this.getUserInfoOrHandleError(req, res);
+            const requestUserInfo = getUserInfoOrHandleError(req, res);
             if (requestUserInfo) {
                 await this.userService.logout(requestUserInfo.jti, requestUserInfo.tokenExp);
                 res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
@@ -114,7 +75,7 @@ export class UserController {
     readonly requestEmailValidation = async (req: Request, res: Response): Promise<void> => {
         try {
             this.loggerService.info('Email validation requested');
-            const requestUserInfo = this.getUserInfoOrHandleError(req, res);
+            const requestUserInfo = getUserInfoOrHandleError(req, res);
             if (requestUserInfo) {
                 await this.userService.requestEmailValidation(requestUserInfo.id);
                 res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
@@ -169,7 +130,7 @@ export class UserController {
             this.loggerService.info('USER DELETION ATTEMP');
 
             const userIdToUpdate = req.params.id;
-            const requestUserInfo = this.getUserInfoOrHandleError(req, res);
+            const requestUserInfo = getUserInfoOrHandleError(req, res);
 
             if (requestUserInfo) {
                 await this.userService.deleteOne(requestUserInfo, userIdToUpdate);
@@ -195,7 +156,7 @@ export class UserController {
             if (validatedProperties) {
                 this.loggerService.info(`VALIDATION SUCESS`);
 
-                const requestUserInfo = this.getUserInfoOrHandleError(req, res);
+                const requestUserInfo = getUserInfoOrHandleError(req, res);
                 if (requestUserInfo) {
                     const updated = await this.userService.updateOne(requestUserInfo, userIdToUpdate, validatedProperties);
                     res.status(HTTP_STATUS_CODE.OK).json(updated);
