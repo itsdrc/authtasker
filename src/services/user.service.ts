@@ -13,7 +13,6 @@ import { UpdateUserValidator } from "../rules/validators/models/user/update-user
 import { UserRole } from "@root/types/user/user-roles.type";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 import { JwtBlackListService } from "./jwt-blacklist.service";
-import { IJwtPayload } from "@root/interfaces/token/jwt-payload.interface";
 import { TOKEN_PURPOSES } from "@root/rules/constants/token-purposes.constants";
 
 export class UserService {
@@ -50,6 +49,19 @@ export class UserService {
         });
 
         return token;
+    }
+
+    private handlePossibleDuplicatedKeyError(error: any): never {
+        if (error.code && error.code === 11000) {
+            const duplicatedKey = Object.keys(error.keyValue);
+            const keyValue = Object.values(error.keyValue);
+            const message = `User with ${duplicatedKey} "${keyValue}" already exists`;
+            this.loggerService.error(message);
+            throw HttpError.badRequest(message);
+        } else {
+            // rethrowing        
+            throw error;
+        }
     }
 
     private async sendEmailValidationLink(email: string): Promise<void> {
@@ -166,14 +178,7 @@ export class UserService {
             };
 
         } catch (error: any) {
-            if (error.code == 11000) {
-                const duplicatedKey = Object.values(error.keyValue).join(', ');
-                this.loggerService.error(`DUPLICATE KEY ERROR: ${duplicatedKey}`);
-                throw HttpError.badRequest(`${duplicatedKey} already exists`);
-            }
-            else {
-                throw error;
-            }
+            this.handlePossibleDuplicatedKeyError(error);
         }
     }
 
@@ -277,33 +282,37 @@ export class UserService {
     }
 
     async updateOne(requestUserInfo: { id: string, role: UserRole }, id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<IUser>> {
-        const userToUpdate = await this.IsModificationAuthorized(requestUserInfo, id);
-        if (!userToUpdate) {
-            this.loggerService.error('User is not authorized to perform this action');
-            throw HttpError.forbidden(FORBIDDEN_MESSAGE);
-        }
-
-        if (propertiesUpdated.password) {
-            userToUpdate.password = await this.hashingService.hash(propertiesUpdated.password);
-        }
-
-        // if email is different change "emailValidated" prop        
-        if (propertiesUpdated.email) {
-            if (userToUpdate.email !== propertiesUpdated.email) {
-                userToUpdate.emailValidated = false;
-                userToUpdate.role = 'readonly';
+        try {
+            const userToUpdate = await this.IsModificationAuthorized(requestUserInfo, id);
+            if (!userToUpdate) {
+                this.loggerService.error('User is not authorized to perform this action');
+                throw HttpError.forbidden(FORBIDDEN_MESSAGE);
             }
-            userToUpdate.email = propertiesUpdated.email;
+
+            if (propertiesUpdated.password) {
+                userToUpdate.password = await this.hashingService.hash(propertiesUpdated.password);
+            }
+
+            // if email is different change "emailValidated" prop        
+            if (propertiesUpdated.email) {
+                if (userToUpdate.email !== propertiesUpdated.email) {
+                    userToUpdate.emailValidated = false;
+                    userToUpdate.role = 'readonly';
+                }
+                userToUpdate.email = propertiesUpdated.email;
+            }
+
+            if (propertiesUpdated.name) {
+                userToUpdate.name = propertiesUpdated.name
+            }
+
+            await userToUpdate.save();
+            this.loggerService.info(`User ${id} updated`);
+
+            return userToUpdate;
+        } catch (error: any) {
+            this.handlePossibleDuplicatedKeyError(error);
         }
-
-        if (propertiesUpdated.name) {
-            userToUpdate.name = propertiesUpdated.name
-        }
-
-        await userToUpdate.save();
-        this.loggerService.info(`User ${id} updated`);
-
-        return userToUpdate;
     }
 
     // returns the user to modify in order to not have to findOne it again
