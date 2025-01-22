@@ -3,7 +3,69 @@ import { Types } from "mongoose";
 import { getSessionToken } from '../../../helpers/token/session.token';
 
 describe('PATCH/', () => {
-    describe('Update user', () => {        
+    describe('Update user', () => {
+        describe('Name already exists', () => {
+            test('should return 400 BAD REQUEST', async () => {
+                const expectedStatus = 400;
+
+                // create two users
+                const previousUser = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: await global.HASHING_SERVICE
+                        .hash(global.USER_DATA_GENERATOR.password()),
+                });
+
+                const newUser = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: await global.HASHING_SERVICE
+                        .hash(global.USER_DATA_GENERATOR.password()),
+                });
+
+                // generate a session token for the new user
+                const validToken = getSessionToken(newUser.id);
+
+                // update newUser name 
+                await request(global.SERVER_APP)
+                    .patch(`${global.USERS_PATH}/${newUser.id}`)
+                    .send({ name: previousUser.name })
+                    .set('Authorization', `Bearer ${validToken}`)
+                    .expect(expectedStatus);
+            });
+        });
+
+        describe('Email already exists', () => {
+            test('should return 400 BAD REQUEST', async () => {
+                const expectedStatus = 400;
+
+                // create two users
+                const previousUser = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: await global.HASHING_SERVICE
+                        .hash(global.USER_DATA_GENERATOR.password()),
+                });
+
+                const newUser = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: await global.HASHING_SERVICE
+                        .hash(global.USER_DATA_GENERATOR.password()),
+                });
+
+                // generate a session token for the new user
+                const validToken = getSessionToken(newUser.id);
+
+                // update newUser email 
+                await request(global.SERVER_APP)
+                    .patch(`${global.USERS_PATH}/${newUser.id}`)
+                    .send({ email: previousUser.email })
+                    .set('Authorization', `Bearer ${validToken}`)
+                    .expect(expectedStatus);
+            });
+        });
+
         describe('User is not found', () => {
             test('should return status 404 NOT FOUND', async () => {
                 const expectedStatus = 404;
@@ -22,7 +84,6 @@ describe('PATCH/', () => {
 
                 await request(global.SERVER_APP)
                     .patch(`${global.USERS_PATH}/${validMongoId}`)
-                    // at least one property is required
                     .send({ name: global.USER_DATA_GENERATOR.name() })
                     .set('Authorization', `Bearer ${validToken}`)
                     .expect(expectedStatus);
@@ -183,7 +244,7 @@ describe('PATCH/', () => {
             });
         });
 
-        describe('Email is updated', () => {            
+        describe('Email is updated', () => {
             test('email should be successfully updated', async () => {
                 // create user and set emailValidated to true
                 const userInDb = await global.USER_MODEL.create({
