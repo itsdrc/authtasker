@@ -30,6 +30,21 @@ export class UserService {
             SystemLoggerService.warn('Email validation is not enabled');
     }
 
+    // returns the user to modify in order to not have to findOne it again
+    private async IsModificationAuthorized(requestUserInfo: { id: string, role: UserRole }, userIdToUpdate: string): Promise<HydratedDocument<IUser> | null> {
+        const userToModify = await this.findOne(userIdToUpdate);
+
+        // admin users can modify other users (but not other admins)
+        if (requestUserInfo.role === 'admin' && userToModify.role !== 'admin')
+            return userToModify;
+
+        // users can modify themselves
+        if (requestUserInfo.id === userToModify.id)
+            return userToModify;
+
+        return null;
+    }
+
     private async blackListToken(jti: string, tokenExp: number) {
         const currentTime = Math.floor(Date.now() / 1000);
         const remainingTokenTTL = tokenExp! - currentTime;
@@ -313,20 +328,5 @@ export class UserService {
         } catch (error: any) {
             this.handlePossibleDuplicatedKeyError(error);
         }
-    }
-
-    // returns the user to modify in order to not have to findOne it again
-    private async IsModificationAuthorized(requestUserInfo: { id: string, role: UserRole }, userIdToUpdate: string): Promise<HydratedDocument<IUser> | null> {
-        const userToModify = await this.findOne(userIdToUpdate);
-
-        // admin users can modify other users (but not other admins)
-        if (requestUserInfo.role === 'admin' && userToModify.role !== 'admin')
-            return userToModify;
-
-        // users can modify themselves
-        if (requestUserInfo.id === userToModify.id)
-            return userToModify;
-
-        return null;
     }
 }
