@@ -9,8 +9,9 @@ export class UserDataGenerator {
     }) {}
 
     name() {
+        let name: string;
         if (this.seedOptions.respectMinAndMaxLength) {
-            let generated: string;            
+            let generated: string;
             do {
                 // generated a number between 0 and 1
                 const random = Math.round(Math.random());
@@ -22,10 +23,13 @@ export class UserDataGenerator {
                 generated.length < CONSTS.MIN_NAME_LENGTH ||
                 generated.length > CONSTS.MAX_NAME_LENGTH
             )
-            return generated;
+            name = generated;
         } else {
-            return faker.person.fullName().toLowerCase();
+            name = faker.person.fullName().toLowerCase();
         }
+        return name
+            .toLowerCase()
+            .trim();
     }
 
     email() {
