@@ -17,6 +17,9 @@ import { loadUserModel } from "@root/databases/mongo/models/users/user.model.loa
 import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
 import { SeedRoutes } from "@root/seed/routes/seed.routes";
 import { UserRoutes } from "./user.routes";
+import { TasksRoutes } from "./tasks.routes";
+import { ITasks } from "@root/interfaces/tasks/task.interface";
+import { loadTasksModel } from "@root/databases/mongo/models/tasks/tasks.model.load";
 
 export class AppRoutes {
 
@@ -24,6 +27,7 @@ export class AppRoutes {
     private readonly hashingService: HashingService;
     private readonly emailService?: EmailService;
     private readonly userModel: Model<IUser>;
+    private readonly tasksModel: Model<ITasks>;
     private readonly jwtBlacklistService: JwtBlackListService;
 
     constructor(
@@ -33,7 +37,7 @@ export class AppRoutes {
         private readonly redisService: RedisService,
     ) {
         this.jwtService = new JwtService(
-            this.configService.JWT_PRIVATE_KEY,            
+            this.configService.JWT_PRIVATE_KEY,
         );
 
         this.hashingService = new HashingService(
@@ -41,6 +45,7 @@ export class AppRoutes {
         );
 
         this.userModel = loadUserModel(this.configService);
+        this.tasksModel = loadTasksModel(this.configService);
 
         if (this.configService.mailServiceIsDefined()) {
             this.emailService = new EmailService({
@@ -49,7 +54,7 @@ export class AppRoutes {
                 user: this.configService.MAIL_SERVICE_USER,
                 pass: this.configService.MAIL_SERVICE_PASS,
             });
-        }        
+        }
         this.jwtBlacklistService = new JwtBlackListService(redisService);
     }
 
@@ -75,6 +80,18 @@ export class AppRoutes {
         return await userRoutes.build();
     }
 
+    private async buildTasksRoutes(): Promise<Router> {
+        const tasksRoutes = new TasksRoutes(
+            this.loggerService,
+            this.configService,
+            this.tasksModel,
+            this.userModel,
+            this.jwtService,
+            this.jwtBlacklistService
+        );
+        return await tasksRoutes.build();
+    }
+
     private buildSeedRoutes() {
         const seedRoutes = new SeedRoutes(
             this.configService,
@@ -90,6 +107,7 @@ export class AppRoutes {
 
         router.use(this.buildGlobalMiddlewares());
         router.use('/api/users', await this.buildUserRoutes());
+        router.use('/api/tasks', await this.buildTasksRoutes());
 
         if (this.configService.NODE_ENV === 'development')
             router.use('/seed', this.buildSeedRoutes());
