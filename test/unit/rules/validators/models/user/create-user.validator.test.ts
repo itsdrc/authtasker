@@ -4,7 +4,7 @@ import { CreateUserValidator } from "@root/rules/validators/models/user";
 import { UserDataGenerator } from "@root/seed/generators/user.generator";
 
 describe('CreateUserValidator', () => {
-    const dataGenerator = new UserDataGenerator({ respectMinAndMaxLength: true });
+    const dataGenerator = new UserDataGenerator();
 
     describe('Name', () => {
         describe('Name is missing', () => {

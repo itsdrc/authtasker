@@ -4,43 +4,48 @@ import { USER_CONSTANTS as CONSTS } from "@root/rules/constants/user.constants";
 
 export class UserDataGenerator {
 
-    constructor(private readonly seedOptions: {
-        respectMinAndMaxLength: boolean
-    }) {}
+    constructor() {}
+
+    private generateRandomName() {
+        const randomSufix = faker.number.int({ max: 100 });
+
+        // generated a number between 0 and 1
+        const random = Math.round(Math.random());
+
+        const randomName = (random === 0) ?
+            faker.internet.username() :
+            faker.person.firstName();
+
+        return randomName
+            .concat(randomSufix.toString());
+    }
 
     name() {
         let name: string;
-        if (this.seedOptions.respectMinAndMaxLength) {
-            let generated: string;
-            do {
-                // generated a number between 0 and 1
-                const random = Math.round(Math.random());
-                if (random === 0)
-                    generated = faker.internet.username();
-                else
-                    generated = faker.person.firstName();
-            } while (
-                generated.length < CONSTS.MIN_NAME_LENGTH ||
-                generated.length > CONSTS.MAX_NAME_LENGTH
-            )
-            name = generated;
-        } else {
-            name = faker.person.fullName().toLowerCase();
-        }
+
+        do {
+            name = this.generateRandomName();
+        } while (
+            name.length > CONSTS.MAX_NAME_LENGTH ||
+            name.length < CONSTS.MIN_NAME_LENGTH
+        )
+
         return name
             .toLowerCase()
             .trim();
     }
 
     email() {
-        return faker.internet.email();
+        return faker
+            .internet
+            .email();
     }
 
     password() {
-        if (this.seedOptions.respectMinAndMaxLength) {
-            return faker.internet.password({ length: CONSTS.MIN_PASSWORD_LENGTH });
-        } else {
-            return faker.internet.password();
-        }
+        return faker
+            .internet
+            .password({
+                length: CONSTS.MAX_PASSWORD_LENGTH
+            });
     }
 }

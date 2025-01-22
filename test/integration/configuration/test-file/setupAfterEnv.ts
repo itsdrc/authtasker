@@ -40,7 +40,7 @@ beforeAll(async () => {
     global.SERVER_APP = server['app'];
 
     // data generator for tests
-    const dataGenerator = new UserDataGenerator({ respectMinAndMaxLength: true });
+    const dataGenerator = new UserDataGenerator();
     global.USER_DATA_GENERATOR = dataGenerator;
 
     // hash passwords when users in tests are created

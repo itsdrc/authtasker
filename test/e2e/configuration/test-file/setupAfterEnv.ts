@@ -7,7 +7,7 @@ beforeAll(() => {
     // disable info logs during tests
     jest.spyOn(SystemLoggerService, 'info').mockImplementation();
 
-    const dataGenerator = new UserDataGenerator({ respectMinAndMaxLength: true });
+    const dataGenerator = new UserDataGenerator();
 
     global.ADMIN_TOKEN = readAdminToken();
     global.REGISTER_USER_PATH = `${process.env.WEB_URL}/api/users/create`;

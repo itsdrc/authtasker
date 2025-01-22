@@ -4,7 +4,7 @@ import { UpdateUserValidator } from "@root/rules/validators/models/user/update-u
 import { UserDataGenerator } from "@root/seed/generators/user.generator";
 
 describe('Update User validator', () => {
-    const dataGenerator = new UserDataGenerator({ respectMinAndMaxLength: true });
+    const dataGenerator = new UserDataGenerator();
 
     describe('No properties provided', () => {
         test('should return an error indicating at least one property is needed', async () => {

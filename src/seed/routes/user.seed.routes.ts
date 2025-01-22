@@ -19,7 +19,7 @@ export class UserSeedRoutes {
     ) {}
 
     get routes() {
-        const userDataGenerator = new UserDataGenerator({ respectMinAndMaxLength: false });
+        const userDataGenerator = new UserDataGenerator();
 
         const userSeedService = new UserSeedService(
             this.configService,
