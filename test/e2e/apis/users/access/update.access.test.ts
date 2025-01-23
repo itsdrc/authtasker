@@ -5,7 +5,7 @@ import { createAdmin } from "../../../helpers/admin/create-admin";
 describe('Access', () => {
     describe('Update user', () => {
         describe('Token not provided', () => {
-            test('can not access this feature (401 FORBIDDEN)', async () => {
+            test('can not access this feature (401 UNAUTHORIZED)', async () => {
                 const expectedStatus = 401;
                 try {
                     await axios.patch(`${global.USERS_PATH}/12345`);
