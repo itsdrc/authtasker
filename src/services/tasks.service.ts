@@ -35,4 +35,20 @@ export class TasksService {
             this.handlePossibleDuplicatedKeyError(error);
         }
     }
+
+    async findOne(id: string) {
+        let taskFound;
+
+        if (Types.ObjectId.isValid(id)) {
+            taskFound = await this.tasksModel
+                .findById(id)
+                .exec();
+        }
+
+        // id is not valid / task not found
+        if (!taskFound)
+            throw HttpError.notFound(`Task with id ${id} not found`);
+
+        return taskFound;
+    }
 }

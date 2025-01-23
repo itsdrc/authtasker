@@ -42,7 +42,16 @@ export class TasksRoutes {
             this.jwtBlacklistService,
         );
 
+        const readonlyMiddleware = rolesMiddlewareFactory(
+            'readonly',
+            this.userModel,
+            this.loggerService,
+            this.jwtService,
+            this.jwtBlacklistService,
+        )
+
         router.post('/create', editorMiddleware, this.tasksController.create);
+        router.get('/:id', readonlyMiddleware, this.tasksController.findOne);
 
         return router;
     }

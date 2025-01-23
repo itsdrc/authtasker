@@ -40,4 +40,14 @@ export class TasksController {
             handleError(res, error, this.loggerService);
         }
     }
+
+    readonly findOne = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const id = req.params.id;
+            const taskFound = await this.tasksService.findOne(id);
+            res.status(HTTP_STATUS_CODE.OK).json(taskFound);
+        } catch (error) {
+            handleError(res, error, this.loggerService);
+        }
+    }
 }
