@@ -2,7 +2,7 @@ import { ITasks } from "@root/interfaces/tasks/task.interface";
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { TasksService } from "@root/services/tasks.service";
 import { mock, MockProxy } from "jest-mock-extended";
-import { Model, Query } from "mongoose";
+import { Model, Query, Types } from "mongoose";
 import { FindMockQuery } from "../helpers/types/find-mock-query.type";
 import { LoggerService } from "@root/services";
 
@@ -65,6 +65,59 @@ describe('Tasks Service', () => {
                 const result = await tasksService.create({} as any, 'test user id');
 
                 expect(result).toBe(createdTaskMock);
+            });
+        });
+    });
+
+    describe('Find one', () => {
+        describe('provided id is not valid', () => {
+            test('should throw not found exception', async () => {
+                const expectedErrorStatus = 404;
+                const invalidMongoId = '123abc';
+                const expectedErrorMessage = `Task with id ${invalidMongoId} not found`;
+
+                expect(tasksService.findOne(invalidMongoId))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('task is not found', () => {
+            test('should throw not found exception', async () => {
+                const expectedErrorStatus = 404;
+                const mongoID = new Types.ObjectId();
+                const expectedErrorMessage = `Task with id ${mongoID.toString()} not found`;
+
+                tasksModel
+                    .findById()
+                    .exec
+                    .mockResolvedValue(null);
+
+                expect(tasksService.findOne(mongoID.toString()))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+
+        describe('Operation success', () => {
+            test('should return the task found', async () => {
+                // mock task found
+                const taskFound = 'mock-taskFound';
+                tasksModel
+                    .findById()
+                    .exec
+                    .mockResolvedValue(taskFound);
+
+                const mongoID = new Types.ObjectId();
+                const found = await tasksService.findOne(mongoID.toString())
+
+                expect(found).toBe(taskFound);
             });
         });
     });
