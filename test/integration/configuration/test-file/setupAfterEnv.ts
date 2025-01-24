@@ -5,7 +5,9 @@ import { MongoDatabase } from "@root/databases/mongo/mongo.database";
 import { Server } from "@root/server/server.init";
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { UserDataGenerator } from "@root/seed/generators/user.generator";
-import * as ModelLoader from "@root/databases/mongo/models/users/user.model.load";
+import { TasksDataGenerator } from "@root/seed/generators/tasks.generator";
+import * as UserModelLoader from "@root/databases/mongo/models/user.model.load";
+import * as TasksModelLoader from "@root/databases/mongo/models/tasks.model.load";
 
 let redisService: RedisService;
 
@@ -18,9 +20,15 @@ beforeAll(async () => {
     global.CONFIG_SERVICE = configService;
 
     // mock to always return the same model (models can not be compiled twice)
-    const userModel = ModelLoader.loadUserModel(configService);
-    jest.spyOn(ModelLoader, 'loadUserModel').mockImplementation(() => userModel);
+    const userModel = UserModelLoader.loadUserModel(configService);
+    jest.spyOn(UserModelLoader, 'loadUserModel')
+        .mockImplementation(() => userModel);
     global.USER_MODEL = userModel;
+
+    const tasksModel = TasksModelLoader.loadTasksModel(configService);
+    jest.spyOn(TasksModelLoader, 'loadTasksModel')
+        .mockImplementation(() => tasksModel);
+    global.TASKS_MODEL = tasksModel;
 
     const connected = await MongoDatabase.connect(configService.MONGO_URI);
     if (!connected)
@@ -43,6 +51,9 @@ beforeAll(async () => {
     const dataGenerator = new UserDataGenerator();
     global.USER_DATA_GENERATOR = dataGenerator;
 
+    const tasksDataGenerator = new TasksDataGenerator();
+    global.TASKS_DATA_GENERATOR = tasksDataGenerator;
+
     // hash passwords when users in tests are created
     const hashingService = new HashingService(configService.BCRYPT_SALT_ROUNDS);
     global.HASHING_SERVICE = hashingService;
@@ -51,6 +62,8 @@ beforeAll(async () => {
     global.REGISTER_USER_PATH = `/api/users/create`;
     global.LOGIN_USER_PATH = `/api/users/login`;
     global.USERS_PATH = `/api/users`;
+    global.CREATE_TASK_PATH = '/api/tasks/create';
+    global.TASKS_PATH = '/api/tasks/';
 });
 
 afterAll(async () => {
