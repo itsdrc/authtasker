@@ -13,13 +13,13 @@ import {
 } from "@root/services";
 import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
 import { IUser } from "@root/interfaces/user/user.interface";
-import { loadUserModel } from "@root/databases/mongo/models/users/user.model.load";
+import { loadUserModel } from "@root/databases/mongo/models/user.model.load";
 import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
 import { SeedRoutes } from "@root/seed/routes/seed.routes";
 import { UserRoutes } from "./user.routes";
 import { TasksRoutes } from "./tasks.routes";
 import { ITasks } from "@root/interfaces/tasks/task.interface";
-import { loadTasksModel } from "@root/databases/mongo/models/tasks/tasks.model.load";
+import { loadTasksModel } from "@root/databases/mongo/models/tasks.model.load";
 
 export class AppRoutes {
 

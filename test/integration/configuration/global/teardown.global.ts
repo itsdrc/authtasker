@@ -1,4 +1,4 @@
-import { loadUserModel } from "@root/databases/mongo/models/users/user.model.load";
+import { loadUserModel } from "@root/databases/mongo/models/user.model.load";
 import { MongoDatabase } from "@root/databases/mongo/mongo.database";
 import { ConfigService } from "@root/services";
 import { SystemLoggerService } from "@root/services/system-logger.service";

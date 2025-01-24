@@ -1,5 +1,5 @@
 import { HydratedDocument } from "mongoose";
-import { loadUserModel } from "@root/databases/mongo/models/users/user.model.load";
+import { loadUserModel } from "@root/databases/mongo/models/user.model.load";
 import { ConfigService } from "@root/services/config.service";
 import { HashingService } from "@root/services/hashing.service";
 import { IUser } from "@root/interfaces/user/user.interface";

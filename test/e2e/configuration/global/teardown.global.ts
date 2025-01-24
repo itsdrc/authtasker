@@ -1,4 +1,4 @@
-import { loadUserModel } from "@root/databases/mongo/models/users/user.model.load";
+import { loadUserModel } from "@root/databases/mongo/models/user.model.load";
 import { MongoDatabase } from "@root/databases/mongo/mongo.database"
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { removeAdminTokenIfExists } from "../../helpers/admin/token/remove-admin-token.helper";
