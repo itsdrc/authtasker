@@ -38,6 +38,22 @@ describe('POST/', () => {
 
             expect(taskInDb).toBeDefined();
         });
+        
+        describe('Token not provided', () => {
+            test('should return status 401 UNAUTHORIZED', async () => {
+                const expectedStatus = 401;
+
+                await request(global.SERVER_APP)
+                    .post(global.CREATE_TASK_PATH)
+                    .send({
+                        name: global.TASKS_DATA_GENERATOR.name(),
+                        description: global.TASKS_DATA_GENERATOR.description(),
+                        status: global.TASKS_DATA_GENERATOR.status(),
+                        priority: global.TASKS_DATA_GENERATOR.priority(),
+                    })                    
+                    .expect(expectedStatus);
+            });
+        });
 
         describe('When task is saved in database', () => {
             test('task name should be converted to lowercase', async () => {
