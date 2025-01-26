@@ -9,7 +9,8 @@ import {
     JwtBlackListService,
     JwtService,
     LoggerService,
-    RedisService
+    RedisService,
+    UserService
 } from "@root/services";
 import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
 import { IUser } from "@root/interfaces/user/user.interface";
@@ -20,6 +21,9 @@ import { UserRoutes } from "./user.routes";
 import { TasksRoutes } from "./tasks.routes";
 import { ITasks } from "@root/interfaces/tasks/task.interface";
 import { loadTasksModel } from "@root/databases/mongo/models/tasks.model.load";
+import { TasksService } from "@root/services/tasks.service";
+import { rolesMiddlewareFactory } from "@root/middlewares/roles.middleware";
+import { RolesMiddlewares } from "@root/types/middlewares/roles.middlewares.type";
 
 export class AppRoutes {
 
@@ -29,6 +33,9 @@ export class AppRoutes {
     private readonly userModel: Model<IUser>;
     private readonly tasksModel: Model<ITasks>;
     private readonly jwtBlacklistService: JwtBlackListService;
+    private readonly userService: UserService;
+    private readonly tasksService: TasksService;
+    private readonly rolesMiddlewares: RolesMiddlewares;
 
     constructor(
         private readonly configService: ConfigService,
@@ -36,17 +43,14 @@ export class AppRoutes {
         private readonly asyncLocalStorage: AsyncLocalStorage<IAsyncLocalStorageStore>,
         private readonly redisService: RedisService,
     ) {
-        this.jwtService = new JwtService(
-            this.configService.JWT_PRIVATE_KEY,
-        );
-
-        this.hashingService = new HashingService(
-            this.configService.BCRYPT_SALT_ROUNDS
-        );
-
+        // models
         this.userModel = loadUserModel(this.configService);
         this.tasksModel = loadTasksModel(this.configService);
 
+        // services
+        this.jwtService = new JwtService(this.configService.JWT_PRIVATE_KEY);
+        this.hashingService = new HashingService(this.configService.BCRYPT_SALT_ROUNDS);
+        this.jwtBlacklistService = new JwtBlackListService(this.redisService);
         if (this.configService.mailServiceIsDefined()) {
             this.emailService = new EmailService({
                 host: this.configService.MAIL_SERVICE_HOST,
@@ -55,7 +59,50 @@ export class AppRoutes {
                 pass: this.configService.MAIL_SERVICE_PASS,
             });
         }
-        this.jwtBlacklistService = new JwtBlackListService(redisService);
+
+        // roles middlewares
+        this.rolesMiddlewares = {
+            readonly: rolesMiddlewareFactory(
+                'readonly',
+                this.userModel,
+                this.loggerService,
+                this.jwtService,
+                this.jwtBlacklistService,
+            ),
+
+            editor: rolesMiddlewareFactory(
+                'editor',
+                this.userModel,
+                this.loggerService,
+                this.jwtService,
+                this.jwtBlacklistService,
+            ),
+
+            admin: rolesMiddlewareFactory(
+                'admin',
+                this.userModel,
+                this.loggerService,
+                this.jwtService,
+                this.jwtBlacklistService,
+            ),
+        };
+
+        // api services
+        this.userService = new UserService(
+            this.configService,
+            this.userModel,
+            this.hashingService,
+            this.jwtService,
+            this.jwtBlacklistService,
+            this.loggerService,
+            this.emailService
+        );
+
+        this.tasksService = new TasksService(
+            this.loggerService,
+            this.tasksModel,
+            this.userService,
+        );
     }
 
     private buildGlobalMiddlewares() {
@@ -69,25 +116,21 @@ export class AppRoutes {
 
     private async buildUserRoutes(): Promise<Router> {
         const userRoutes = new UserRoutes(
+            this.userService,
             this.configService,
             this.userModel,
             this.hashingService,
-            this.jwtService,
-            this.jwtBlacklistService,
             this.loggerService,
-            this.emailService,
+            this.rolesMiddlewares,
         );
         return await userRoutes.build();
     }
 
     private async buildTasksRoutes(): Promise<Router> {
         const tasksRoutes = new TasksRoutes(
+            this.tasksService,
             this.loggerService,
-            this.configService,
-            this.tasksModel,
-            this.userModel,
-            this.jwtService,
-            this.jwtBlacklistService
+            this.rolesMiddlewares,
         );
         return await tasksRoutes.build();
     }
@@ -109,8 +152,9 @@ export class AppRoutes {
         router.use('/api/users', await this.buildUserRoutes());
         router.use('/api/tasks', await this.buildTasksRoutes());
 
-        if (this.configService.NODE_ENV === 'development')
+        if (this.configService.NODE_ENV === 'development') {
             router.use('/seed', this.buildSeedRoutes());
+        }
 
         return router;
     }
