@@ -1,9 +1,87 @@
 import request from "supertest";
-import { getSessionToken } from "../../../helpers/token/session.token";
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
+import { getSessionToken } from "../../helpers/token/session.token";
 
 describe('GET/', () => {
     describe('Find task by id', () => {
+        describe('Authentication/Authorization', () => {
+            describe('Token not provided', () => {
+                test('should return status 401 UNAUTHORIZED', async () => {
+                    const expectedStatus = 401;
+
+                    await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}/123`)
+                        .expect(expectedStatus);
+                });
+            });
+            
+            describe('User role is readonly', () => {
+                test('should be able to access this feature', async () => {
+                    // create a readonly user
+                    const userCreated = await global.USER_MODEL.create({
+                        name: global.USER_DATA_GENERATOR.name(),
+                        email: global.USER_DATA_GENERATOR.email(),
+                        password: 'secret-password',
+                        role: 'readonly'
+                    });
+
+                    const userReadonlyToken = getSessionToken(userCreated.id);
+
+                    // we expect not found because the task does not exist
+                    const expectedStatus = 404;
+
+                    await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}/${new mongoose.Types.ObjectId()}`)
+                        .set('Authorization', `Bearer ${userReadonlyToken}`)
+                        .expect(expectedStatus);
+                });
+            });
+
+            describe('User role is editor', () => {
+                test('should be able to access this feature', async () => {
+                    // create an editor user
+                    const userCreated = await global.USER_MODEL.create({
+                        name: global.USER_DATA_GENERATOR.name(),
+                        email: global.USER_DATA_GENERATOR.email(),
+                        password: 'secret-password',
+                        role: 'editor'
+                    });
+
+                    const userEditorToken = getSessionToken(userCreated.id);
+
+                    // we expect not found because the task does not exist
+                    const expectedStatus = 404;
+
+                    await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}/${new mongoose.Types.ObjectId()}`)
+                        .set('Authorization', `Bearer ${userEditorToken}`)
+                        .expect(expectedStatus);
+                });
+            });
+
+            describe('User role is administrator', () => {
+                test('should be able to access this feature', async () => {
+                    // create an administrator user
+                    const userCreated = await global.USER_MODEL.create({
+                        name: global.USER_DATA_GENERATOR.name(),
+                        email: global.USER_DATA_GENERATOR.email(),
+                        password: 'secret-password',
+                        role: 'admin'
+                    });
+
+                    const userAdministratorToken = getSessionToken(userCreated.id);
+
+                    // we expect not found because the task does not exist
+                    const expectedStatus = 404;
+
+                    await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}/${new mongoose.Types.ObjectId()}`)
+                        .set('Authorization', `Bearer ${userAdministratorToken}`)
+                        .expect(expectedStatus);
+                });
+            });
+        });      
+
         describe('Task is found', () => {
             test('should return the expected task and status 200 OK', async () => {
                 const expectedStatus = 200;
@@ -39,17 +117,6 @@ describe('GET/', () => {
                 expect(taskFound.body.description).toBe(createdTask.description);
                 expect(taskFound.body.status).toBe(createdTask.status);
                 expect(taskFound.body.priority).toBe(createdTask.priority);
-            });
-        });
-
-        // ensures roles middleware is applied
-        describe('Token not provided', () => {
-            test('should return status 401 UNAUTHORIZED', async () => {
-                const expectedStatus = 401;
-
-                await request(global.SERVER_APP)
-                    .get(`${global.USERS_PATH}/123`)
-                    .expect(expectedStatus);
             });
         });
 
