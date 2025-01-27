@@ -108,7 +108,7 @@ describe('POST/', () => {
             });
         });
 
-        describe('Database', () => {
+        describe('Task saved in database', () => {
             test('task name should be converted to lowercase', async () => {
                 // create an editor user
                 const userCreated = await global.USER_MODEL.create({
