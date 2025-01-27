@@ -27,6 +27,7 @@ export class TasksController {
                 if (requestUserInfo) {
                     const created = await this.tasksService.create(validatedTask, requestUserInfo.id);
                     res.status(HTTP_STATUS_CODE.CREATED).json(created);
+                    return;
                 }
 
             } else {
@@ -46,6 +47,20 @@ export class TasksController {
             const id = req.params.id;
             const taskFound = await this.tasksService.findOne(id);
             res.status(HTTP_STATUS_CODE.OK).json(taskFound);
+        } catch (error) {
+            handleError(res, error, this.loggerService);
+        }
+    }
+
+    readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const id = req.params.id;
+            const requestUserInfo = getUserInfoOrHandleError(req, res);
+            if (requestUserInfo) {
+                await this.tasksService.deleteOne(requestUserInfo, id);
+                res.status(HTTP_STATUS_CODE.NO_CONTENT).end()
+                return;
+            }            
         } catch (error) {
             handleError(res, error, this.loggerService);
         }
