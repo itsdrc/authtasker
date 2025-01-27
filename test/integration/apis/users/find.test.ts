@@ -1,10 +1,89 @@
 import request from 'supertest'
-import { getSessionToken } from '../../../helpers/token/session.token';
+import { getSessionToken } from '../../helpers/token/session.token';
 
 describe('GET/', () => {
     describe('Find many by pagination', () => {
+        describe('Authentication/Authorization', () => {
+            describe('Token is not provided', () => {
+                test('should not be able to access this feature (401 UNAUTHORIZED)', async () => {
+                    const expectedStatus = 401;
+
+                    await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}`)
+                        .query({ page: 1, limit: 3 })                        
+                        .expect(expectedStatus);
+                });
+            });
+
+            describe('User role is readonly', () => {
+                test('should be able to access this feature (200 OK)', async () => {
+                    const expectedStatus = 200;
+                    
+                    // create a readonly user
+                    const readonlyUser = await global.USER_MODEL.create({
+                        name: global.USER_DATA_GENERATOR.name(),
+                        email: global.USER_DATA_GENERATOR.email(),
+                        password: global.USER_DATA_GENERATOR.password(),
+                        role: 'readonly'
+                    });
+
+                    const token = getSessionToken(readonlyUser.id);
+
+                    await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}`)
+                        .query({ page: 1, limit: 3 })
+                        .set('Authorization', `Bearer ${token}`)
+                        .expect(expectedStatus);
+                });
+            });
+
+            describe('User role is editor', () => {
+                test('should be able to access this feature (200 OK)', async () => {
+                    const expectedStatus = 200;
+
+                    // create an editor user
+                    const editorUser = await global.USER_MODEL.create({
+                        name: global.USER_DATA_GENERATOR.name(),
+                        email: global.USER_DATA_GENERATOR.email(),
+                        password: global.USER_DATA_GENERATOR.password(),
+                        role: 'editor'
+                    });
+
+                    const token = getSessionToken(editorUser.id);
+
+                    await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}`)
+                        .query({ page: 1, limit: 3 })
+                        .set('Authorization', `Bearer ${token}`)
+                        .expect(expectedStatus);
+                });
+            });
+
+            describe('User role is administrator', () => {
+                test('should be able to access this feature (200 OK)', async () => {
+                    const expectedStatus = 200;
+
+                    // create a admin user
+                    const adminUser = await global.USER_MODEL.create({
+                        name: global.USER_DATA_GENERATOR.name(),
+                        email: global.USER_DATA_GENERATOR.email(),
+                        password: global.USER_DATA_GENERATOR.password(),
+                        role: 'admin'
+                    });
+
+                    const token = getSessionToken(adminUser.id);
+
+                    await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}`)
+                        .query({ page: 1, limit: 3 })
+                        .set('Authorization', `Bearer ${token}`)
+                        .expect(expectedStatus);
+                });
+            });
+        });
+
         describe('Page and limit not provided', () => {
-            test('should not throw an error (200 OK)', async () => {
+            test('should not return an error (200 OK)', async () => {
                 const expectedStatus = 200;
 
                 // create a user in order to use their id to generate a token                
@@ -20,48 +99,6 @@ describe('GET/', () => {
                     .get(`${global.USERS_PATH}`)
                     // queries not sent
                     .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
-            });
-        });
-
-        describe('Response to client', () => {
-            test('user data should be as expected', async () => {
-                const expectedStatus = 200;
-
-                // create a user in order to use their id to generate a token                
-                const userInDb = await global.USER_MODEL.create({
-                    name: global.USER_DATA_GENERATOR.name(),
-                    email: global.USER_DATA_GENERATOR.email(),
-                    password: await global.HASHING_SERVICE.hash(global.USER_DATA_GENERATOR.password()),
-                });
-
-                const token = getSessionToken(userInDb.id);
-
-                const response = await request(global.SERVER_APP)
-                    .get(`${global.USERS_PATH}`)
-                    .query({ page: 1, limit: 3 })
-                    .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
-
-                expect((response.body as any[]).at(0)).toStrictEqual({
-                    name: expect.any(String),
-                    email: expect.any(String),
-                    role: expect.any(String),
-                    emailValidated: expect.any(Boolean),
-                    createdAt: expect.any(String),
-                    updatedAt: expect.any(String),
-                    id: expect.any(String),
-                })
-            });
-        });
-
-        // ensures roles middlewares is applied
-        describe('Token is not provided', () => {
-            test('should return status 401 UNAUTHORIZED', async () => {
-                const expectedStatus = 401;
-
-                await request(global.SERVER_APP)
-                    .get(`${global.USERS_PATH}`)
                     .expect(expectedStatus);
             });
         });

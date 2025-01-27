@@ -1,6 +1,5 @@
 import request from 'supertest';
-import { JwtService } from '@root/services';
-import { jwtService } from '../../../helpers/token/jwt-service';
+import { jwtService } from '../../helpers/token/jwt-service';
 
 describe('POST/', () => {
     describe('Login', () => {

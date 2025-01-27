@@ -1,6 +1,6 @@
 import { HashingService, JwtService } from '@root/services';
 import request from 'supertest';
-import { jwtService } from '../../../helpers/token/jwt-service';
+import { jwtService } from '../../helpers/token/jwt-service';
 
 describe('POST/', () => {
     describe('Register', () => {
@@ -19,7 +19,7 @@ describe('POST/', () => {
                 .expect(expectedStatus);
         });
 
-        describe('When save user in db', () => {
+        describe('Database', () => {
             test('name should be converted to lowercase', async () => {
                 const user = {
                     name: global.USER_DATA_GENERATOR.name(),
