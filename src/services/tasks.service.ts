@@ -34,13 +34,18 @@ export class TasksService {
         const taskCreatorId = task.user.toString();
         const taskCreator = await this.userService.findOne(taskCreatorId);
 
-        // administrators can not modify other administrators tasks
-        if (requestUserInfo.role === 'admin') {
-            return (taskCreator.role === 'admin') ? null : task;
+        let isTaskCreator = (requestUserInfo.id === taskCreatorId);
+
+        if (isTaskCreator) {
+            return task;
+        } else {
+            // administrators can not modify other administrators tasks
+            if (requestUserInfo.role === 'admin') {
+                return (taskCreator.role === 'admin') ? null : task;
+            }
         }
 
-        // modification is allowed if users update their own tasks
-        return (requestUserInfo.id === taskCreatorId) ? task : null;
+        return null;
     }
 
     async create(task: CreateTaskValidator, user: string): Promise<HydratedDocument<ITasks>> {
