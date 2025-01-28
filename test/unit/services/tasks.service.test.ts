@@ -2,13 +2,15 @@ import { ITasks } from "@root/interfaces/tasks/task.interface";
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { TasksService } from "@root/services/tasks.service";
 import { mock, MockProxy } from "jest-mock-extended";
-import { Model, Query, Types } from "mongoose";
+import mongoose, { Model, Mongoose, Query, Types } from "mongoose";
 import { FindMockQuery } from "../helpers/types/find-mock-query.type";
-import { LoggerService } from "@root/services";
+import { LoggerService, UserService } from "@root/services";
+import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 
 describe('Tasks Service', () => {
     let tasksService: TasksService;
     let tasksModel: FindMockQuery<MockProxy<Model<ITasks>>>;
+    let userService: MockProxy<UserService>;
 
     beforeAll(() => {
         SystemLoggerService.info = jest.fn();
@@ -18,9 +20,11 @@ describe('Tasks Service', () => {
 
     beforeEach(() => {
         tasksModel = (mock<Model<ITasks>>() as any);
+        userService = mock<UserService>();
         tasksService = new TasksService(
             mock<LoggerService>(),
             tasksModel as any,
+            userService
         );
 
         // this allows, for example, findOne().exec() to be a mock...
@@ -118,6 +122,25 @@ describe('Tasks Service', () => {
                 const found = await tasksService.findOne(mongoID.toString())
 
                 expect(found).toBe(taskFound);
+            });
+        });
+    });
+
+    describe('Delete one', () => {
+        describe('Modification is not authorized', () => {
+            test('should throw forbidden error', async () => {
+                const expectedErrorStatus = 403
+                const expectedErrorMessage = FORBIDDEN_MESSAGE;
+
+                jest.spyOn(tasksService as any, 'isModificationAuthorized')
+                    .mockResolvedValue(null);
+
+                expect(tasksService.deleteOne({} as any, 'test id'))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
             });
         });
     });
