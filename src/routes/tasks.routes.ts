@@ -25,6 +25,7 @@ export class TasksRoutes {
         router.post('/create', this.rolesMiddlewares.editor, this.tasksController.create);
         router.delete('/:id', this.rolesMiddlewares.editor, this.tasksController.deleteOne);
         router.get('/:id', this.rolesMiddlewares.readonly, this.tasksController.findOne);
+        router.patch('/:id', this.rolesMiddlewares.editor, this.tasksController.updateOne);
 
         return router;
     }

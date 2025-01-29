@@ -6,6 +6,7 @@ import { HttpError } from "@root/rules/errors/http.error";
 import { UserRole } from "@root/types/user/user-roles.type";
 import { UserService } from "./user.service";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
+import { UpdateTaskValidator } from "@root/rules/validators/models/tasks/update-task.validator";
 
 export class TasksService {
 
@@ -86,5 +87,25 @@ export class TasksService {
 
         await task.deleteOne().exec();
         this.loggerService.info(`Task ${id} deleted`);
+    }
+
+    async updateOne(requestUserInfo: { id: string, role: UserRole }, id: string, task: UpdateTaskValidator): Promise<HydratedDocument<ITasks>> {
+        try {
+            const taskToUpdate = await this.isModificationAuthorized(requestUserInfo, id);
+
+            if (!taskToUpdate) {
+                this.loggerService.error('User is not authorized to perform this action');
+                throw HttpError.forbidden(FORBIDDEN_MESSAGE);
+            }
+
+            this.loggerService.info(`Task ${id} updated`);
+
+            Object.assign(taskToUpdate, task);
+            await taskToUpdate.save();
+
+            return taskToUpdate;
+        } catch (error) {
+            this.handlePossibleDuplicatedKeyError(error);
+        }
     }
 }

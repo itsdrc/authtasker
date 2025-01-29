@@ -144,4 +144,23 @@ describe('Tasks Service', () => {
             });
         });
     });
+
+    describe('Update one', () => {
+        describe('Modification is not authorized', () => {
+            test('should throw forbidden error', async () => {
+                const expectedErrorStatus = 403
+                const expectedErrorMessage = FORBIDDEN_MESSAGE;
+
+                jest.spyOn(tasksService as any, 'isModificationAuthorized')
+                    .mockResolvedValue(null);
+
+                expect(tasksService.updateOne({} as any, 'test id', {}))
+                    .rejects
+                    .toThrow(expect.objectContaining({
+                        statusCode: expectedErrorStatus,
+                        message: expectedErrorMessage
+                    }));
+            });
+        });
+    });
 });

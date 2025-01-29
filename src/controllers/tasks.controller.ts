@@ -5,6 +5,7 @@ import { handleError } from "@root/common/handlers/error.handler";
 import { CreateTaskValidator } from "@root/rules/validators/models/tasks/create-task.validator";
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { getUserInfoOrHandleError } from "./handlers/get-user-info.handler";
+import { UpdateTaskValidator } from "@root/rules/validators/models/tasks/update-task.validator";
 
 export class TasksController {
 
@@ -61,6 +62,28 @@ export class TasksController {
                 res.status(HTTP_STATUS_CODE.NO_CONTENT).end()
                 return;
             }            
+        } catch (error) {
+            handleError(res, error, this.loggerService);
+        }
+    }
+
+    readonly updateOne = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const id = req.params.id;
+            const [error, validatedTask] = await UpdateTaskValidator
+                .validateAndTransform(req.body);
+
+            if (validatedTask) {
+                const requestUserInfo = getUserInfoOrHandleError(req, res);
+                if (requestUserInfo) {
+                    const updated = await this.tasksService.updateOne(requestUserInfo, id, validatedTask);
+                    res.status(HTTP_STATUS_CODE.OK).json(updated);
+                    return;
+                }
+            } else {
+                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
+                return;
+            }
         } catch (error) {
             handleError(res, error, this.loggerService);
         }
