@@ -1,5 +1,6 @@
 import request from "supertest";
 import { getSessionToken } from "../../helpers/token/session.token";
+import mongoose from "mongoose";
 
 describe('DELETE/', () => {
     describe('Delete one', () => {
@@ -386,20 +387,82 @@ describe('DELETE/', () => {
 
         describe('Process success', () => {
             test('task should be removed from database', async () => {
+                // create an editor user
+                const editorUser = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: 'secret-password',
+                    role: 'editor',
+                });
 
+                // create a task for the editor user
+                const task = await global.TASKS_MODEL.create({
+                    name: global.TASKS_DATA_GENERATOR.name(),
+                    description: global.TASKS_DATA_GENERATOR.description(),
+                    status: global.TASKS_DATA_GENERATOR.status(),
+                    priority: global.TASKS_DATA_GENERATOR.priority(),
+                    user: editorUser.id,
+                });
+
+                const token = getSessionToken(editorUser.id);
+                const taskId = task.id;
+
+                // delete task
+                await request(global.SERVER_APP)
+                    .delete(`${global.TASKS_PATH}/${taskId}`)
+                    .set('Authorization', `Bearer ${token}`);
+
+                // find task in database
+                const taskFound = await global.TASKS_MODEL
+                    .findById(taskId)
+                    .exec();
+
+                expect(taskFound).toBeNull();
             });
         });
 
         describe('Client request', () => {
             describe('Id is not valid', () => {
                 test('should return status 404 NOT FOUND', async () => {
+                    const expectedStatus = 404;
 
+                    // create a user in order to get a valid token
+                    const editorUser = await global.USER_MODEL.create({
+                        name: global.USER_DATA_GENERATOR.name(),
+                        email: global.USER_DATA_GENERATOR.email(),
+                        password: 'secret-password',
+                        role: 'editor',
+                    });
+
+                    const token = getSessionToken(editorUser.id);
+                    const invalidId = '123';
+
+                    await request(global.SERVER_APP)
+                        .delete(`${global.TASKS_PATH}/${invalidId}`)
+                        .set('Authorization', `Bearer ${token}`)
+                        .expect(expectedStatus);
                 });
             });
 
-            describe('User is not found', () => {
+            describe('Task is not found', () => {
                 test('should return status 404 NOT FOUND', async () => {
+                    const expectedStatus = 404;
 
+                    // create a user in order to get a valid token
+                    const editorUser = await global.USER_MODEL.create({
+                        name: global.USER_DATA_GENERATOR.name(),
+                        email: global.USER_DATA_GENERATOR.email(),
+                        password: 'secret-password',
+                        role: 'editor',
+                    });
+
+                    const token = getSessionToken(editorUser.id);
+                    const validMongooseId = new mongoose.Types.ObjectId();
+
+                    await request(global.SERVER_APP)
+                        .delete(`${global.TASKS_PATH}/${validMongooseId}`)
+                        .set('Authorization', `Bearer ${token}`)
+                        .expect(expectedStatus);
                 });
             });
         });
