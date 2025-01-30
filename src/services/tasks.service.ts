@@ -120,6 +120,16 @@ export class TasksService {
             .exec();
     }
 
+    async findAllByUser(userId: string){
+        const userExists = await this.userService.findOne(userId);
+
+        const tasks = await this.tasksModel
+            .find({ user: userId })
+            .exec();
+
+        return tasks;
+    }
+
     async deleteOne(requestUserInfo: { id: string, role: UserRole }, id: string): Promise<void> {
         const task = await this.isModificationAuthorized(requestUserInfo, id);
 

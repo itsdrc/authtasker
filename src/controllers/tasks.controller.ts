@@ -65,6 +65,16 @@ export class TasksController {
         }
     }
 
+    readonly findAllByUser = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const userId = req.params.id;
+            const tasksFound = await this.tasksService.findAllByUser(userId);
+            res.status(HTTP_STATUS_CODE.OK).json(tasksFound);
+        } catch (error) {
+            handleError(res, error,this.loggerService);
+        }
+    }
+
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
         try {
             const id = req.params.id;
