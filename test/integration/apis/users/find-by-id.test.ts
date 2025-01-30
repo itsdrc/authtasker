@@ -27,10 +27,12 @@ describe('GET/', () => {
                         role: 'readonly'
                     });
 
+                    const readonlyUserId = readonlyUser.id;
+
                     const token = getSessionToken(readonlyUser.id);
 
                     await request(global.SERVER_APP)
-                        .get(`${global.USERS_PATH}/12345`)
+                        .get(`${global.USERS_PATH}/${readonlyUserId}`)
                         .set('Authorization', `Bearer ${token}`)
                         .expect(expectedStatus);
                 }); 
@@ -49,9 +51,10 @@ describe('GET/', () => {
                     });
 
                     const token = getSessionToken(editorUser.id);
+                    const editorUserId = editorUser.id;
 
                     await request(global.SERVER_APP)
-                        .get(`${global.USERS_PATH}/12345`)
+                        .get(`${global.USERS_PATH}/${editorUserId}`)
                         .set('Authorization', `Bearer ${token}`)
                         .expect(expectedStatus);
                 });
@@ -70,9 +73,10 @@ describe('GET/', () => {
                     });
 
                     const token = getSessionToken(adminUser.id);
+                    const adminUserId = adminUser.id;
 
                     await request(global.SERVER_APP)
-                        .get(`${global.USERS_PATH}/12345`)
+                        .get(`${global.USERS_PATH}/${adminUserId}`)
                         .set('Authorization', `Bearer ${token}`)
                         .expect(expectedStatus);
                 });
