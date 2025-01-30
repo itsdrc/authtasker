@@ -61,7 +61,7 @@ export class TasksService {
         }
     }
 
-    async findOne(id: string) {
+    async findOne(id: string) : Promise<HydratedDocument<ITasks>>{
         let taskFound;
 
         if (Types.ObjectId.isValid(id)) {
@@ -77,7 +77,50 @@ export class TasksService {
         return taskFound;
     }
 
-    async deleteOne(requestUserInfo: { id: string, role: UserRole }, id: string) {
+    async findAll(limit: number, page: number): Promise<HydratedDocument<ITasks>[]> {
+        if (limit <= 0) {
+            this.loggerService.error('Limit is not a valid number');
+            throw HttpError.badRequest('Limit must be a valid number');
+        }
+
+        if (limit > 100) {
+            const error = 'Limit is too large';
+            this.loggerService.error(error);
+            throw HttpError.badRequest(error);
+        }
+
+        const totalDocuments = await this.tasksModel
+            .countDocuments()
+            .exec();
+
+        if (totalDocuments === 0) {
+            this.loggerService.info('No documents found');
+            return [];
+        }
+
+        const totalPages = Math.ceil(totalDocuments / limit);
+
+        if (page <= 0) {
+            this.loggerService.error('Page is not a valid number');
+            throw HttpError.badRequest('Page must be a valid number');
+        }
+
+        if (page > totalPages) {
+            const error = 'Invalid page';
+            this.loggerService.error(error);
+            throw HttpError.badRequest(error);
+        }
+
+        const offset = (page - 1) * limit;
+
+        return await this.tasksModel
+            .find()
+            .skip(offset)
+            .limit(limit)
+            .exec();
+    }
+
+    async deleteOne(requestUserInfo: { id: string, role: UserRole }, id: string): Promise<void> {
         const task = await this.isModificationAuthorized(requestUserInfo, id);
 
         if (!task) {

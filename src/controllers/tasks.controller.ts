@@ -6,6 +6,7 @@ import { CreateTaskValidator } from "@root/rules/validators/models/tasks/create-
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { getUserInfoOrHandleError } from "./handlers/get-user-info.handler";
 import { UpdateTaskValidator } from "@root/rules/validators/models/tasks/update-task.validator";
+import { PAGINATION_SETTINGS } from "@root/rules/constants/pagination.constants";
 
 export class TasksController {
 
@@ -53,6 +54,17 @@ export class TasksController {
         }
     }
 
+    readonly findAll = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const limit = (req.query.limit) ? +req.query.limit : PAGINATION_SETTINGS.DEFAULT_LIMIT;
+            const page = (req.query.page) ? +req.query.page : PAGINATION_SETTINGS.DEFAULT_PAGE;
+            const tasksFound = await this.tasksService.findAll(limit, page);
+            res.status(HTTP_STATUS_CODE.OK).json(tasksFound);
+        } catch (error) {
+            handleError(res, error, this.loggerService);
+        }
+    }
+
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
         try {
             const id = req.params.id;
@@ -61,7 +73,7 @@ export class TasksController {
                 await this.tasksService.deleteOne(requestUserInfo, id);
                 res.status(HTTP_STATUS_CODE.NO_CONTENT).end()
                 return;
-            }            
+            }
         } catch (error) {
             handleError(res, error, this.loggerService);
         }

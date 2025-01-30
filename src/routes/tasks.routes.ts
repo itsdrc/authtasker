@@ -9,7 +9,7 @@ export class TasksRoutes {
     private readonly tasksController: TasksController;
 
     constructor(
-        private readonly tasksService: TasksService,        
+        private readonly tasksService: TasksService,
         private readonly loggerService: LoggerService,
         private readonly rolesMiddlewares: RolesMiddlewares
     ) {
@@ -25,6 +25,7 @@ export class TasksRoutes {
         router.post('/create', this.rolesMiddlewares.editor, this.tasksController.create);
         router.delete('/:id', this.rolesMiddlewares.editor, this.tasksController.deleteOne);
         router.get('/:id', this.rolesMiddlewares.readonly, this.tasksController.findOne);
+        router.get('/', this.rolesMiddlewares.readonly, this.tasksController.findAll);
         router.patch('/:id', this.rolesMiddlewares.editor, this.tasksController.updateOne);
 
         return router;
