@@ -8,6 +8,7 @@ export class MongooseEventsListener {
     constructor(private readonly loggerService: LoggerService) {
         this.listenConnectionEvents();
         this.listModelEvents('user');
+        this.listModelEvents('task')
     }
 
     listenConnectionEvents() {

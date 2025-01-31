@@ -1,9 +1,10 @@
+import { Model, model, Schema } from "mongoose";
+import { EventManager } from "@root/events/eventManager";
 import { ITasks } from "@root/interfaces/tasks/task.interface";
 import { ConfigService } from "@root/services";
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { tasksPriority } from "@root/types/tasks/task-priority.type";
 import { tasksStatus } from "@root/types/tasks/task-status.type";
-import { Model, model, Schema } from "mongoose";
 
 export const loadTasksModel = (configService: ConfigService): Model<ITasks> => {
     const tasksSchema = new Schema<ITasks>({
@@ -43,7 +44,24 @@ export const loadTasksModel = (configService: ConfigService): Model<ITasks> => {
         }
     });
 
-    // TODO: events
+
+    if (configService.HTTP_LOGS) {
+        tasksSchema.post('findOne', (doc) => {
+            if (doc) EventManager.emit('mongoose.taskModel.findOne', doc.name);
+        });
+
+        tasksSchema.post('save', (doc) => {
+            if (doc) EventManager.emit('mongoose.taskModel.save', doc.name);
+        });
+
+        tasksSchema.post('findOneAndUpdate', (doc) => {
+            if (doc) EventManager.emit('mongoose.taskModel.findOneAndUpdate', doc.name);
+        });
+
+        tasksSchema.post('findOneAndDelete', (doc) => {
+            if (doc) EventManager.emit('mongoose.taskModel.deleteOne', doc.name);
+        });
+    }
 
     const tasksModel = model<ITasks>('tasks', tasksSchema);
     SystemLoggerService.info('Tasks model loaded');
