@@ -3,8 +3,10 @@ import { handleAxiosError } from "../../helpers/handlers/axios-error.handler";
 
 describe('Update task', () => {
     describe('Response to client', () => {
-        test('should contain the updated data', async () => {
+        test('should contain the updated data (200 OK)', async () => {
             try {
+                const expectedStatus = 200;
+
                 // create a task using the admin token
                 const createdTask = await axios.post(
                     global.CREATE_TASK_PATH, {
@@ -37,6 +39,7 @@ describe('Update task', () => {
                 });
 
                 expect(updatedTask.data).toMatchObject(newTaskProperties);
+                expect(updatedTask.status).toBe(expectedStatus);
 
             } catch (error) {
                 handleAxiosError(error);

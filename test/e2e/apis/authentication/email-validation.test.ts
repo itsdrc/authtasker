@@ -145,6 +145,7 @@ describe('Authentication', () => {
                 } catch (error) {
                     const axiosError = error as AxiosError;
                     expect(axiosError.response?.status).toBe(expectedStatus);
+                    expect((axiosError.response?.data as any).error).toBe('Invalid token');
                 }
 
                 lock.release();

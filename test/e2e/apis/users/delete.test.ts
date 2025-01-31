@@ -32,7 +32,7 @@ describe('Delete user', () => {
     });
 
     describe('Workflow', () => {
-        test('deleted user should not be found anymore', async () => {
+        test('deleted user should not be found anymore (404 NOT FOUND)', async () => {
             try {
                 const expectedStatus = 404;
 
@@ -65,6 +65,8 @@ describe('Delete user', () => {
                 } catch (error) {
                     const axiosError = error as AxiosError;
                     expect(axiosError.status).toBe(expectedStatus);
+                    expect((error as any).response?.data.error)
+                        .toBe(`User with id ${userId} not found`)
                 }
 
             } catch (error) {

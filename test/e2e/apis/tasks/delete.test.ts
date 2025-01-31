@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { Axios, AxiosError } from "axios";
 import { handleAxiosError } from "../../helpers/handlers/axios-error.handler";
 
 describe('Delete task', () => {
@@ -35,7 +35,7 @@ describe('Delete task', () => {
     });
 
     describe('Workflow', () => {
-        test('deleted task should not be found anymore', async () => {
+        test('deleted task should not be found anymore (404 NOT FOUND)', async () => {
             try {
                 // create a task using the admin token
                 const createdTaskResponse = await axios.post(global.CREATE_TASK_PATH, {
@@ -68,6 +68,8 @@ describe('Delete task', () => {
 
                 } catch (error) {
                     expect((error as AxiosError).status).toBe(404);
+                    expect((error as any).response?.data.error)
+                        .toBe(`Task with id ${taskId} not found`)
                 }
 
             } catch (error) {
