@@ -18,14 +18,13 @@ export class TasksController {
     readonly create = async (req: Request, res: Response): Promise<void> => {
         try {
             this.loggerService.info('Task creation attempt');
-
             const [error, validatedTask] = await CreateTaskValidator
                 .validateAndTransform(req.body);
 
             if (validatedTask) {
-                this.loggerService.info('Properties successfully validated');
-
+                this.loggerService.info('Task data successfully validated');
                 const requestUserInfo = getUserInfoOrHandleError(req, res);
+
                 if (requestUserInfo) {
                     const created = await this.tasksService.create(validatedTask, requestUserInfo.id);
                     res.status(HTTP_STATUS_CODE.CREATED).json(created);
@@ -33,8 +32,7 @@ export class TasksController {
                 }
 
             } else {
-                this.loggerService.error('Properties validation rejected');
-
+                this.loggerService.error('Task data validation failed'); 
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
@@ -77,13 +75,16 @@ export class TasksController {
 
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
         try {
+            this.loggerService.info('Task deletion attempt');
             const id = req.params.id;
             const requestUserInfo = getUserInfoOrHandleError(req, res);
+
             if (requestUserInfo) {
                 await this.tasksService.deleteOne(requestUserInfo, id);
                 res.status(HTTP_STATUS_CODE.NO_CONTENT).end()
                 return;
             }
+
         } catch (error) {
             handleError(res, error, this.loggerService);
         }
@@ -91,18 +92,23 @@ export class TasksController {
 
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
         try {
+            this.loggerService.info('Task update attempt');
             const id = req.params.id;
             const [error, validatedTask] = await UpdateTaskValidator
                 .validateAndTransform(req.body);
 
             if (validatedTask) {
+                this.loggerService.info('Task data successfully validated');
                 const requestUserInfo = getUserInfoOrHandleError(req, res);
+
                 if (requestUserInfo) {
                     const updated = await this.tasksService.updateOne(requestUserInfo, id, validatedTask);
                     res.status(HTTP_STATUS_CODE.OK).json(updated);
                     return;
                 }
+
             } else {
+                this.loggerService.error('Task data validation failed'); 
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }

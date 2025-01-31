@@ -55,7 +55,7 @@ export const loadTasksModel = (configService: ConfigService): Model<ITasks> => {
         });
 
         tasksSchema.post('deleteOne', (doc) => {
-            if (doc) EventManager.emit('mongoose.taskModel.deleteOne', doc.name);
+            if (doc) EventManager.emit('mongoose.taskModel.deleteOne');
         });
     }
 

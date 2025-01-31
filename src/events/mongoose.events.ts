@@ -31,12 +31,12 @@ export class MongooseEventsListener {
             this.loggerService.debug(`${model} "${property}" saved in db`);
         });
 
-        EventManager.listen(`mongoose.${model}Model.findOne`, (prop: string) => {
-            this.loggerService.debug(`${model} ${prop} found in db`);
+        EventManager.listen(`mongoose.${model}Model.findOne`, (property: string) => {
+            this.loggerService.debug(`${model} "${property}" found in db`);
         });
 
-        EventManager.listen(`mongoose.${model}Model.deleteOne`, (prop: string) => {
-            this.loggerService.debug(`${model} found user removed from db`);
+        EventManager.listen(`mongoose.${model}Model.deleteOne`, () => {
+            this.loggerService.debug(`${model} found removed from db`);
         });
     }
 }

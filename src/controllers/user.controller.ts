@@ -18,16 +18,18 @@ export class UserController {
 
     readonly create = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('USER CREATION ATTEMP');
+            this.loggerService.info('User creation attempt');
             const user = req.body;
-            const [error, validatedUser] = await CreateUserValidator.validateAndTransform(user);
+            const [error, validatedUser] = await CreateUserValidator
+                .validateAndTransform(user);
 
             if (validatedUser) {
-                this.loggerService.info(`VALIDATION SUCESS`);
+                this.loggerService.info(`User data successfully validated`);
                 const created = await this.userService.create(validatedUser);
                 res.status(HTTP_STATUS_CODE.CREATED).json(created);
+                return;
             } else {
-                this.loggerService.error(`VALIDATION REJECTED`);
+                this.loggerService.error(`User data validation failed`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
@@ -39,16 +41,17 @@ export class UserController {
 
     readonly login = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('USER LOGIN ATTEMP');
+            this.loggerService.info('User login attempt');
             const user = req.body;
             const [error, validatedUser] = await LoginUserValidator.validate(user);
 
             if (validatedUser) {
-                this.loggerService.info(`VALIDATION SUCESS`);
+                this.loggerService.info(`User data successfully validated`);
                 const loggedIn = await this.userService.login(validatedUser);
                 res.status(HTTP_STATUS_CODE.OK).json(loggedIn);
+                return;
             } else {
-                this.loggerService.error(`VALIDATION REJECTED`);
+                this.loggerService.error(`User data validation failed`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
@@ -60,13 +63,15 @@ export class UserController {
 
     readonly logout = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('Logout attemp');
+            this.loggerService.info('User logout attempt');
             const requestUserInfo = getUserInfoOrHandleError(req, res);
+
             if (requestUserInfo) {
-                await this.userService.logout(requestUserInfo.jti, requestUserInfo.tokenExp);
+                await this.userService.logout(requestUserInfo);
                 res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
-                this.loggerService.info('User successfully logged out');
+                return;
             }
+
         } catch (error) {
             handleError(res, error, this.loggerService);
         }
@@ -74,11 +79,13 @@ export class UserController {
 
     readonly requestEmailValidation = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('Email validation requested');
+            this.loggerService.info('Email validation request attempt');
             const requestUserInfo = getUserInfoOrHandleError(req, res);
+
             if (requestUserInfo) {
                 await this.userService.requestEmailValidation(requestUserInfo.id);
                 res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
+                return;
             }
 
         } catch (error) {
@@ -88,17 +95,18 @@ export class UserController {
 
     readonly confirmEmailValidation = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('Confirming email validation');
+            this.loggerService.info('Confirm email validation attempt');
             const token = req.params.token;
 
             if (!token) {
-                const error = 'No token provided';
-                this.loggerService.error(error);
-                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
+                this.loggerService.error('Can not confirm email, no token provided');
+                res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error: 'No token provided' });
+                return;
             }
 
             await this.userService.confirmEmailValidation(token);
             res.status(HTTP_STATUS_CODE.OK).send('Email successfully validated');
+
         } catch (error) {
             handleError(res, error, this.loggerService);
         }
@@ -127,7 +135,7 @@ export class UserController {
 
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('USER DELETION ATTEMP');
+            this.loggerService.info('User deletion attempt');
 
             const userIdToUpdate = req.params.id;
             const requestUserInfo = getUserInfoOrHandleError(req, res);
@@ -145,7 +153,7 @@ export class UserController {
 
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('USER UPDATE ATTEMP');
+            this.loggerService.info('User update attempt');
 
             const userIdToUpdate = req.params.id;
             const propertiesToUpdate = req.body;
@@ -154,9 +162,9 @@ export class UserController {
                 .validateAndTransform(propertiesToUpdate);
 
             if (validatedProperties) {
-                this.loggerService.info(`VALIDATION SUCESS`);
-
+                this.loggerService.info(`User data successfully validated`);
                 const requestUserInfo = getUserInfoOrHandleError(req, res);
+
                 if (requestUserInfo) {
                     const updated = await this.userService.updateOne(requestUserInfo, userIdToUpdate, validatedProperties);
                     res.status(HTTP_STATUS_CODE.OK).json(updated);
@@ -164,7 +172,7 @@ export class UserController {
                 }
 
             } else {
-                this.loggerService.error(`VALIDATION REJECTED`);
+                this.loggerService.error(`User data validation failed`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }

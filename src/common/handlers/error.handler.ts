@@ -1,8 +1,8 @@
+import { Response } from "express";
 import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
 import { HttpError } from "@root/rules/errors/http.error";
 import { LoggerService } from "@root/services/logger.service";
 import { SystemLoggerService } from "@root/services/system-logger.service";
-import { Response } from "express";
 
 export const handleError = (res: Response, error: Error | unknown, logger: LoggerService) => {
     if (error instanceof HttpError) {

@@ -3,6 +3,7 @@ import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.consta
 import { SystemLoggerService } from "@root/services/system-logger.service";
 import { Request, Response } from "express";
 
+// handles the request information obtained by roles middleware
 export const getUserInfoOrHandleError = (req: Request, res: Response): UserFromRequest | undefined => {
     const role = (req as any).userRole;
     const id = (req as any).userId;

@@ -55,13 +55,16 @@ export class TasksService {
                 ...task,
                 user,
             });
+
+            this.loggerService.info(`Task ${taskCreated.id} created`);
             return taskCreated;
+
         } catch (error) {
             this.handlePossibleDuplicatedKeyError(error);
         }
     }
 
-    async findOne(id: string) : Promise<HydratedDocument<ITasks>>{
+    async findOne(id: string): Promise<HydratedDocument<ITasks>> {
         let taskFound;
 
         if (Types.ObjectId.isValid(id)) {
@@ -71,22 +74,22 @@ export class TasksService {
         }
 
         // id is not valid / task not found
-        if (!taskFound)
-            throw HttpError.notFound(`Task with id ${id} not found`);
+        if (!taskFound) {
+            const error = `Task with id ${id} not found`;
+            this.loggerService.error(error)
+            throw HttpError.notFound(error);
+        }
 
         return taskFound;
     }
 
     async findAll(limit: number, page: number): Promise<HydratedDocument<ITasks>[]> {
         if (limit <= 0) {
-            this.loggerService.error('Limit is not a valid number');
             throw HttpError.badRequest('Limit must be a valid number');
         }
 
         if (limit > 100) {
-            const error = 'Limit is too large';
-            this.loggerService.error(error);
-            throw HttpError.badRequest(error);
+            throw HttpError.badRequest('Limit is too large');
         }
 
         const totalDocuments = await this.tasksModel
@@ -94,21 +97,17 @@ export class TasksService {
             .exec();
 
         if (totalDocuments === 0) {
-            this.loggerService.info('No documents found');
             return [];
         }
 
         const totalPages = Math.ceil(totalDocuments / limit);
 
         if (page <= 0) {
-            this.loggerService.error('Page is not a valid number');
             throw HttpError.badRequest('Page must be a valid number');
         }
 
         if (page > totalPages) {
-            const error = 'Invalid page';
-            this.loggerService.error(error);
-            throw HttpError.badRequest(error);
+            throw HttpError.badRequest('Invalid page');
         }
 
         const offset = (page - 1) * limit;
@@ -120,7 +119,7 @@ export class TasksService {
             .exec();
     }
 
-    async findAllByUser(userId: string){
+    async findAllByUser(userId: string) {
         const userExists = await this.userService.findOne(userId);
 
         const tasks = await this.tasksModel
@@ -151,12 +150,12 @@ export class TasksService {
                 throw HttpError.forbidden(FORBIDDEN_MESSAGE);
             }
 
-            this.loggerService.info(`Task ${id} updated`);
-
             Object.assign(taskToUpdate, task);
             await taskToUpdate.save();
 
+            this.loggerService.info(`Task ${id} updated`);
             return taskToUpdate;
+
         } catch (error) {
             this.handlePossibleDuplicatedKeyError(error);
         }
