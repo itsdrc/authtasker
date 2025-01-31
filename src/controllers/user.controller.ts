@@ -95,7 +95,7 @@ export class UserController {
 
     readonly confirmEmailValidation = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('Confirm email validation attempt');
+            this.loggerService.info('Email confirmation attempt');
             const token = req.params.token;
 
             if (!token) {
@@ -136,7 +136,6 @@ export class UserController {
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
         try {
             this.loggerService.info('User deletion attempt');
-
             const userIdToUpdate = req.params.id;
             const requestUserInfo = getUserInfoOrHandleError(req, res);
 
@@ -154,7 +153,6 @@ export class UserController {
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
         try {
             this.loggerService.info('User update attempt');
-
             const userIdToUpdate = req.params.id;
             const propertiesToUpdate = req.body;
 
