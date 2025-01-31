@@ -58,12 +58,8 @@ export const loadUserModel = (configService: ConfigService): Model<IUser> => {
             if (doc) EventManager.emit('mongoose.userModel.save', doc.name);
         });
 
-        userSchema.post('findOneAndUpdate', (doc) => {
-            if (doc) EventManager.emit('mongoose.userModel.findOneAndUpdate', doc.name);
-        });
-
-        userSchema.post('findOneAndDelete', (doc) => {
-            if (doc) EventManager.emit('mongoose.userModel.deleteOne', doc.name);
+        userSchema.post('deleteOne', (doc) => {
+            if (doc) EventManager.emit('mongoose.userModel.deleteOne', doc.name);            
         });
     }
 

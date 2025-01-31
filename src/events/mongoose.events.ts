@@ -13,34 +13,30 @@ export class MongooseEventsListener {
 
     listenConnectionEvents() {
         mongoose.connection.on('connected', () => {
-            SystemLoggerService.info(`CONNECTED TO MONGO DATABASE`);
+            SystemLoggerService.info(`connected to mongo database`);
         });
 
         mongoose.connection.on('disconnected', () => {
-            SystemLoggerService.error(`MONGO DATABASE DISCONNECTED`);
+            SystemLoggerService.error(`mongo database disconnected`);
         });
 
         mongoose.connection.on('error', (err) => {
-            SystemLoggerService.error(`MONGOOSE CONNECTION ERROR - ${err}`);
+            SystemLoggerService.error(`mongoose connection error - ${err}`);
         });
     }
 
     // for example: mongoose.userModel.save
     listModelEvents(model: string) {
         EventManager.listen(`mongoose.${model}Model.save`, (property: string) => {
-            this.loggerService.debug(`${model} "${property}" SAVED IN DB`);
+            this.loggerService.debug(`${model} "${property}" saved in db`);
         });
 
         EventManager.listen(`mongoose.${model}Model.findOne`, (prop: string) => {
-            this.loggerService.debug(`${model} ${prop} FOUND IN DB`);
-        });
-
-        EventManager.listen(`mongoose.${model}Model.findOneAndUpdate`, (prop: string) => {
-            this.loggerService.debug(`${model} ${prop} UPDATED IN DB`);
+            this.loggerService.debug(`${model} ${prop} found in db`);
         });
 
         EventManager.listen(`mongoose.${model}Model.deleteOne`, (prop: string) => {
-            this.loggerService.debug(`${model} ${prop} DELETED FROM DB`);
+            this.loggerService.debug(`${model} found user removed from db`);
         });
     }
 }
