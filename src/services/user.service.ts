@@ -15,12 +15,14 @@ import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 import { JwtBlackListService } from "./jwt-blacklist.service";
 import { TOKEN_PURPOSES } from "@root/rules/constants/token-purposes.constants";
 import { UserFromRequest } from "@root/interfaces/user/user-from-request.interface";
+import { ITasks } from "@root/interfaces/tasks/task.interface";
 
 export class UserService {
 
     constructor(
         private readonly configService: ConfigService,
         private readonly userModel: Model<IUser>,
+        private readonly tasksModel: Model<ITasks>,
         private readonly hashingService: HashingService,
         private readonly jwtService: JwtService,
         private readonly jwtBlacklistService: JwtBlackListService,
@@ -284,12 +286,18 @@ export class UserService {
 
     async deleteOne(requestUserInfo: { id: string, role: UserRole }, id: string): Promise<void> {
         const userToDelete = await this.IsModificationAuthorized(requestUserInfo, id);
+
         if (!userToDelete) {
             this.loggerService.error('User is not authorized to perform this action');
             throw HttpError.forbidden(FORBIDDEN_MESSAGE);
         }
+
         await userToDelete.deleteOne().exec();
-        this.loggerService.info(`USER ${id} DELETED`);
+        this.loggerService.info(`User with id ${id} deleted`);
+
+        // remove all tasks associated
+        const tasksRemoved = await this.tasksModel.deleteMany({ user: userToDelete.id });
+        this.loggerService.info(`${tasksRemoved.deletedCount} tasks associated to user removed`);
     }
 
     async updateOne(requestUserInfo: { id: string, role: UserRole }, id: string, propertiesUpdated: UpdateUserValidator): Promise<HydratedDocument<IUser>> {

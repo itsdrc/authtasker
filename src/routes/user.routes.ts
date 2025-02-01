@@ -10,6 +10,7 @@ import { UserController } from "@root/controllers/user.controller";
 import { UserService } from "@root/services/user.service";
 import { createAdmin } from "@root/admin/create-admin";
 import { RolesMiddlewares } from "@root/types/middlewares/roles.middlewares.type";
+import { ITasks } from "@root/interfaces/tasks/task.interface";
 
 export class UserRoutes {
 
@@ -18,7 +19,7 @@ export class UserRoutes {
     constructor(
         private readonly userService: UserService,
         private readonly configService: ConfigService,
-        private readonly userModel: Model<IUser>,
+        private readonly userModel: Model<IUser>,        
         private readonly hashingService: HashingService,
         private readonly loggerService: LoggerService,
         private readonly rolesMiddlewares: RolesMiddlewares,
@@ -43,7 +44,7 @@ export class UserRoutes {
         await this.initialData();
 
         const router = Router();
-        
+
         router.post('/create', this.userController.create);
         router.post('/login', this.userController.login);
         router.post('/requestEmailValidation', this.rolesMiddlewares.readonly, this.userController.requestEmailValidation);

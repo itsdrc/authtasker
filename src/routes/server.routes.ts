@@ -91,6 +91,7 @@ export class AppRoutes {
         this.userService = new UserService(
             this.configService,
             this.userModel,
+            this.tasksModel,
             this.hashingService,
             this.jwtService,
             this.jwtBlacklistService,
