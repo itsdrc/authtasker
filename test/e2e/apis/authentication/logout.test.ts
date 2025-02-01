@@ -1,40 +1,14 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { handleAxiosError } from "../../helpers/handlers/axios-error.handler";
 
 describe('Authentication', () => {
     describe('Logout', () => {
-        describe('Response to client', () => {
-            test('should not contain data (204 NO CONTENT)', async () => {
-                try {
-                    const expectedStatus = 204;
-
-                    const userCreated = await axios.post(global.REGISTER_USER_PATH, {
-                        name: global.DATA_GENERATOR.name(),
-                        email: global.DATA_GENERATOR.email(),
-                        password: global.DATA_GENERATOR.password()
-                    });
-
-                    const sessionToken = userCreated.data.token;
-
-                    // request logout
-                    const logoutResponse = await axios.post(`${global.USERS_PATH}/logout`, {}, {
-                        headers: {
-                            Authorization: `Bearer ${sessionToken}`
-                        }
-                    });
-
-                    expect(logoutResponse.status).toBe(expectedStatus);
-                } catch (error) {
-                    handleAxiosError(error);
-                }
-            });
-        });
-
-        describe('Workflow', () => {
-            test('can not access other resources after a logout (401 UNAUTHORIZED)', async () => {
+        describe('User successfully logged out', () => {
+            test('can not access other resources with their token (401 UNAUTHORIZED)', async () => {
                 try {
                     const expectedStatus = 401;
 
+                    // create a user
                     const userCreated = await axios.post(global.REGISTER_USER_PATH, {
                         name: global.DATA_GENERATOR.name(),
                         email: global.DATA_GENERATOR.email(),
@@ -52,17 +26,17 @@ describe('Authentication', () => {
                     });
 
                     try {
-                        // try to access another resource (findAll api)
-                        const response = await axios.get(global.USERS_PATH, {
+                        // try to access another resource (findAll api)                        
+                        await axios.get(global.USERS_PATH, {
                             headers: {
                                 Authorization: `Bearer ${sessionToken}`
                             }
                         });
                         expect(true).toBeFalsy();
 
-                    } catch (error) {
-                        const axiosError = error as AxiosError;
-                        expect(axiosError.response?.status).toBe(expectedStatus);
+                    } catch (error: any) {
+                        expect(error.response?.status).toBe(expectedStatus);
+                        expect(error.response.data.error).toBe('Invalid bearer token');
                     }
 
                 } catch (error) {

@@ -2,8 +2,8 @@ import axios from "axios";
 import { handleAxiosError } from "../../helpers/handlers/axios-error.handler";
 
 describe('Find all tasks by user', () => {
-    describe('Workflow', () => {
-        test('Deleted task should not appear in the tasks belonging to the user', async () => {
+    describe('User task is deleted', () => {
+        test('should not appear in the tasks belonging to the user', async () => {
             try {
                 // create a task using the admin token
                 const createdTask = await axios.post(global.CREATE_TASK_PATH, {
@@ -44,6 +44,6 @@ describe('Find all tasks by user', () => {
             } catch (error) {
                 handleAxiosError(error);
             }
-        });
+        }); 
     });
 });

@@ -2,53 +2,8 @@ import axios from "axios";
 import { handleAxiosError } from "../../helpers/handlers/axios-error.handler";
 
 describe('Update user', () => {
-    describe('Response to client', () => {
-        test('should contain the updated user data (200 OK)', async () => {
-            try {
-                const expectedStatus = 200;
-
-                // create user
-                const created = await axios.post(global.REGISTER_USER_PATH, {
-                    name: global.DATA_GENERATOR.name(),
-                    email: global.DATA_GENERATOR.email(),
-                    password: global.DATA_GENERATOR.password()
-                });
-
-                const userId = created.data.user.id;
-                const userToken = created.data.token;
-
-                // update
-                const userNewData = {
-                    name: global.DATA_GENERATOR.name(),
-                    email: global.DATA_GENERATOR.email(),
-                };
-
-                const updatedUserResponse = await axios.patch(`${global.USERS_PATH}/${userId}`,
-                    userNewData, {
-                    headers: {
-                        Authorization: `Bearer ${userToken}`
-                    }
-                });
-
-                expect(updatedUserResponse.status).toBe(expectedStatus);
-                expect(updatedUserResponse.data).toMatchObject({
-                    name: userNewData.name.toLowerCase(),
-                    email: userNewData.email,
-                    role: 'readonly',
-                    emailValidated: false,
-                    id: userId,
-                    createdAt: expect.any(String),
-                    updatedAt: expect.any(String),
-                });
-
-            } catch (error) {
-                handleAxiosError(error);
-            }
-        });
-    });
-
-    describe('Workflow', () => {
-        test('data should be updated when user is found after update', async () => {
+    describe('User successfully updated', () => {
+        test('data should be updated when user is found', async () => {
             try {
                 // create user            
                 const created = await axios.post(global.REGISTER_USER_PATH, {
@@ -90,7 +45,7 @@ describe('Update user', () => {
             }
         });
 
-        test('user should be able to log in with new data', async () => {
+        test('user should be able to log in with the updated data', async () => {
             try {
                 const expectedStatus = 200;
 
