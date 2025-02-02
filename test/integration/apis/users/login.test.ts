@@ -130,12 +130,16 @@ describe('POST/', () => {
         describe('Client request', () => {
             test('a missing property causes 400 BAD REQUEST', async () => {
                 const expectedStatus = 400;
-                await request(global.SERVER_APP)
+
+                const response = await request(global.SERVER_APP)
                     .post(global.LOGIN_USER_PATH)
                     .send({
                         email: global.USER_DATA_GENERATOR.email(),
-                    })
-                    .expect(expectedStatus);
+                        // no password sent
+                    });
+                    
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('password should not be null or undefined');
             });
         });
     });

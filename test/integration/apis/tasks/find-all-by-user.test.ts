@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 
 describe('GET/', () => {
     describe('Find all by user', () => {
+        const tasksFoundSuccessfullyStatus = 200;
+
         describe('Authentication/Authorization', () => {
             describe('Token not provided', () => {
                 test('should not be able to access this feature (401 UNAUTHORIZED)', async () => {
@@ -13,6 +15,7 @@ describe('GET/', () => {
                         .get(`${global.TASKS_PATH}/allByUser/123`);
 
                     expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('No token provided');
                 });
             });
 
@@ -145,7 +148,8 @@ describe('GET/', () => {
 
                 const response = await request(global.SERVER_APP)
                     .get(`${global.TASKS_PATH}/allByUser/${userCreated.id}`)
-                    .set('Authorization', `Bearer ${token}`);
+                    .set('Authorization', `Bearer ${token}`)
+                    .expect(tasksFoundSuccessfullyStatus);
 
                 expect(response.body).toEqual([]);
             });
@@ -177,7 +181,8 @@ describe('GET/', () => {
 
                 const response = await request(global.SERVER_APP)
                     .get(`${global.TASKS_PATH}/allByUser/${userCreated.id}`)
-                    .set('Authorization', `Bearer ${token}`);
+                    .set('Authorization', `Bearer ${token}`)
+                    .expect(tasksFoundSuccessfullyStatus);;
 
                 expect(response.body).toHaveLength(expectedBodyLength);
                 response.body.forEach((task: any) => {

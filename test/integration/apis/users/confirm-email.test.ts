@@ -25,9 +25,11 @@ describe('GET/', () => {
                     const token = newJwtService.generate('1m', { email: user.email });
 
                     // confirm email validation
-                    await request(global.SERVER_APP)
-                        .get(`${global.USERS_PATH}/confirmEmailValidation/${token}`)
-                        .expect(expectedStatus);
+                    const response = await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}/confirmEmailValidation/${token}`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('Invalid token');
                 });
             });
 
@@ -45,9 +47,11 @@ describe('GET/', () => {
                     const invalidToken = getSessionToken(user.id);
 
                     // confirm email validation
-                    await request(global.SERVER_APP)
-                        .get(`${global.USERS_PATH}/confirmEmailValidation/${invalidToken}`)
-                        .expect(expectedStatus);
+                    const response = await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}/confirmEmailValidation/${invalidToken}`);
+                        
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('Invalid token');
                 });
             });
 
@@ -59,11 +63,13 @@ describe('GET/', () => {
                     const token = getEmailValidationToken(`${faker.food.vegetable()}@gmail.com`);
 
                     // confirm email validation
-                    await request(global.SERVER_APP)
-                        .get(`${global.USERS_PATH}/confirmEmailValidation/${token}`)
-                        .expect(expectedStatus);
+                    const response = await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}/confirmEmailValidation/${token}`)                        
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('User not found');
                 });
-            });            
+            });
         });
 
         describe('Operation success', () => {
@@ -126,9 +132,11 @@ describe('GET/', () => {
                     .expect(200);
 
                 // try to validate email with the same token            
-                await request(global.SERVER_APP)
-                    .get(`${global.USERS_PATH}/confirmEmailValidation/${token}`)
-                    .expect(expectedStatus);
+                const response = await request(global.SERVER_APP)
+                    .get(`${global.USERS_PATH}/confirmEmailValidation/${token}`);
+                    
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('Invalid token');
             });
         });
     });

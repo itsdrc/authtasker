@@ -344,7 +344,7 @@ describe('PATCH/', () => {
             });            
 
             describe('User is role administrator', () => {
-                test('should be able to update a readonly user task', async () => {
+                test('should be able to update a readonly user task (200 OK)', async () => {
                     const expectedStatus = 200;
 
                     // create an administrator user
@@ -385,7 +385,7 @@ describe('PATCH/', () => {
                     expect(updateTaskResponse.statusCode).toBe(expectedStatus);
                 });
 
-                test('should be able to update an editor user task', async () => {
+                test('should be able to update an editor user task (200 OK)', async () => {
                     const expectedStatus = 200;
 
                     // create an administrator user
@@ -427,7 +427,7 @@ describe('PATCH/', () => {
                     expect(updateTaskResponse.statusCode).toBe(expectedStatus);
                 });
 
-                test('should be able to update their own tasks', async () => {
+                test('should be able to update their own tasks (200 OK)', async () => {
                     const expectedStatus = 200;
 
                     // create an administrator user
@@ -460,7 +460,7 @@ describe('PATCH/', () => {
                     expect(updateTaskResponse.statusCode).toBe(expectedStatus);
                 });
 
-                test('should not be able to update another administrator task', async () => {
+                test('should not be able to update another administrator task (403 FORBIDDEN)', async () => {
                     const expectedStatus = 403;
 
                     // create the first administrator user

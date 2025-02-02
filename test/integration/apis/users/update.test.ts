@@ -1,6 +1,7 @@
 import request from 'supertest'
 import { Types } from "mongoose";
 import { getSessionToken } from '../../helpers/token/session.token';
+import { FORBIDDEN_MESSAGE } from '@root/rules/errors/messages/error.messages';
 
 describe('PATCH/', () => {
     describe('Update user', () => {
@@ -11,11 +12,12 @@ describe('PATCH/', () => {
                     const id = new Types.ObjectId();
                     const expectedStatus = 401;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .patch(`${global.USERS_PATH}/${id}`)
-                        .send({ name: '...' })
-                        // no token sent
-                        .expect(expectedStatus);
+                        .send({ name: '...' });
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('No token provided');
                 });
             });
 
@@ -64,11 +66,13 @@ describe('PATCH/', () => {
 
                     const anotherReadonlyUserId = anotherReadonlyUser.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .patch(`${global.USERS_PATH}/${anotherReadonlyUserId}`)
                         .send({ name: global.USER_DATA_GENERATOR.name() })
-                        .set('Authorization', `Bearer ${readonlyToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${readonlyToken}`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to update an editor user (403 FORBIDDEN)', async () => {
@@ -94,11 +98,13 @@ describe('PATCH/', () => {
 
                     const editorUserId = editorUser.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .patch(`${global.USERS_PATH}/${editorUserId}`)
                         .send({ name: global.USER_DATA_GENERATOR.name() })
-                        .set('Authorization', `Bearer ${readonlyToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${readonlyToken}`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to update an administrator (403 FORBIDDEN)', async () => {
@@ -124,11 +130,13 @@ describe('PATCH/', () => {
 
                     const adminUserId = adminUser.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .patch(`${global.USERS_PATH}/${adminUserId}`)
                         .send({ name: global.USER_DATA_GENERATOR.name() })
-                        .set('Authorization', `Bearer ${readonlyToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${readonlyToken}`);
+                        
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
             });
 
@@ -177,11 +185,13 @@ describe('PATCH/', () => {
 
                     const anotherEditorUserId = anotherEditorUser.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .patch(`${global.USERS_PATH}/${anotherEditorUserId}`)
                         .send({ name: global.USER_DATA_GENERATOR.name() })
-                        .set('Authorization', `Bearer ${editorToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${editorToken}`)                        
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to update a readonly user (403 FORBIDDEN)', async () => {
@@ -207,11 +217,13 @@ describe('PATCH/', () => {
 
                     const readonlyUserId = readonlyUser.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .patch(`${global.USERS_PATH}/${readonlyUserId}`)
                         .send({ name: global.USER_DATA_GENERATOR.name() })
-                        .set('Authorization', `Bearer ${editorToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${editorToken}`);
+                        
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to update an administrator (403 FORBIDDEN)', async () => {
@@ -237,11 +249,13 @@ describe('PATCH/', () => {
 
                     const adminUserId = adminUser.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .patch(`${global.USERS_PATH}/${adminUserId}`)
                         .send({ name: global.USER_DATA_GENERATOR.name() })
-                        .set('Authorization', `Bearer ${editorToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${editorToken}`);
+                        
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
             });
 
@@ -350,11 +364,13 @@ describe('PATCH/', () => {
 
                     const anotherAdminUserId = anotherAdminUser.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .patch(`${global.USERS_PATH}/${anotherAdminUserId}`)
                         .send({ name: global.USER_DATA_GENERATOR.name() })
-                        .set('Authorization', `Bearer ${adminToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${adminToken}`);
+                        
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
             });
         });
@@ -382,11 +398,13 @@ describe('PATCH/', () => {
                 const validToken = getSessionToken(newUser.id);
 
                 // update newUser name 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .patch(`${global.USERS_PATH}/${newUser.id}`)
                     .send({ name: previousUser.name })
-                    .set('Authorization', `Bearer ${validToken}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${validToken}`);
+                    
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`User with name "${previousUser.name}" already exists`);
             });
         });
 
@@ -413,11 +431,13 @@ describe('PATCH/', () => {
                 const validToken = getSessionToken(newUser.id);
 
                 // update newUser email 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .patch(`${global.USERS_PATH}/${newUser.id}`)
                     .send({ email: previousUser.email })
-                    .set('Authorization', `Bearer ${validToken}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${validToken}`);
+                    
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`User with email "${previousUser.email}" already exists`);
             });
         });
 
@@ -437,11 +457,13 @@ describe('PATCH/', () => {
 
                 const validMongoId = new Types.ObjectId();
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .patch(`${global.USERS_PATH}/${validMongoId}`)
                     .send({ name: global.USER_DATA_GENERATOR.name() })
-                    .set('Authorization', `Bearer ${validToken}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${validToken}`);
+                    
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`User with id ${validMongoId} not found`);
             });
         });
 
@@ -461,12 +483,14 @@ describe('PATCH/', () => {
 
                 const invalidMongoId = 123;
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .patch(`${global.USERS_PATH}/${invalidMongoId}`)
                     // at least one property is required
                     .send({ name: global.USER_DATA_GENERATOR.name() })
-                    .set('Authorization', `Bearer ${validToken}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${validToken}`);                    
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`User with id ${invalidMongoId} not found`);
             });
         });
 
@@ -487,8 +511,10 @@ describe('PATCH/', () => {
                 const response = await request(global.SERVER_APP)
                     .patch(`${global.USERS_PATH}/${userInDb.id}`)
                     // no new properties sent                    
-                    .set('Authorization', `Bearer ${validToken}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${validToken}`);                    
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('At least one field is required to update the user');
             });
         });
 

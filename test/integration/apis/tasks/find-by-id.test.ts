@@ -9,12 +9,14 @@ describe('GET/', () => {
                 test('should return status 401 UNAUTHORIZED', async () => {
                     const expectedStatus = 401;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .get(`${global.USERS_PATH}/123`)
-                        .expect(expectedStatus);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('No token provided');
                 });
             });
-            
+
             describe('User role is readonly', () => {
                 test('should be able to access this feature', async () => {
                     // create a readonly user
@@ -80,10 +82,10 @@ describe('GET/', () => {
                         .expect(expectedStatus);
                 });
             });
-        });      
+        });
 
         describe('Task is found', () => {
-            test('should return the expected task and status 200 OK', async () => {
+            test('should return the expected task (200 OK)', async () => {
                 const expectedStatus = 200;
 
                 // create a user
@@ -137,10 +139,12 @@ describe('GET/', () => {
                 // a session token is needed
                 const token = getSessionToken(createdUser.id);
 
-                const taskFound = await request(global.SERVER_APP)
-                    .get(`${global.USERS_PATH}/${validMongoId}`)
-                    .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
+                const response = await request(global.SERVER_APP)
+                    .get(`${global.TASKS_PATH}/${validMongoId}`)
+                    .set('Authorization', `Bearer ${token}`);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`Task with id ${validMongoId} not found`);
             });
         });
 
@@ -161,10 +165,12 @@ describe('GET/', () => {
                 // a session token is needed
                 const token = getSessionToken(createdUser.id);
 
-                const taskFound = await request(global.SERVER_APP)
-                    .get(`${global.USERS_PATH}/${invalidMongoId}`)
-                    .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
+                const response = await request(global.SERVER_APP)
+                    .get(`${global.TASKS_PATH}/${invalidMongoId}`)
+                    .set('Authorization', `Bearer ${token}`);                    
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`Task with id ${invalidMongoId} not found`);                
             });
         });
     });

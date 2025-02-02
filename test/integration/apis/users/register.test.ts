@@ -238,6 +238,8 @@ describe('POST/', () => {
 
         describe('Client Request', () => {
             test('role can not be provided, 400 BAD REQUEST', async () => {
+                const expectedStatus = 400;
+
                 const user = {
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
@@ -245,29 +247,34 @@ describe('POST/', () => {
                     role: 'admin'
                 };
 
-                // create user
-                const expectedStatus = 400;
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .post(global.REGISTER_USER_PATH)
-                    .send(user)
-                    .expect(expectedStatus);
+                    .send(user);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('property role should not exist');
             });
 
             test('a missing property causes 400 BAD REQUEST', async () => {
+                const expectedStatus = 400;
+
                 const user = {
                     name: global.USER_DATA_GENERATOR.name(),
                     password: global.USER_DATA_GENERATOR.password(),
+                    // no email sent
                 };
 
                 // create user
-                const expectedStatus = 400;
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .post(global.REGISTER_USER_PATH)
-                    .send(user)
-                    .expect(expectedStatus);
+                    .send(user);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('email should not be null or undefined');
             });
 
             test('already existing name causes 400 BAD REQUEST', async () => {
+                const expectedStatus = 400;
                 const name = global.USER_DATA_GENERATOR.name();
 
                 const user1 = {
@@ -289,14 +296,16 @@ describe('POST/', () => {
                     .expect(201);
 
                 // create user 2
-                const expectedStatus = 400;
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .post(global.REGISTER_USER_PATH)
-                    .send(user2)
-                    .expect(expectedStatus);
-            });
+                    .send(user2);
 
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`User with name "${name}" already exists`);
+            });
+            
             test('already existing email causes 400 BAD REQUEST', async () => {
+                const expectedStatus = 400;
                 const email = global.USER_DATA_GENERATOR.email();
 
                 const user1 = {
@@ -318,11 +327,12 @@ describe('POST/', () => {
                     .expect(201);
 
                 // create user 2
-                const expectedStatus = 400;
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .post(global.REGISTER_USER_PATH)
-                    .send(user2)
-                    .expect(expectedStatus);
+                    .send(user2);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`User with email "${email}" already exists`);
             });
         });
     });

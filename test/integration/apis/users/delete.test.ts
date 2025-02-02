@@ -2,11 +2,10 @@ import request from 'supertest'
 import { Types } from 'mongoose';
 import { HashingService } from "@root/services";
 import { getSessionToken } from '../../helpers/token/session.token';
+import { FORBIDDEN_MESSAGE } from '@root/rules/errors/messages/error.messages';
 
 describe('DELETE/', () => {
-    describe('Delete user', () => {
-        const hashingService = new HashingService(+process.env.BCRYPT_SALT_ROUNDS!);
-
+    describe('Delete user', () => {            
         describe('Authentication/Authorization', () => {
             describe('Token is not provided', () => {
                 test('should not be able to access this feature (401 UNAUTHORIZED)', async () => {
@@ -15,9 +14,11 @@ describe('DELETE/', () => {
                     // generate a valid mongo id
                     const mongoId = new Types.ObjectId();
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.USERS_PATH}/${mongoId}`)
-                        .expect(expectedStatus);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('No token provided');
                 });
             });
 
@@ -66,10 +67,12 @@ describe('DELETE/', () => {
                     const anotherReadonlyUserId = anotherReadonlyUser.id;
 
                     // attemp to delete the other readonly user
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.USERS_PATH}/${anotherReadonlyUserId}`)
-                        .set('Authorization', `Bearer ${readonlyUserToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${readonlyUserToken}`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to delete an editor user (403 FORBIDDEN)', async () => {
@@ -96,10 +99,12 @@ describe('DELETE/', () => {
                     const editorUserId = editorUser.id;
 
                     // attemp to delete the editor using the readonly user token
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.USERS_PATH}/${editorUserId}`)
                         .set('Authorization', `Bearer ${readonlyUserToken}`)
-                        .expect(expectedStatus);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to delete an administrator (403 FORBIDDEN)', async () => {
@@ -126,10 +131,12 @@ describe('DELETE/', () => {
                     const adminUserId = adminUser.id;
 
                     // attemp to delete the administrator using the readonly user token
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.USERS_PATH}/${adminUserId}`)
-                        .set('Authorization', `Bearer ${readonlyUserToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${readonlyUserToken}`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
             });
 
@@ -175,12 +182,14 @@ describe('DELETE/', () => {
                         role: 'readonly'
                     });
 
-                    const readonlyUserId = readonlyUser.id; 
+                    const readonlyUserId = readonlyUser.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.USERS_PATH}/${readonlyUserId}`)
-                        .set('Authorization', `Bearer ${editorToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${editorToken}`);
+                        
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to delete another editor user (403 FORBIDDEN)', async () => {
@@ -206,10 +215,12 @@ describe('DELETE/', () => {
 
                     const anotherEditorId = anotherEditor.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.USERS_PATH}/${anotherEditorId}`)
-                        .set('Authorization', `Bearer ${editorToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${editorToken}`);
+                        
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to delete an administrator (403 FORBIDDEN)', async () => {
@@ -235,10 +246,12 @@ describe('DELETE/', () => {
 
                     const adminUserId = adminUser.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.USERS_PATH}/${adminUserId}`)
-                        .set('Authorization', `Bearer ${editorToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${editorToken}`);
+                        
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
             });
 
@@ -344,10 +357,12 @@ describe('DELETE/', () => {
 
                     const anotherAdminUserId = anotherAdminUser.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.USERS_PATH}/${anotherAdminUserId}`)
-                        .set('Authorization', `Bearer ${adminToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${adminToken}`);
+                        
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
             });
         });
@@ -360,7 +375,7 @@ describe('DELETE/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: global.USER_DATA_GENERATOR.password(),
                 });
 
                 // generate token with user id
@@ -369,10 +384,12 @@ describe('DELETE/', () => {
                 // generate a valid mongo id
                 const mongoId = new Types.ObjectId();
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .delete(`${global.USERS_PATH}/${mongoId}`)
-                    .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${token}`)                    
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`User with id ${mongoId} not found`);
             });
         });
 
@@ -384,7 +401,7 @@ describe('DELETE/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: global.USER_DATA_GENERATOR.password(),
                 });
 
                 // generate token with user id
@@ -392,10 +409,12 @@ describe('DELETE/', () => {
 
                 const invalidMongoId = 123;
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .delete(`${global.USERS_PATH}/${invalidMongoId}`)
                     .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
+                    
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`User with id ${invalidMongoId} not found`);
             });
         });
 
@@ -405,7 +424,7 @@ describe('DELETE/', () => {
                 const userInDb = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
                     email: global.USER_DATA_GENERATOR.email(),
-                    password: await hashingService.hash(global.USER_DATA_GENERATOR.password()),
+                    password: global.USER_DATA_GENERATOR.password(),
                 });
 
                 // generate token with user id

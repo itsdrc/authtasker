@@ -1,22 +1,28 @@
+import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 import { getSessionToken } from "../../helpers/token/session.token";
 import request from "supertest";
+import { Certificate } from "crypto";
 
 describe('POST/', () => {
     describe('Create task', () => {
+        const taskCreatedSuccessfullyStatus = 201;
+
         describe('Authentication/Authorization', () => {
             describe('Token not provided', () => {
                 test('should return status 401 UNAUTHORIZED', async () => {
                     const expectedStatus = 401;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .post(global.CREATE_TASK_PATH)
                         .send({
                             name: global.TASKS_DATA_GENERATOR.name(),
                             description: global.TASKS_DATA_GENERATOR.description(),
                             status: global.TASKS_DATA_GENERATOR.status(),
                             priority: global.TASKS_DATA_GENERATOR.priority(),
-                        })
-                        .expect(expectedStatus);
+                        });
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('No token provided');
                 });
             });
 
@@ -36,7 +42,7 @@ describe('POST/', () => {
                     const readonlyToken = getSessionToken(userCreated.id);
 
                     // task creation attemp
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .post(global.CREATE_TASK_PATH)
                         .send({
                             name: global.TASKS_DATA_GENERATOR.name(),
@@ -45,7 +51,9 @@ describe('POST/', () => {
                             priority: global.TASKS_DATA_GENERATOR.priority(),
                         })
                         .set('Authorization', `Bearer ${readonlyToken}`)
-                        .expect(expectedStatus);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
             });
 
@@ -65,7 +73,7 @@ describe('POST/', () => {
                     const editorToken = getSessionToken(userCreated.id);
 
                     // task creation attemp
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .post(global.CREATE_TASK_PATH)
                         .send({
                             name: global.TASKS_DATA_GENERATOR.name(),
@@ -74,7 +82,8 @@ describe('POST/', () => {
                             priority: global.TASKS_DATA_GENERATOR.priority(),
                         })
                         .set('Authorization', `Bearer ${editorToken}`)
-                        .expect(expectedStatus);
+
+                    expect(response.status).toBe(expectedStatus);
                 });
             });
 
@@ -94,7 +103,7 @@ describe('POST/', () => {
                     const adminToken = getSessionToken(userCreated.id);
 
                     // task creation attemp
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .post(global.CREATE_TASK_PATH)
                         .send({
                             name: global.TASKS_DATA_GENERATOR.name(),
@@ -103,8 +112,50 @@ describe('POST/', () => {
                             priority: global.TASKS_DATA_GENERATOR.priority(),
                         })
                         .set('Authorization', `Bearer ${adminToken}`)
-                        .expect(expectedStatus);
+
+                    expect(response.status).toBe(expectedStatus);
                 });
+            });
+        });
+
+        describe('Response to client', () => {
+            test('should contain the same data as database (200 OK)', async () => {
+                // create an editor user
+                const userCreated = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: 'secret-password',
+                    role: 'editor'
+                });
+
+                // generate a session token
+                const editorToken = getSessionToken(userCreated.id);
+
+                // create task
+                const createdTaskResponse = await request(global.SERVER_APP)
+                    .post(global.CREATE_TASK_PATH)
+                    .send({
+                        description: global.TASKS_DATA_GENERATOR.description(),
+                        name: global.TASKS_DATA_GENERATOR.name().toLowerCase().trim(),
+                        status: global.TASKS_DATA_GENERATOR.status(),
+                        priority: global.TASKS_DATA_GENERATOR.priority(),
+                    })
+                    .set('Authorization', `Bearer ${editorToken}`)
+                    .expect(taskCreatedSuccessfullyStatus);
+
+                const createdTaskId = createdTaskResponse.body.id;
+
+                const taskInDb = await TASKS_MODEL
+                    .findById(createdTaskId)
+                    .exec();
+
+                expect(createdTaskResponse.body)
+                    .toStrictEqual({
+                        ...taskInDb?.toJSON(),
+                        user: taskInDb?.user.toString(),
+                        createdAt: taskInDb?.createdAt.toISOString(),
+                        updatedAt: taskInDb?.updatedAt.toISOString(),
+                    });
             });
         });
 
@@ -137,7 +188,7 @@ describe('POST/', () => {
                     .post(global.CREATE_TASK_PATH)
                     .send(task)
                     .set('Authorization', `Bearer ${editorToken}`)
-                    .expect(201);
+                    .expect(taskCreatedSuccessfullyStatus);
 
                 const taskInDb = await TASKS_MODEL
                     .findById(createdTask.body.id)
@@ -170,7 +221,7 @@ describe('POST/', () => {
                     .post(global.CREATE_TASK_PATH)
                     .send(task)
                     .set('Authorization', `Bearer ${editorToken}`)
-                    .expect(201);
+                    .expect(taskCreatedSuccessfullyStatus);
 
                 const taskInDb = await TASKS_MODEL
                     .findById(createdTask.body.id)
@@ -180,10 +231,8 @@ describe('POST/', () => {
                 expect(taskInDb?.description).toBe(task.description);
                 expect(taskInDb?.priority).toBe(task.priority);
             });
-        });
 
-        describe('Response to client', () => {
-            test('should contain the same database data', async () => {
+            test('the property "user" should be the creator id', async () => {
                 // create an editor user
                 const userCreated = await global.USER_MODEL.create({
                     name: global.USER_DATA_GENERATOR.name(),
@@ -193,30 +242,26 @@ describe('POST/', () => {
                 });
 
                 // generate a session token
-                const editorToken = getSessionToken(userCreated.id);
-
-                const task = {
-                    description: global.TASKS_DATA_GENERATOR.description(),
-                    name: global.TASKS_DATA_GENERATOR.name(),
-                    status: global.TASKS_DATA_GENERATOR.status(),
-                    priority: global.TASKS_DATA_GENERATOR.priority(),
-                };
+                const userId = userCreated.id;
+                const editorToken = getSessionToken(userId);
 
                 // create task
                 const createdTask = await request(global.SERVER_APP)
                     .post(global.CREATE_TASK_PATH)
-                    .send(task)
+                    .send({
+                        description: global.TASKS_DATA_GENERATOR.description(),
+                        name: global.TASKS_DATA_GENERATOR.name(),
+                        status: global.TASKS_DATA_GENERATOR.status(),
+                        priority: global.TASKS_DATA_GENERATOR.priority(),
+                    })
                     .set('Authorization', `Bearer ${editorToken}`)
-                    .expect(201);
+                    .expect(taskCreatedSuccessfullyStatus);
 
                 const taskInDb = await TASKS_MODEL
                     .findById(createdTask.body.id)
                     .exec();
 
-                expect(taskInDb?.name).toBe(createdTask.body.name);
-                expect(taskInDb?.status).toBe(createdTask.body.status);
-                expect(taskInDb?.description).toBe(createdTask.body.description);
-                expect(taskInDb?.priority).toBe(createdTask.body.priority);
+                expect(taskInDb?.user.toString()).toBe(userId);
             });
         });
 
@@ -243,14 +288,16 @@ describe('POST/', () => {
                 };
 
                 // create task
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .post(global.CREATE_TASK_PATH)
                     .send(taskWithoutName)
                     .set('Authorization', `Bearer ${editorToken}`)
-                    .expect(expectedStatus);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('name should not be null or undefined')
             });
 
-            test('already existing name causes (400 BAD REQUEST)', async () => {
+            test('already existing name causes 400 BAD REQUEST', async () => {
                 const expectedStatus = 400;
 
                 // create an editor user
@@ -273,10 +320,12 @@ describe('POST/', () => {
                         priority: global.TASKS_DATA_GENERATOR.priority(),
                     })
                     .set('Authorization', `Bearer ${editorToken}`)
-                    .expect(201);
+                    .expect(taskCreatedSuccessfullyStatus);
+
+                const previousTaskName = createdTask.body.name;
 
                 // create task using the previous task name
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .post(global.CREATE_TASK_PATH)
                     .send({
                         name: createdTask.body.name,
@@ -285,9 +334,11 @@ describe('POST/', () => {
                         priority: global.TASKS_DATA_GENERATOR.priority(),
                     })
                     .set('Authorization', `Bearer ${editorToken}`)
-                    .expect(expectedStatus);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error)
+                    .toBe(`Task with name "${previousTaskName}" already exists`)
             });
         });
-
     });
 });

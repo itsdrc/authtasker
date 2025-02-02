@@ -10,10 +10,12 @@ describe('GET/', () => {
                 test('should not be able to access this feature (401 UNAUTHORIZED)', async () => {
                     const expectedStatus = 401;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .get(`${global.TASKS_PATH}`)
-                        .query({ page: 1, limit: 3 })
-                        .expect(expectedStatus);
+                        .query({ page: 1, limit: 3 });
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('No token provided');
                 });
             });
 
@@ -122,11 +124,14 @@ describe('GET/', () => {
                 // 0 or -1
                 const invalidLimit = -(Math.round(Math.random()));
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .get(`${global.TASKS_PATH}`)
                     .query({ page: 1, limit: invalidLimit })
                     .set('Authorization', `Bearer ${token}`)
                     .expect(expectedStatus);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('Limit must be a valid number');
             });
         });
 
@@ -145,11 +150,13 @@ describe('GET/', () => {
                 const token = getSessionToken(user.id);
                 const invalidLimit = 101;
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .get(`${global.TASKS_PATH}`)
                     .query({ page: 1, limit: invalidLimit })
-                    .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${token}`);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('Limit is too large');
             });
         });
 
@@ -168,11 +175,13 @@ describe('GET/', () => {
                 const token = getSessionToken(user.id);
                 const invalidPage = -(Math.round(Math.random()));
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .get(`${global.TASKS_PATH}`)
                     .query({ page: invalidPage, limit: 1 })
-                    .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${token}`);                    
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('Page must be a valid number');
             });
         });
 
@@ -275,7 +284,7 @@ describe('GET/', () => {
                         });
                     });
                 });
-            });            
+            });
         });
     });
 });

@@ -10,10 +10,12 @@ describe('GET/', () => {
                 test('should not be able to access this feature (401 UNAUTHORIZED)', async () => {
                     const expectedStatus = 401;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .get(`${global.USERS_PATH}`)
-                        .query({ page: 1, limit: 3 })
-                        .expect(expectedStatus);
+                        .query({ page: 1, limit: 3 });
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('No token provided');
                 });
             });
 
@@ -120,11 +122,13 @@ describe('GET/', () => {
 
                 const invalidLimit = 101;
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .get(`${global.USERS_PATH}`)
                     .query({ limit: invalidLimit })
-                    .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${token}`);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('Limit is too large');
             });
         });
 
@@ -144,11 +148,13 @@ describe('GET/', () => {
                 // sometimes 0, sometimes -1
                 const invalidLimit = -(Math.round(Math.random()));
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .get(`${global.USERS_PATH}`)
                     .query({ limit: invalidLimit })
-                    .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${token}`);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('Limit must be a valid number');
             });
         });
 
@@ -168,11 +174,13 @@ describe('GET/', () => {
                 // sometimes 0, sometimes -1
                 const invalidPage = -(Math.round(Math.random()));
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .get(`${global.USERS_PATH}`)
                     .query({ page: invalidPage })
-                    .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${token}`);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe('Page must be a valid number');
             });
         });
 

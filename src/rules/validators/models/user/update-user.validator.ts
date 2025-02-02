@@ -11,7 +11,7 @@ export class UpdateUserValidator extends PartialType(CreateUserValidator) {
 
     static async validateAndTransform(data: object): ValidationResult<UpdateUserValidator> {
         if (Object.keys(data).length === 0)
-            return ['At least one field is required for updating the user', undefined];
+            return ['At least one field is required to update the user', undefined];
 
         const user = new UpdateUserValidator();
         Object.assign(user, data);

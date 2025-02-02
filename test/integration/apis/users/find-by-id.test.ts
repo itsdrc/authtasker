@@ -9,9 +9,11 @@ describe('GET/', () => {
                 test('should not be able to access this feature (401 UNAUTHORIZED)', async () => {
                     const expectedStatus = 401;
 
-                    await request(global.SERVER_APP)
-                        .get(`${global.USERS_PATH}/12345`)
-                        .expect(expectedStatus);
+                    const response = await request(global.SERVER_APP)
+                        .get(`${global.USERS_PATH}/123`);
+                        
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('No token provided');
                 });
             });
 
@@ -84,7 +86,7 @@ describe('GET/', () => {
         });
 
         describe('User is found', () => {
-            test('should return: right user, right data and 200 OK', async () => {
+            test('should return the correct user data (200 OK)', async () => {
                 const expectedStatus = 200;
 
                 // create a user
@@ -128,10 +130,12 @@ describe('GET/', () => {
 
                 const invalidMongoId = 123;
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .get(`${global.USERS_PATH}/${invalidMongoId}`)
-                    .set('Authorization', `Bearer ${token}`)
-                    .expect(expectedStatus);
+                    .set('Authorization', `Bearer ${token}`);
+                    
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`User with id ${invalidMongoId} not found`);
             });
         });
 
@@ -149,10 +153,13 @@ describe('GET/', () => {
 
                 const validMongoId = new Types.ObjectId();
 
-                await request(global.SERVER_APP)
+                const response = await request(global.SERVER_APP)
                     .get(`${global.USERS_PATH}/${validMongoId}`)
                     .set('Authorization', `Bearer ${token}`)
                     .expect(expectedStatus);
+
+                expect(response.status).toBe(expectedStatus);
+                expect(response.body.error).toBe(`User with id ${validMongoId} not found`);
             });
         });
     });

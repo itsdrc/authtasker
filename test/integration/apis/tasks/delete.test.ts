@@ -1,17 +1,22 @@
 import request from "supertest";
 import { getSessionToken } from "../../helpers/token/session.token";
 import mongoose from "mongoose";
+import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
 
 describe('DELETE/', () => {
     describe('Delete one', () => {
+        const taskDeletedSuccessfullyStatus = 204;
+
         describe('Authentication/Authorization', () => {
             describe('No token provided', () => {
                 test('should return status (401 UNAUTHORIZED)', async () => {
                     const expectedStatus = 401;
 
-                    await request(global.SERVER_APP)
-                        .delete(`${global.TASKS_PATH}/123`)
-                        .expect(expectedStatus);
+                    const response = await request(global.SERVER_APP)
+                        .delete(`${global.TASKS_PATH}/123`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe('No token provided');
                 });
             });
 
@@ -48,10 +53,12 @@ describe('DELETE/', () => {
                     const readonlyUser1Token = getSessionToken(readonlyUser1.id);
                     const readonlyUser2TaskId = readonlyUser1Task.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.TASKS_PATH}/${readonlyUser2TaskId}`)
-                        .set('Authorization', `Bearer ${readonlyUser1Token}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${readonlyUser1Token}`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to delete an editor user task (403 FORBIDDEN)', async () => {
@@ -86,10 +93,12 @@ describe('DELETE/', () => {
                     const readonlyUserToken = getSessionToken(readonlyUser.id);
                     const editorTaskId = editorTask.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.TASKS_PATH}/${editorTaskId}`)
-                        .set('Authorization', `Bearer ${readonlyUserToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${readonlyUserToken}`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to delete an administrator user task (403 FORBIDDEN)', async () => {
@@ -124,15 +133,17 @@ describe('DELETE/', () => {
                     const readonlyUserToken = getSessionToken(readonlyUser.id);
                     const adminTaskId = adminTask.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.TASKS_PATH}/${adminTaskId}`)
-                        .set('Authorization', `Bearer ${readonlyUserToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${readonlyUserToken}`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
             });
 
             describe('User role is editor', () => {
-                test('should be able to delete their own task', async () => {
+                test('should be able to delete their own task (204 NO CONTENT)', async () => {
                     const expectedStatus = 204;
 
                     // create an editor user
@@ -193,10 +204,12 @@ describe('DELETE/', () => {
                     const editorUser1Token = getSessionToken(editorUser1.id);
                     const editorUser2TaskId = editorUser1Task.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.TASKS_PATH}/${editorUser2TaskId}`)
                         .set('Authorization', `Bearer ${editorUser1Token}`)
-                        .expect(expectedStatus);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
 
                 test('should not be able to delete an administrator task (403 FORBIDDEN)', async () => {
@@ -231,10 +244,12 @@ describe('DELETE/', () => {
                     const editorUserToken = getSessionToken(editorUser.id);
                     const taskId = task.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.TASKS_PATH}/${taskId}`)
-                        .set('Authorization', `Bearer ${editorUserToken}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${editorUserToken}`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
             });
 
@@ -377,10 +392,12 @@ describe('DELETE/', () => {
                     const adminUser1Token = getSessionToken(adminUser1.id);
                     const taskId = task.id;
 
-                    await request(global.SERVER_APP)
+                    const response = await request(global.SERVER_APP)
                         .delete(`${global.TASKS_PATH}/${taskId}`)
-                        .set('Authorization', `Bearer ${adminUser1Token}`)
-                        .expect(expectedStatus);
+                        .set('Authorization', `Bearer ${adminUser1Token}`);
+
+                    expect(response.status).toBe(expectedStatus);
+                    expect(response.body.error).toBe(FORBIDDEN_MESSAGE);
                 });
             });
         });
@@ -410,7 +427,8 @@ describe('DELETE/', () => {
                 // delete task
                 await request(global.SERVER_APP)
                     .delete(`${global.TASKS_PATH}/${taskId}`)
-                    .set('Authorization', `Bearer ${token}`);
+                    .set('Authorization', `Bearer ${token}`)
+                    .expect(taskDeletedSuccessfullyStatus);
 
                 // find task in database
                 const taskFound = await global.TASKS_MODEL
