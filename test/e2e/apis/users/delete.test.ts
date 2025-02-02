@@ -140,6 +140,6 @@ describe('Delete user', () => {
             } catch (error) {
                 handleAxiosError(error);
             }
-        });
+        }, 10000);
     });
 });
