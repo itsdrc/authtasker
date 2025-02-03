@@ -305,15 +305,10 @@ describe('CreateTaskValidator', () => {
                 .validateAndTransform(task);
 
             expect(error).not.toBeDefined();
-            // name is transformed            
-            expect(taskValidated).toMatchObject({
-                ...taskValidated,
+            expect(taskValidated).toEqual({
+                ...task,
                 name: task.name.toLowerCase().trim()
             });
-
-            // no extra properties
-            expect(Object.keys(Object(taskValidated)))
-                .toEqual(Object.keys(task));
         });
     });
 });
