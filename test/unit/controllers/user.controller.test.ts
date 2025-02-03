@@ -1,3 +1,5 @@
+import { Request, Response } from 'express';
+import { mock, MockProxy } from 'jest-mock-extended';
 import { faker } from '@faker-js/faker/.';
 import * as Handlers from '@root/common/handlers/error.handler';
 import * as ControllerHelpers from '@root/controllers/handlers/get-user-info.handler';
@@ -6,8 +8,7 @@ import { CreateUserValidator, LoginUserValidator } from '@root/rules/validators/
 import { UpdateUserValidator } from '@root/rules/validators/models/user/update-user.validator';
 import { LoggerService, UserService } from '@root/services';
 import { SystemLoggerService } from '@root/services/system-logger.service';
-import { Request, Response } from 'express';
-import { mock, MockProxy } from 'jest-mock-extended';
+import { PAGINATION_SETTINGS } from '@root/rules/constants/pagination.constants';
 
 describe('User Controller', () => {
     let userController: UserController;
@@ -19,53 +20,55 @@ describe('User Controller', () => {
         loggerService = mock<LoggerService>();
         userController = new UserController(userService, loggerService);
 
+        // disable system logs
         jest.spyOn(SystemLoggerService, 'error').mockImplementation();
         jest.spyOn(SystemLoggerService, 'info').mockImplementation();
         jest.spyOn(SystemLoggerService, 'warn').mockImplementation();
     });
 
-    describe('create', () => {
-        describe('CreatUserValidator.validateAndTransform throws an error', () => {
-            test('handleError should be called', async () => {
+    describe('Create', () => {
+        describe('Validation function throws an unexpected error', () => {
+            test('handleError helper should be called', async () => {
+                // spy handleError function and disable implementation
                 const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
                     .mockImplementation();
 
+                // mock res.status(..).json()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
 
-                // mock validateAndTransform
-                const error = new Error(faker.food.vegetable());
-                const validateAndTransformMock = jest.spyOn(CreateUserValidator, 'validateAndTransform')
-                    .mockRejectedValue(error);
+                // mock CreateUserValidator.validateAndTransform to return an error
+                const testError = new Error(faker.food.vegetable());
+                jest.spyOn(CreateUserValidator, 'validateAndTransform')
+                    .mockRejectedValue(testError);
 
                 await userController.create(requestMock, responseMock);
 
-                expect(validateAndTransformMock).toHaveBeenCalledTimes(1);
                 expect(handleErrorSpy).toHaveBeenCalledWith(
                     responseMock,
-                    error,
+                    testError,
                     loggerService,
                 );
             });
         });
 
-        describe('userService.create throws an error', () => {
-            test('handleError should be called', async () => {
+        describe('Service function "create" throws an error', () => {
+            test('handleError helper should be called', async () => {
+                // spy handleError function and disable implementation
                 const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
                     .mockImplementation();
 
+                // mock res.status(..).json()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
 
                 // stub CreateUserValidator.validateAndTransform
                 jest.spyOn(CreateUserValidator, 'validateAndTransform')
                     .mockResolvedValue([undefined, {} as any]);
 
-                // mock userService.create
+                // mock userService.create to return an error
                 const error = new Error(faker.food.vegetable());
                 userService.create.mockRejectedValue(error);
 
@@ -78,53 +81,85 @@ describe('User Controller', () => {
                 );
             });
         });
+
+        describe('Incoming properties are not valid', () => {
+            test('service function "create" should not be called', async () => {
+                // mock CreateUserValidator.validateAndTransform
+                jest.spyOn(CreateUserValidator, 'validateAndTransform')
+                    .mockResolvedValue(['test-error', undefined]);
+
+                // mock res.status(..).json()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+
+                await userController.create(requestMock, responseMock);
+
+                expect(userService.create).not.toHaveBeenCalled();
+            });
+        });
     });
 
-    describe('login', () => {
-        describe('LoginUserValidator.validate throws an error', () => {
+    describe('Login', () => {
+        describe('Validation function throws an unexpected error', () => {
             test('handleError should be called', async () => {
+                // spy handleError function and disable implementation
                 const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
                     .mockImplementation();
 
+                // mock LoginUserValidator.validate to return an error
+                const error = new Error('test-error');
+                jest.spyOn(LoginUserValidator, 'validate')
+                    .mockRejectedValue(error);
+
+                // stub res.status(..).json()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
-
-                // mock LoginUserValidator.validate
-                const error = new Error(faker.food.vegetable());
-                const validateMock = jest.spyOn(LoginUserValidator, 'validate')
-                    .mockRejectedValue(error);
 
                 await userController.login(requestMock, responseMock);
 
-                expect(validateMock).toHaveBeenCalledTimes(1);
                 expect(handleErrorSpy).toHaveBeenCalledWith(
                     responseMock,
                     error,
                     loggerService,
                 );
             });
-        });
 
-        describe('userService.login throws an error', () => {
-            test('handleError should be called', async () => {
-                const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
-                    .mockImplementation();
+            test('service function "login" should not be called', async () => {
+                // mock LoginUserValidator.validate
+                jest.spyOn(LoginUserValidator, 'validate')
+                    .mockResolvedValue(['test-error', undefined]);
 
+                // stub res.status(..).json()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
+
+                await userController.login(requestMock, responseMock);
+
+                expect(userService.login).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('Service function "login" throws an error', () => {
+            test('handleError should be called', async () => {
+                // spy handleError function and disable implementation
+                const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
+                    .mockImplementation();
 
                 // stub LoginUserValidator.validate
                 jest.spyOn(LoginUserValidator, 'validate')
                     .mockResolvedValue([undefined, {} as any]);
 
-                // mock userService.login
-                const error = new Error(faker.food.vegetable());
-                userService.login
-                    .mockRejectedValue(error);
+                // mock userService.login to return an error
+                const error = new Error('test-error');
+                userService.login.mockRejectedValue(error);
+
+                // stub res.status(..).json()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
 
                 await userController.login(requestMock, responseMock);
 
@@ -135,73 +170,145 @@ describe('User Controller', () => {
                 );
             });
         });
-    });
 
-    describe('logout', () => {
-        describe('userService.logout throws an error', () => {
-            test('handleError should be called', async () => {
-                const handleErrorMock = jest.spyOn(Handlers, 'handleError')
-                    .mockImplementation();
+        describe('Incoming properties are not valid', () => {
+            test('service function "login" should not be called', async () => {
+                // mock LoginUserValidator.validate
+                jest.spyOn(LoginUserValidator, 'validate')
+                    .mockResolvedValue(['test-error', undefined]);
 
+                // stub res.status(..).json()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
 
-                const error = new Error(faker.food.vegetable());
+                await userController.login(requestMock, responseMock);
+
+                expect(userService.login).not.toHaveBeenCalled();
+            });
+        });
+    });
+
+    describe('Logout', () => {
+        describe('Helper getUserInfoOrHandleError returns undefined (can not get user data)', () => {
+            test('service function "logout" should not be called', async () => {
+                // mock getUserInfoOrHandleError to return undefined
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue(undefined);
+
+                // stub res.status(..).end()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();                
+                responseMock.status.mockReturnThis();
+
+                await userController.logout(requestMock, responseMock);
+
+                expect(userService.logout).not.toHaveBeenCalled();
+            });
+
+            test('should not send a response to client again', async () => {
+                // mock getUserInfoOrHandleError to return undefined
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue(undefined);
+
+                // stub res.status(..).end()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+
+                await userController.logout(requestMock, responseMock);
+
+                expect(responseMock.status).not.toHaveBeenCalled();
+                expect(responseMock.json).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('Service function "logout" throws an error', () => {
+            test('handleError helper should be called', async () => {
+                // spy handleError function and disable implementation
+                const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
+                    .mockImplementation();
+
+                // stub getUserInfoOrHandleError to return something
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue({} as any);
+
+                // mock userService.logout to return an error
+                const error = new Error('test-error');
                 userService.logout.mockRejectedValue(error);
 
-                await userController.logout(requestMock, responseMock);
-
-                expect(handleErrorMock).toHaveBeenCalled();
-            });
-        });
-
-        describe('getUserInfoOrHandleError returns the expected information', () => {
-            test('userService.logout should be called with jti and token expiration', async () => {
-                const testJti = 'test-jti';
-                const testTokenExpiration = 9890284;
-
-                const getUserInfoOrHandleErrorMock = jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
-                    .mockReturnValue({
-                        jti: testJti,
-                        tokenExp: testTokenExpiration,
-                        id: '123',
-                        role: 'editor',
-                    });
-
+                // stub res.status(..).end()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
 
                 await userController.logout(requestMock, responseMock);
 
-                expect(getUserInfoOrHandleErrorMock).toHaveBeenCalledTimes(1);
-                expect(userService.logout).toHaveBeenCalledWith(testJti, testTokenExpiration);
+                expect(handleErrorSpy).toHaveBeenCalledWith(
+                    responseMock,
+                    error,
+                    loggerService,
+                );
             });
         });
     });
 
-    describe('requestEmailValidation', () => {
-        describe('userService.requestEmailValidation throws an error', () => {
-            test('handleError should be called', async () => {
-                const handleErrorMock = jest.spyOn(Handlers, 'handleError')
-                    .mockImplementation();
+    describe('RequestEmailValidation', () => {
+        describe('Helper getUserInfoOrHandleError returns undefined (can not get user data)', () => {
+            test('service function "requestEmailValidation" should not be called', async () => {
+                // mock getUserInfoOrHandleError to return undefined
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue(undefined);
 
+                // stub res.status(..).end()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
-
-                // mock userService.requestEmailValidation
-                const error = new Error(faker.food.vegetable());
-                userService.requestEmailValidation
-                    .mockRejectedValue(error);
 
                 await userController.requestEmailValidation(requestMock, responseMock);
 
-                expect(handleErrorMock).toHaveBeenCalledWith(
+                expect(userService.requestEmailValidation).not.toHaveBeenCalled();
+            });
+
+            test('should not send a response to client again', async () => {
+                // mock getUserInfoOrHandleError to return undefined
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue(undefined);
+
+                // stub res.status(..).end()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+
+                await userController.requestEmailValidation(requestMock, responseMock);
+
+                expect(responseMock.status).not.toHaveBeenCalled();
+                expect(responseMock.json).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('Service function "requestEmailValdiation" throws an error', () => {
+            test('handleError helper should be called', async () => {
+                // spy handleError function and disable implementation
+                const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
+                    .mockImplementation();
+
+                // stub getUserInfoOrHandleError to return something
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue({} as any);
+
+                // mock userService.requestEmailValidation to return an error
+                const error = new Error('test-error');
+                userService.requestEmailValidation.mockRejectedValue(error);
+
+                // mock res.status(..).end()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+
+                await userController.requestEmailValidation(requestMock, responseMock);
+
+                expect(handleErrorSpy).toHaveBeenCalledWith(
                     responseMock,
                     error,
                     loggerService,
@@ -210,24 +317,41 @@ describe('User Controller', () => {
         });
     });
 
-    describe('confirmEmailValidation', () => {
-        describe('userService.confirmEmailValidation throws an error', () => {
-            test('handleError should be called', async () => {
-                const handleErrorMock = jest.spyOn(Handlers, 'handleError')
-                    .mockImplementation();
-
+    describe('ConfirmEmailValidation', () => {
+        describe('Token not in params', () => {
+            test('Service function "confirmEmailValidation" should not be called', async () => {
+                // stub res.status(..).end()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
-
-                // mock userService.confirmEmailValidation
-                const error = new Error(faker.food.vegetable());
-                userService.confirmEmailValidation.mockRejectedValue(error);
 
                 await userController.confirmEmailValidation(requestMock, responseMock);
 
-                expect(handleErrorMock).toHaveBeenCalledWith(
+                expect(userService.confirmEmailValidation).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('Service function "confirmEmailValidation" throws an error', () => {
+            test('handleError helper should throw an error', async () => {
+                // spy handleError function and disable implementation
+                const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
+                    .mockImplementation();
+
+                // stub res.status(..).end() and req.params.token
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+                requestMock.params.token = '123';
+
+                // mock userService.confirmEmailValidation to return an error
+                const error = new Error('test-error');
+                userService.confirmEmailValidation
+                    .mockRejectedValue(error);
+
+                await userController
+                    .confirmEmailValidation(requestMock, responseMock);
+
+                expect(handleErrorSpy).toHaveBeenCalledWith(
                     responseMock,
                     error,
                     loggerService,
@@ -236,25 +360,25 @@ describe('User Controller', () => {
         });
     });
 
-    describe('findOne', () => {
-        describe('userService.findOne throws an error', () => {
-            test('handleError should be called', async () => {
-                const handleErrorMock = jest.spyOn(Handlers, 'handleError')
+    describe('Find one', () => {
+        describe('Service function "findOne" throws an error', () => {
+            test('handleError helper should be called', async () => {
+                // spy handleError function and disable implementation
+                const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
                     .mockImplementation();
 
+                // stub res.status(..).end()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
 
-                // mock userService.findOne
-                const error = new Error(faker.food.vegetable());
-                userService.findOne
-                    .mockRejectedValue(error);
+                // mock userService.findOne to return an error
+                const error = new Error('test-error');
+                userService.findOne.mockRejectedValue(error);
 
                 await userController.findOne(requestMock, responseMock);
 
-                expect(handleErrorMock).toHaveBeenCalledWith(
+                expect(handleErrorSpy).toHaveBeenCalledWith(
                     responseMock,
                     error,
                     loggerService,
@@ -263,25 +387,56 @@ describe('User Controller', () => {
         });
     });
 
-    describe('findAll', () => {
-        describe('userService.findAll throws an error', () => {
-            test('handleError should be called', async () => {
-                const handleErrorMock = jest.spyOn(Handlers, 'handleError')
-                    .mockImplementation();
-
+    describe('Find all', () => {
+        describe('Limit and page not provided', () => {
+            test('Service function "findAll" should be called with the default limit and page', async () => {
+                // stub res.status(..).end()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
-
-                // mock userService.findAll
-                const error = new Error(faker.food.vegetable());
-                userService.findAll
-                    .mockRejectedValue(error);
 
                 await userController.findAll(requestMock, responseMock);
 
-                expect(handleErrorMock).toHaveBeenCalledWith(
+                expect(userService.findAll).toHaveBeenCalledWith(
+                    PAGINATION_SETTINGS.DEFAULT_LIMIT,
+                    PAGINATION_SETTINGS.DEFAULT_PAGE
+                );
+            });
+        });
+
+        describe('User provides limit and page', () => {
+            test('Service function "findAll" should be called with the provided limit and page', async () => {
+                // stub res.status(..).end() and req.query.limit, req.query.page
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+                requestMock.query.limit = '10';
+                requestMock.query.page = '2';
+
+                await userController.findAll(requestMock, responseMock);
+
+                expect(userService.findAll).toHaveBeenCalledWith(10, 2);
+            });
+        });
+
+        describe('Service function "findAll" throws an error', () => {
+            test('handleError helper should be called', async () => {
+                // spy handleError function and disable implementation
+                const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
+                    .mockImplementation();
+
+                // stub res.status(..).end()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+
+                // mock userService.findAll to return an error
+                const error = new Error('test-error');
+                userService.findAll.mockRejectedValue(error);
+
+                await userController.findAll(requestMock, responseMock);
+
+                expect(handleErrorSpy).toHaveBeenCalledWith(
                     responseMock,
                     error,
                     loggerService,
@@ -290,25 +445,62 @@ describe('User Controller', () => {
         });
     });
 
-    describe('deleteOne', () => {
-        describe('userService.deleteOne throws an error', () => {
-            test('handleError should be called', async () => {
-                const handleErrorMock = jest.spyOn(Handlers, 'handleError')
-                    .mockImplementation();
+    describe('Delete one', () => {
+        describe('Helper getUserInfoOrHandleError returns undefined (can not get user data)', () => {
+            test('service function "deleteOne" should not be called', async () => {
+                // mock getUserInfoOrHandleError to return undefined
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue(undefined);
 
+                // stub res.status(..).end()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
-
-                // mock userService.deleteOne
-                const error = new Error(faker.food.vegetable());
-                userService.deleteOne
-                    .mockRejectedValue(error);
 
                 await userController.deleteOne(requestMock, responseMock);
 
-                expect(handleErrorMock).toHaveBeenCalledWith(
+                expect(userService.deleteOne).not.toHaveBeenCalled();
+            });
+
+            test('should not send a response to client again', async () => {
+                // mock getUserInfoOrHandleError to return undefined
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue(undefined);
+
+                // stub res.status(..).end()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+
+                await userController.deleteOne(requestMock, responseMock);
+
+                expect(responseMock.status).not.toHaveBeenCalled();
+                expect(responseMock.json).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('Service function "deleteOne" throws an error', () => {
+            test('handleError helper should be called', async () => {
+                // spy handleError function and disable implementation
+                const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
+                    .mockImplementation();
+
+                // stub getUserInfoOrHandleError to return something
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue({} as any);
+
+                // mock userService.deleteOne to return an error
+                const error = new Error('test-error');
+                userService.deleteOne.mockRejectedValue(error);
+
+                // stub res.status(..).end()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+
+                await userController.deleteOne(requestMock, responseMock);
+
+                expect(handleErrorSpy).toHaveBeenCalledWith(
                     responseMock,
                     error,
                     loggerService,
@@ -317,26 +509,100 @@ describe('User Controller', () => {
         });
     });
 
-    describe('updateOne', () => {
-        describe('UpdateUserValidator.validateAndTransform throws an error', () => {
-            test('handleError should be called', async () => {
-                const handleErrorMock = jest.spyOn(Handlers, 'handleError')
+    describe('Update one', () => {
+        describe('Validation function throws an unexpected error', () => {
+            test('handleError helper should be called', async () => {
+                // spy handleError function and disable implementation
+                const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
                     .mockImplementation();
 
+                // stub res.status(..).json()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
 
-                // mock UpdateUserValidator.validateAndTransform
-                const error = new Error(faker.food.vegetable());
-                const validateAndTransformMock = jest.spyOn(UpdateUserValidator, 'validateAndTransform')
-                    .mockRejectedValue(error);
+                // mock UpdateUserValidator.validateAndTransform to return an error
+                const testError = new Error(faker.food.vegetable());
+                jest.spyOn(UpdateUserValidator, 'validateAndTransform')
+                    .mockRejectedValue(testError);
 
                 await userController.updateOne(requestMock, responseMock);
 
-                expect(validateAndTransformMock).toHaveBeenCalledTimes(1);
-                expect(handleErrorMock).toHaveBeenCalledWith(
+                expect(handleErrorSpy).toHaveBeenCalledWith(
+                    responseMock,
+                    testError,
+                    loggerService,
+                );
+            });
+        });
+
+        describe('Helper getUserInfoOrHandleError returns undefined (can not get user data)', () => {
+            test('service function "updateOne" should not be called', async () => {
+                // stub res.status(..).json()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+
+                // stub UpdateUserValidator.validateAndTransform to return a valid object
+                jest.spyOn(UpdateUserValidator, 'validateAndTransform')
+                    .mockResolvedValue([undefined, {} as any]);
+
+                // mock getUserInfoOrHandleError to return undefined
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue(undefined);
+
+                await userController.updateOne(requestMock, responseMock);
+
+                expect(userService.updateOne).not.toHaveBeenCalled();
+            });
+
+            test('should not send a response to client again', async () => {
+                // stub res.status(..).json()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+
+                // stub UpdateUserValidator.validateAndTransform to return a valid object
+                jest.spyOn(UpdateUserValidator, 'validateAndTransform')
+                    .mockResolvedValue([undefined, {} as any]);
+
+                // mock getUserInfoOrHandleError to return undefined
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue(undefined);
+
+                await userController.updateOne(requestMock, responseMock);
+
+                expect(responseMock.status).not.toHaveBeenCalled();
+                expect(responseMock.json).not.toHaveBeenCalled();                
+            });
+        });
+
+        describe('Service function "updateOne" throws an error', () => {
+            test('handleError helper should be called', async () => {
+                // spy handleError function and disable implementation
+                const handleErrorSpy = jest.spyOn(Handlers, 'handleError')
+                    .mockImplementation();
+
+                // stub res.status(..).json()
+                const requestMock = mock<Request>();
+                const responseMock = mock<Response>();
+                responseMock.status.mockReturnThis();
+
+                // mock getUserInfoOrHandleError to return a value
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue({} as any);
+
+                // stub UpdateUserValidator.validateAndTransform
+                jest.spyOn(UpdateUserValidator, 'validateAndTransform')
+                    .mockResolvedValue([undefined, {} as any]);                
+
+                // mock userService.updateOne to return an error
+                const error = new Error(faker.food.vegetable());
+                userService.updateOne.mockRejectedValue(error);
+
+                await userController.updateOne(requestMock, responseMock);
+
+                expect(handleErrorSpy).toHaveBeenCalledWith(
                     responseMock,
                     error,
                     loggerService,
@@ -344,32 +610,24 @@ describe('User Controller', () => {
             });
         });
 
-        describe('userService.updateOne throws an error', () => {
-            test('handleError should be called', async () => {
-                const handleErrorMock = jest.spyOn(Handlers, 'handleError')
-                    .mockImplementation();
+        describe('Incoming properties are not valid', () => {
+            test('service function "updateOne" should not be called', async () => {
+                // mock UpdateUserValidator.validateAndTransform
+                jest.spyOn(UpdateUserValidator, 'validateAndTransform')
+                    .mockResolvedValue(['test-error', undefined]);     
+                    
+                // mock getUserInfoOrHandleError to return a value
+                jest.spyOn(ControllerHelpers, 'getUserInfoOrHandleError')
+                    .mockReturnValue({} as any);
 
+                // mock res.status(..).json()
                 const requestMock = mock<Request>();
                 const responseMock = mock<Response>();
-                // mock res.status(..).json()
                 responseMock.status.mockReturnThis();
-
-                // stub UpdateUserValidator.validateAndTransform
-                jest.spyOn(UpdateUserValidator, 'validateAndTransform')
-                    .mockResolvedValue([undefined, {} as any]);
-
-                // mock userService.updateOne
-                const error = new Error(faker.food.vegetable());
-                userService.updateOne
-                    .mockRejectedValue(error);
 
                 await userController.updateOne(requestMock, responseMock);
 
-                expect(handleErrorMock).toHaveBeenCalledWith(
-                    responseMock,
-                    error,
-                    loggerService,
-                );
+                expect(userService.updateOne).not.toHaveBeenCalled();
             });
         });
     });
