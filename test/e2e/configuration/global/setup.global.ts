@@ -13,11 +13,6 @@ export default async () => {
         process.exit(1);
     }
 
-    if (!configService.mailServiceIsDefined()) {
-        SystemLoggerService.error('Email service is needed');
-        process.exit(1);
-    }
-
     try {
         SystemLoggerService.info('Getting admin token...');
         const response = await axios.post(`${configService.WEB_URL}api/users/login`, {
