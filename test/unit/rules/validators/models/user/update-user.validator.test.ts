@@ -10,7 +10,7 @@ describe('Update User validator', () => {
         test('should return an error indicating at least one property is needed', async () => {
             const [error, validated] = await UpdateUserValidator.validateAndTransform({});
             expect(validated).not.toBeDefined();
-            expect(error).toBe('At least one field is required for updating the user');
+            expect(error).toBe('At least one field is required to update the user');
         });
     });
 
