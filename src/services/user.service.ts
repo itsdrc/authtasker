@@ -27,11 +27,8 @@ export class UserService {
         private readonly jwtService: JwtService,
         private readonly jwtBlacklistService: JwtBlackListService,
         private readonly loggerService: LoggerService,
-        private readonly emailService?: EmailService,
-    ) {
-        if (!this.configService.mailServiceIsDefined())
-            SystemLoggerService.warn('Email validation is not enabled');
-    }
+        private readonly emailService: EmailService,
+    ) {}
 
     // returns the user to modify in order to not have to findOne it again
     private async IsModificationAuthorized(requestUserInfo: { id: string, role: UserRole }, userIdToUpdate: string): Promise<HydratedDocument<IUser> | null> {
@@ -121,11 +118,7 @@ export class UserService {
             throw HttpError.badRequest('User not found');
         }
 
-        if (this.configService.mailServiceIsDefined()) {
-            await this.sendEmailValidationLink(user.email);
-        } else {
-            this.loggerService.debug('Email validation not sent because is not enabled')
-        }
+        await this.sendEmailValidationLink(user.email);
     }
 
     async confirmEmailValidation(token: string): Promise<void> {

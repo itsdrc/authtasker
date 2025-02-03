@@ -51,15 +51,13 @@ export class AppRoutes {
         this.jwtService = new JwtService(this.configService.JWT_PRIVATE_KEY);
         this.hashingService = new HashingService(this.configService.BCRYPT_SALT_ROUNDS);
         this.jwtBlacklistService = new JwtBlackListService(this.redisService);
-        if (this.configService.mailServiceIsDefined()) {
-            this.emailService = new EmailService({
-                host: this.configService.MAIL_SERVICE_HOST,
-                port: this.configService.MAIL_SERVICE_PORT,
-                user: this.configService.MAIL_SERVICE_USER,
-                pass: this.configService.MAIL_SERVICE_PASS,
-            });
-        }
-
+        this.emailService = new EmailService({
+            host: this.configService.MAIL_SERVICE_HOST,
+            port: this.configService.MAIL_SERVICE_PORT,
+            user: this.configService.MAIL_SERVICE_USER,
+            pass: this.configService.MAIL_SERVICE_PASS,
+        });
+        
         // roles middlewares
         this.rolesMiddlewares = {
             readonly: rolesMiddlewareFactory(

@@ -1,6 +1,5 @@
 import "dotenv/config";
 import * as env from "env-var";
-import { SystemLoggerService } from "./system-logger.service";
 
 export class ConfigService {
     public readonly NODE_ENV: string;
@@ -9,11 +8,10 @@ export class ConfigService {
     public readonly BCRYPT_SALT_ROUNDS: number;
     public readonly JWT_SESSION_EXPIRATION_TIME: string;
     public readonly JWT_PRIVATE_KEY: string;
-    private readonly MAIL_SERVICE: boolean; // private, use mailServiceIsDefined() instead
-    public readonly MAIL_SERVICE_HOST: string | undefined;
-    public readonly MAIL_SERVICE_PORT: number | undefined;
-    public readonly MAIL_SERVICE_USER: string | undefined;
-    public readonly MAIL_SERVICE_PASS: string | undefined;
+    public readonly MAIL_SERVICE_HOST: string;
+    public readonly MAIL_SERVICE_PORT: number;
+    public readonly MAIL_SERVICE_USER: string;
+    public readonly MAIL_SERVICE_PASS: string;
     public readonly WEB_URL: string;
     public readonly HTTP_LOGS: boolean;
     public readonly REDIS_PORT: number;
@@ -53,27 +51,21 @@ export class ConfigService {
             .required()
             .asString();
 
-        this.MAIL_SERVICE = env.get('MAIL_SERVICE')
+        this.MAIL_SERVICE_HOST = env.get('MAIL_SERVICE_HOST')
             .required()
-            .asBool();
+            .asString();
 
-        if (this.MAIL_SERVICE) {
-            this.MAIL_SERVICE_HOST = env.get('MAIL_SERVICE_HOST')
-                .required()
-                .asString();
+        this.MAIL_SERVICE_PORT = env.get('MAIL_SERVICE_PORT')
+            .required()
+            .asPortNumber();
 
-            this.MAIL_SERVICE_PORT = env.get('MAIL_SERVICE_PORT')
-                .required()
-                .asPortNumber();
+        this.MAIL_SERVICE_USER = env.get('MAIL_SERVICE_USER')
+            .required()
+            .asString();
 
-            this.MAIL_SERVICE_USER = env.get('MAIL_SERVICE_USER')
-                .required()
-                .asString();
-
-            this.MAIL_SERVICE_PASS = env.get('MAIL_SERVICE_PASS')
-                .required()
-                .asString();
-        }
+        this.MAIL_SERVICE_PASS = env.get('MAIL_SERVICE_PASS')
+            .required()
+            .asString();
 
         this.WEB_URL = env.get('WEB_URL')
             .required()
@@ -102,14 +94,5 @@ export class ConfigService {
         this.ADMIN_PASSWORD = env.get('ADMIN_PASSWORD')
             .required()
             .asString();
-    }
-
-    mailServiceIsDefined(): this is this & {
-        MAIL_SERVICE_HOST: string,
-        MAIL_SERVICE_PORT: string,
-        MAIL_SERVICE_USER: string,
-        MAIL_SERVICE_PASS: string,
-    } {
-        return this.MAIL_SERVICE === true;
     }
 }
