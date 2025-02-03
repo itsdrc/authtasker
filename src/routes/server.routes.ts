@@ -16,7 +16,6 @@ import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-sto
 import { IUser } from "@root/interfaces/user/user.interface";
 import { loadUserModel } from "@root/databases/mongo/models/user.model.load";
 import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
-import { SeedRoutes } from "@root/seed/routes/seed.routes";
 import { UserRoutes } from "./user.routes";
 import { TasksRoutes } from "./tasks.routes";
 import { ITasks } from "@root/interfaces/tasks/task.interface";
@@ -24,6 +23,7 @@ import { loadTasksModel } from "@root/databases/mongo/models/tasks.model.load";
 import { TasksService } from "@root/services/tasks.service";
 import { rolesMiddlewareFactory } from "@root/middlewares/roles.middleware";
 import { RolesMiddlewares } from "@root/types/middlewares/roles.middlewares.type";
+import { SeedRoutes } from "@root/seed/seed.routes";
 
 export class AppRoutes {
 
@@ -138,10 +138,12 @@ export class AppRoutes {
         const seedRoutes = new SeedRoutes(
             this.configService,
             this.userModel,
-            this.hashingService,
+            this.tasksModel,            
             this.loggerService,
+            this.hashingService,
         );
-        return seedRoutes.routes;
+
+        return seedRoutes.build();
     }
 
     async buildApp() {

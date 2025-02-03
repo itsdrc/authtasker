@@ -1,10 +1,10 @@
 import { Model } from "mongoose";
-
 import { HashingService } from "@root/services/hashing.service";
 import { IUser } from "@root/interfaces/user/user.interface";
 import { UserRequest } from "@root/types/user/user-request.type";
 import { ConfigService } from "@root/services/config.service";
 import { UserDataGenerator } from "../generators/user.generator";
+import { LoggerService } from "@root/services";
 
 export class UserSeedService {
 
@@ -12,7 +12,8 @@ export class UserSeedService {
         private readonly configService: ConfigService,
         private readonly userModel: Model<IUser>,
         private readonly hashingService: HashingService,
-        private readonly dataGenerator: UserDataGenerator
+        private readonly dataGenerator: UserDataGenerator,
+        private readonly loggerService: LoggerService,
     ) {}
 
     private async generateRandomUser(): Promise<UserRequest> {
@@ -21,6 +22,12 @@ export class UserSeedService {
             email: this.dataGenerator.email(),
             password: await this.hashingService.hash(this.dataGenerator.password()),
         };
+    }
+
+    private returnRandomRole(): string {
+        const roles = ['editor', 'readonly'];
+        const n = Math.floor(Math.random() * roles.length);
+        return roles[n];
     }
 
     private async generateBunchOfUsers(n: number): Promise<UserRequest[]> {
@@ -33,7 +40,11 @@ export class UserSeedService {
 
     async seedBunch(n: number) {
         await this.userModel.deleteMany({ email: { $ne: this.configService.ADMIN_EMAIL } });
+        this.loggerService.warn('All users deleted, except admin');
+
         const users = await this.generateBunchOfUsers(n);
-        return await this.userModel.insertMany(users);
+        const usersWithRole = users.map(user => ({ ...user, role: this.returnRandomRole() }));
+
+        return await this.userModel.insertMany(usersWithRole);
     }
 }
