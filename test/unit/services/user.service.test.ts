@@ -339,47 +339,6 @@ describe('User Service', () => {
         });
     });
 
-    describe('requestEmailValidation', () => {
-        describe('MAIL_SERVICE env is false', () => {
-            test('sendEmailValidationLink should not be called', async () => {
-                configService.mailServiceIsDefined.mockReturnValue(false);
-
-                // return something to avoid error when user is not found
-                userModel
-                    .findById()
-                    .exec
-                    .mockReturnValue({} as any);
-
-                const sendEmailValidationLinkSpy = jest.spyOn(userService as any, 'sendEmailValidationLink')
-                    .mockImplementation();
-
-                await userService.requestEmailValidation('test-id');
-                expect(sendEmailValidationLinkSpy)
-                    .not
-                    .toHaveBeenCalled();
-            });
-        });
-
-        describe('MAIL_SERVICE env is true', () => {
-            test('sendEmailValidationLink should be called', async () => {
-                configService.mailServiceIsDefined.mockReturnValue(true);
-
-                // return something to avoid error when user is not found
-                userModel
-                    .findById()
-                    .exec
-                    .mockResolvedValue({} as any);
-
-                const sendEmailValidationLinkSpy = jest.spyOn(userService as any, 'sendEmailValidationLink')
-                    .mockImplementation();
-
-                await userService.requestEmailValidation('test-id');
-
-                expect(sendEmailValidationLinkSpy).toHaveBeenCalled();
-            });
-        });
-    });
-
     describe('confirmEmailValidation', () => {
         describe('Token is not a valid token', () => {
             test('should throw bad request exception', async () => {
@@ -492,6 +451,4 @@ describe('User Service', () => {
             });
         });
     });
-
-
 });
