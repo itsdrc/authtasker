@@ -9,6 +9,15 @@ import { IAsyncLocalStorageStore } from "./interfaces/common/async-local-storage
 import { RedisService } from "./services";
 
 async function main() {
+    process.on('unhandledRejection', (reason, promise) => {
+        SystemLoggerService.error(`Unhandled Rejection at: ${reason}, Promise ${promise}`);
+    });
+
+    process.on('uncaughtException', (error) => {    
+        SystemLoggerService.error(`Uncaught Exception thrown: ${error.message}`);
+        process.exit(1);
+    });
+
     const configService = new ConfigService();
     SystemLoggerService.info(`Starting application in ${configService.NODE_ENV} MODE`);
 
