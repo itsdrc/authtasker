@@ -437,6 +437,101 @@ describe('DELETE/', () => {
 
                 expect(taskFound).toBeNull();
             });
+
+            test('other tasks from the same user should not be removed', async () => {
+                // create an editor user
+                const editorUser = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: 'secret-password',
+                    role: 'editor',
+                });
+
+                // create two tasks for the editor user
+                const task1 = await global.TASKS_MODEL.create({
+                    name: global.TASKS_DATA_GENERATOR.name(),
+                    description: global.TASKS_DATA_GENERATOR.description(),
+                    status: global.TASKS_DATA_GENERATOR.status(),
+                    priority: global.TASKS_DATA_GENERATOR.priority(),
+                    user: editorUser.id,
+                });
+
+                const task2 = await global.TASKS_MODEL.create({
+                    name: global.TASKS_DATA_GENERATOR.name(),
+                    description: global.TASKS_DATA_GENERATOR.description(),
+                    status: global.TASKS_DATA_GENERATOR.status(),
+                    priority: global.TASKS_DATA_GENERATOR.priority(),
+                    user: editorUser.id,
+                });
+
+                const token = getSessionToken(editorUser.id);
+                const task1Id = task1.id;
+
+                // delete task1
+                await request(global.SERVER_APP)
+                    .delete(`${global.TASKS_PATH}/${task1Id}`)
+                    .set('Authorization', `Bearer ${token}`)
+                    .expect(taskDeletedSuccessfullyStatus);
+
+                // task2 should be found in database
+                const task2Found = await global.TASKS_MODEL
+                    .findById(task2.id)
+                    .exec();
+
+                expect(task2Found).not.toBeNull();
+            });
+
+            test('other tasks from another user should not be removed', async () => {
+                // create an editor user
+                const editorUser = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: 'secret-password',
+                    role: 'editor',
+                });
+
+                // create another user
+                const anotherUser = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: 'secret-password',
+                    role: 'editor',
+                });
+
+                // create a task for the editor user
+                const editorTask = await global.TASKS_MODEL.create({
+                    name: global.TASKS_DATA_GENERATOR.name(),
+                    description: global.TASKS_DATA_GENERATOR.description(),
+                    status: global.TASKS_DATA_GENERATOR.status(),
+                    priority: global.TASKS_DATA_GENERATOR.priority(),
+                    user: editorUser.id,
+                });
+
+                // create a task for another user
+                const anotherUserTask = await global.TASKS_MODEL.create({
+                    name: global.TASKS_DATA_GENERATOR.name(),
+                    description: global.TASKS_DATA_GENERATOR.description(),
+                    status: global.TASKS_DATA_GENERATOR.status(),
+                    priority: global.TASKS_DATA_GENERATOR.priority(),
+                    user: anotherUser.id,
+                });
+
+                const token = getSessionToken(editorUser.id);
+                const editorTaskId = editorTask.id;
+
+                // delete editorTask
+                await request(global.SERVER_APP)
+                    .delete(`${global.TASKS_PATH}/${editorTaskId}`)
+                    .set('Authorization', `Bearer ${token}`)
+                    .expect(taskDeletedSuccessfullyStatus);
+
+                // anotherUserTask should be found in database
+                const anotherUserTaskFound = await global.TASKS_MODEL
+                    .findById(anotherUserTask.id)
+                    .exec();
+
+                expect(anotherUserTaskFound).not.toBeNull();
+            });
         });
 
         describe('Client request', () => {

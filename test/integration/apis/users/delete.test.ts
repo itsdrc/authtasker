@@ -441,6 +441,112 @@ describe('DELETE/', () => {
 
                 expect(userFound).toBeNull();
             });
-        });
+
+            test('other users should not be removed', async () => {
+                // create user to be deleted
+                const userToDelete = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: global.USER_DATA_GENERATOR.password(),
+                });
+
+                // create another user that should not be deleted
+                const anotherUser = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: global.USER_DATA_GENERATOR.password(),
+                });
+
+                // generate token with user id
+                const token = getSessionToken(userToDelete.id);
+
+                await request(global.SERVER_APP)
+                    .delete(`${global.USERS_PATH}/${userToDelete.id}`)
+                    .set('Authorization', `Bearer ${token}`)
+                    .expect(204);
+                
+                const userFound = await global.USER_MODEL
+                    .findById(anotherUser.id)
+                    .exec();
+                    
+                expect(userFound).not.toBeNull();
+            });
+
+            test('task created by user should be removed', async () => {
+                // create an editor
+                const user = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: global.USER_DATA_GENERATOR.password(),
+                    role: 'editor'
+                });
+
+                const userId = user.id;
+                const token = getSessionToken(user.id);                
+
+                // create a task
+                const task = await global.TASKS_MODEL.create({
+                    name: global.TASKS_DATA_GENERATOR.name(),
+                    description: global.TASKS_DATA_GENERATOR.description(),
+                    status: global.TASKS_DATA_GENERATOR.status(),
+                    priority: global.TASKS_DATA_GENERATOR.priority(),
+                    user: userId,
+                });                
+
+                // delete the user
+                await request(global.SERVER_APP)
+                    .delete(`${global.USERS_PATH}/${userId}`)
+                    .set('Authorization', `Bearer ${token}`)
+                    .expect(204);
+
+                // find the task
+                const taskFound = await global.TASKS_MODEL
+                    .findById(task.id)
+                    .exec();
+
+                expect(taskFound).toBeNull();
+            });
+
+            test('tasks created by another user should not be removed', async () => {
+                // create a user to be deleted
+                const userToDelete = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: global.USER_DATA_GENERATOR.password(),
+                });
+
+                // create another user
+                const anotherUser = await global.USER_MODEL.create({
+                    name: global.USER_DATA_GENERATOR.name(),
+                    email: global.USER_DATA_GENERATOR.email(),
+                    password: global.USER_DATA_GENERATOR.password(),
+                });
+
+                // create a task for the other user
+                const task = await global.TASKS_MODEL.create({
+                    name: global.TASKS_DATA_GENERATOR.name(),
+                    description: global.TASKS_DATA_GENERATOR.description(),
+                    status: global.TASKS_DATA_GENERATOR.status(),
+                    priority: global.TASKS_DATA_GENERATOR.priority(),
+                    user: anotherUser.id,
+                });
+
+                // generate token with user id
+                const token = getSessionToken(userToDelete.id);
+
+                // delete the user
+                await request(global.SERVER_APP)
+                    .delete(`${global.USERS_PATH}/${userToDelete.id}`)
+                    .set('Authorization', `Bearer ${token}`)
+                    .expect(204);
+
+                // find the task created by the other user, should not be null
+                const taskFound = await global.TASKS_MODEL
+                    .findById(task.id)
+                    .exec();
+
+                expect(taskFound).not.toBeNull();
+            });
+        });        
     });
 });
