@@ -25,7 +25,7 @@ export class ConfigService {
 
         this.NODE_ENV = env.get('NODE_ENV')
             .required()
-            .asEnum(['development', 'e2e', 'integration'])
+            .asEnum(['development', 'e2e', 'integration','production'])
 
         this.HTTP_LOGS = env.get('HTTP_LOGS')
             .default("true")
