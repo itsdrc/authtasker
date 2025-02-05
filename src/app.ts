@@ -7,7 +7,7 @@ import { LoggerService } from "./services/logger.service";
 import { IAsyncLocalStorageStore } from "./interfaces/common/async-local-storage.interface";
 import { RedisService } from "./services";
 import { AppRoutes } from "./routes/server.routes";
-import { ApplicationCloser } from "./events/applicationCloser.events";
+import { ApplicationEvents } from "./events/application.events";
 
 async function main() {
     process.on('unhandledRejection', (reason, promise) => {
@@ -43,7 +43,11 @@ async function main() {
     );
     server.start();
 
-    ApplicationCloser.closeApplication(async () => {
+    ApplicationEvents.resumeApplication(async () => {
+        await server.start();
+    });
+
+    ApplicationEvents.closeApplication(async () => {
         await server.close();
     });
 }
