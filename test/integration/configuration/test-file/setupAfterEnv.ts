@@ -10,6 +10,7 @@ import * as UserModelLoader from "@root/databases/mongo/models/user.model.load";
 import * as TasksModelLoader from "@root/databases/mongo/models/tasks.model.load";
 
 let redisService: RedisService;
+let mongoDatabase: MongoDatabase;
 
 beforeAll(async () => {
     // disable info and warn logs during tests
@@ -30,9 +31,8 @@ beforeAll(async () => {
         .mockImplementation(() => tasksModel);
     global.TASKS_MODEL = tasksModel;
 
-    const connected = await MongoDatabase.connect(configService.MONGO_URI);
-    if (!connected)
-        throw new Error('can not connect to database');
+    mongoDatabase = new MongoDatabase(configService, null as any);
+    await mongoDatabase.connect();
 
     // get server
     const asyncLocalStorage = new AsyncLocalStorage<any>();
@@ -67,6 +67,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await MongoDatabase.disconnect();
-    await redisService.close();
+    await mongoDatabase.disconnect();
+    await redisService.disconnect();
 })

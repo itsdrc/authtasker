@@ -3,19 +3,15 @@ import { ConfigService } from "./services/config.service";
 import { MongoDatabase } from "./databases/mongo/mongo.database";
 import { Server } from "./server/server.init";
 import { SystemLoggerService } from "./services/system-logger.service";
-import { MongooseEventsListener } from "./events/mongoose.events";
 import { LoggerService } from "./services/logger.service";
 import { IAsyncLocalStorageStore } from "./interfaces/common/async-local-storage.interface";
 import { RedisService } from "./services";
+import { AppRoutes } from "./routes/server.routes";
+import { ApplicationCloser } from "./events/applicationCloser.events";
 
 async function main() {
     process.on('unhandledRejection', (reason, promise) => {
-        SystemLoggerService.error(`Unhandled Rejection at: ${reason}, Promise ${promise}`);
-    });
-
-    process.on('uncaughtException', (error) => {    
-        SystemLoggerService.error(`Uncaught Exception thrown: ${error.message}`);
-        process.exit(1);
+        SystemLoggerService.error(`Unhandled rejection: ${reason}`);
     });
 
     const configService = new ConfigService();
@@ -24,23 +20,32 @@ async function main() {
     const asyncLocalStorage = new AsyncLocalStorage<IAsyncLocalStorageStore>();
     const loggerService = new LoggerService(configService, asyncLocalStorage);
 
-    new MongooseEventsListener(loggerService);
+    // mongo connection
+    const mongoDatabase = new MongoDatabase(
+        configService,
+        loggerService
+    );
+    await mongoDatabase.connect();
 
-    const connected = await MongoDatabase.connect(configService.MONGO_URI)
-    if (connected) {
-        // Allows the models to be loaded only if db is connected.
-        const { AppRoutes } = await import('./routes/server.routes');
+    // redis connection
+    const redisService = new RedisService(configService);
+    await redisService.connect();
 
-        const redisService = new RedisService(configService);
-        const appRoutes = new AppRoutes(
+    // server connection
+    const server = new Server(
+        configService.PORT,
+        await new AppRoutes(
             configService,
             loggerService,
             asyncLocalStorage,
             redisService
-        );
-        const server = new Server(configService.PORT, await appRoutes.buildApp());
-        server.start();
-    }
+        ).buildApp()
+    );
+    server.start();
+
+    ApplicationCloser.closeApplication(async () => {
+        await server.close();
+    });
 }
 
 main();

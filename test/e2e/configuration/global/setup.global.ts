@@ -6,6 +6,8 @@ import { ConfigService } from '@root/services';
 
 export default async () => {
     const configService = new ConfigService();
+    global.CONFIG_SERVICE = configService;
+    
     SystemLoggerService.info('E2E global setup');
 
     if (configService.NODE_ENV !== 'e2e') {

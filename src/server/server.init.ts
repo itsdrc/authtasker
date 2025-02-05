@@ -26,10 +26,10 @@ export class Server {
 
     close(): Promise<void> {
         return new Promise<void>((resolve) => {
-            if (this.server) {
+            if (this.server && this.server.listening) {
                 this.server.closeAllConnections();
                 this.server.close(() => {
-                    SystemLoggerService.info('Server closed');
+                    SystemLoggerService.warn('Server closed');
                     resolve();
                 });
             } else {

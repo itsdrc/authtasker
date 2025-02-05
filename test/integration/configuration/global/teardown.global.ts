@@ -6,13 +6,16 @@ import { SystemLoggerService } from "@root/services/system-logger.service";
 export default async ()=>{
     SystemLoggerService.info('Integration global teardown');
 
-    await MongoDatabase.connect(process.env.MONGO_URI!);
-    const userModel = loadUserModel({
-        HTTP_LOGS: false
-    } as ConfigService);
+    const mongoDb = new MongoDatabase(
+        global.CONFIG_SERVICE,
+        null as any
+    );
+    await mongoDb.connect();
+    
+    const userModel = loadUserModel(global.CONFIG_SERVICE);
     
     await userModel.deleteMany({ email: { $ne: process.env.ADMIN_EMAIL } });  
     SystemLoggerService.warn('All db documents deleted (but admin)');
 
-    await MongoDatabase.disconnect();  
+    await mongoDb.disconnect();
 };

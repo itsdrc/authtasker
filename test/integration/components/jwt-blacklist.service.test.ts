@@ -12,7 +12,7 @@ describe('JwtBlacklist', () => {
     });
 
     afterAll(async () => {
-        await redisService.close();
+        await redisService.disconnect();
     });
 
     describe('Token is blacklisted', () => {
