@@ -24,6 +24,7 @@ import { TasksService } from "@root/services/tasks.service";
 import { rolesMiddlewareFactory } from "@root/middlewares/roles.middleware";
 import { RolesMiddlewares } from "@root/types/middlewares/roles.middlewares.type";
 import { SeedRoutes } from "@root/seed/seed.routes";
+import { HealthController } from "@root/controllers/health.controller";
 
 export class AppRoutes {
 
@@ -36,6 +37,7 @@ export class AppRoutes {
     private readonly userService: UserService;
     private readonly tasksService: TasksService;
     private readonly rolesMiddlewares: RolesMiddlewares;
+    private readonly healthController: HealthController;
 
     constructor(
         private readonly configService: ConfigService,
@@ -57,7 +59,7 @@ export class AppRoutes {
             user: this.configService.MAIL_SERVICE_USER,
             pass: this.configService.MAIL_SERVICE_PASS,
         });
-        
+
         // roles middlewares
         this.rolesMiddlewares = {
             readonly: rolesMiddlewareFactory(
@@ -102,6 +104,8 @@ export class AppRoutes {
             this.tasksModel,
             this.userService,
         );
+
+        this.healthController = new HealthController();
     }
 
     private buildGlobalMiddlewares() {
@@ -138,7 +142,7 @@ export class AppRoutes {
         const seedRoutes = new SeedRoutes(
             this.configService,
             this.userModel,
-            this.tasksModel,            
+            this.tasksModel,
             this.loggerService,
             this.hashingService,
         );
@@ -152,6 +156,7 @@ export class AppRoutes {
         router.use(this.buildGlobalMiddlewares());
         router.use('/api/users', await this.buildUserRoutes());
         router.use('/api/tasks', await this.buildTasksRoutes());
+        router.get('/health', this.rolesMiddlewares.admin, this.healthController.getServerHealth);
 
         if (this.configService.NODE_ENV === 'development') {
             router.use('/seed', this.buildSeedRoutes());
