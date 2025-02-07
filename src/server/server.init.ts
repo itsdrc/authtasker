@@ -13,6 +13,7 @@ export class Server {
     ) {
         this.app.use(express.json());
         this.app.use(express.json({ limit: '10kb' }));
+        this.app.disable('x-powered-by');
         this.app.use(this.routes);
     }
 
