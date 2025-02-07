@@ -1,6 +1,5 @@
 import { IsDefined, IsEmail, IsString, MaxLength, MinLength, validate } from "class-validator";
 import { plainToInstance, Transform } from "class-transformer";
-
 import { Exact } from "@root/types/shared/exact.type";
 import { toLowerCase } from "../../helpers/to-lowercase.helper";
 import { USER_CONSTANTS } from "@root/rules/constants/user.constants";

@@ -1,9 +1,8 @@
 import { Model } from "mongoose";
-import { ITasks } from "@root/interfaces/tasks/task.interface";
-import { TasksDataGenerator } from "../generators/tasks.generator";
-import { TaskRequest } from "@root/types/tasks/task-request.type";
 import { ConfigService, LoggerService } from "@root/services";
-import { IUser } from "@root/interfaces/user/user.interface";
+import { ITasks, IUser } from "@root/interfaces";
+import { TaskRequest } from "@root/types/tasks";
+import { TasksDataGenerator } from "../generators";
 
 export class TasksSeedService {
 

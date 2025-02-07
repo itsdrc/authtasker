@@ -1,4 +1,3 @@
-
 import { faker } from '@faker-js/faker';
 import { USER_CONSTANTS as CONSTS } from "@root/rules/constants/user.constants";
 

@@ -1,6 +1,5 @@
 import { validate } from "class-validator";
 import { plainToInstance } from "class-transformer";
-
 import { PartialType } from "@nestjs/mapped-types";
 import { CreateUserValidator } from "./create-user.validator";
 import { ValidationResult } from "../../types/validation-result.type";

@@ -1,13 +1,11 @@
 import { Request, Response } from "express";
-
 import { CreateUserValidator, LoginUserValidator } from "@root/rules/validators/models/user";
+import { getUserInfoOrHandleError } from "./handlers/get-user-info.handler";
 import { handleError } from "@root/common/handlers/error.handler";
-import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
+import { HTTP_STATUS_CODE, PAGINATION_SETTINGS } from "@root/rules/constants";
 import { LoggerService } from "@root/services/logger.service";
 import { UpdateUserValidator } from "@root/rules/validators/models/user/update-user.validator";
 import { UserService } from "@root/services/user.service";
-import { PAGINATION_SETTINGS } from "@root/rules/constants/pagination.constants";
-import { getUserInfoOrHandleError } from "./handlers/get-user-info.handler";
 
 export class UserController {
 

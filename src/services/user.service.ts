@@ -1,21 +1,11 @@
 import { HydratedDocument, Model, Types } from "mongoose";
-
-import { ConfigService } from "./config.service";
-import { CreateUserValidator, LoginUserValidator } from "../rules/validators/models/user";
-import { EmailService } from "./email.service";
-import { HashingService } from "./hashing.service";
+import { CreateUserValidator, LoginUserValidator, UpdateUserValidator } from "@root/rules/validators/models/user";
+import { EmailService, HashingService, JwtBlackListService, JwtService, LoggerService, SystemLoggerService } from ".";
+import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";import { ConfigService } from "./config.service";
 import { HttpError } from "../rules/errors/http.error";
-import { IUser } from "../interfaces/user/user.interface";
-import { JwtService } from "./jwt.service";
-import { LoggerService } from "./logger.service";
-import { SystemLoggerService } from "./system-logger.service";
-import { UpdateUserValidator } from "../rules/validators/models/user/update-user.validator";
+import { ITasks, IUser, UserFromRequest } from "@root/interfaces";
+import { TOKEN_PURPOSES } from "@root/rules/constants";
 import { UserRole } from "@root/types/user/user-roles.type";
-import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
-import { JwtBlackListService } from "./jwt-blacklist.service";
-import { TOKEN_PURPOSES } from "@root/rules/constants/token-purposes.constants";
-import { UserFromRequest } from "@root/interfaces/user/user-from-request.interface";
-import { ITasks } from "@root/interfaces/tasks/task.interface";
 
 export class UserService {
 

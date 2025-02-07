@@ -1,13 +1,10 @@
+import { ApplicationEvents } from "./events/application.events";
+import { AppRoutes } from "./routes";
 import { AsyncLocalStorage } from "async_hooks";
-import { ConfigService } from "./services/config.service";
+import { ConfigService, LoggerService, RedisService, SystemLoggerService } from "./services";
+import { IAsyncLocalStorageStore } from "./interfaces";
 import { MongoDatabase } from "./databases/mongo/mongo.database";
 import { Server } from "./server/server.init";
-import { SystemLoggerService } from "./services/system-logger.service";
-import { LoggerService } from "./services/logger.service";
-import { IAsyncLocalStorageStore } from "./interfaces/common/async-local-storage.interface";
-import { RedisService } from "./services";
-import { AppRoutes } from "./routes/server.routes";
-import { ApplicationEvents } from "./events/application.events";
 
 async function main() {
     process.on('unhandledRejection', (reason, promise) => {

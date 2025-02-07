@@ -1,11 +1,10 @@
 import { Model } from "mongoose";
 import { Router } from "express";
-import { ConfigService, HashingService, LoggerService, UserService } from "@root/services";
-import { RequestLimiterMiddlewares, RolesMiddlewares } from "@root/types/middlewares";
-import { IUser } from "@root/interfaces/user/user.interface";
-import { SystemLoggerService } from "@root/services/system-logger.service";
-import { UserController } from "@root/controllers/user.controller";
+import { ConfigService, HashingService, LoggerService, SystemLoggerService, UserService } from "@root/services";
 import { createAdmin } from "@root/admin/create-admin";
+import { IUser } from "@root/interfaces";
+import { RequestLimiterMiddlewares, RolesMiddlewares } from "@root/types/middlewares";
+import { UserController } from "@root/controllers";
 
 export class UserRoutes {
 

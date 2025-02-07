@@ -1,10 +1,8 @@
 import { model, Schema, Model } from "mongoose";
-
-import { ConfigService } from "@root/services/config.service";
+import { ConfigService, SystemLoggerService } from "@root/services";
 import { EventManager } from "@root/events/eventManager";
-import { IUser } from "@root/interfaces/user/user.interface";
-import { SystemLoggerService } from "@root/services/system-logger.service";
-import { validRoles } from "@root/types/user/user-roles.type";
+import { IUser } from "@root/interfaces/";
+import { validRoles } from "@root/types/user";
 
 export const loadUserModel = (configService: ConfigService): Model<IUser> => {
     const userSchema = new Schema<IUser>({

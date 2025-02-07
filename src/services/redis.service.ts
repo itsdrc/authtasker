@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
-import { SystemLoggerService } from './system-logger.service';
-import { EventManager } from '@root/events/eventManager';
 import { ConfigService } from './config.service';
+import { EventManager } from '@root/events/eventManager';
+import { SystemLoggerService } from './system-logger.service';
 
 // The redis service is able to perform a max of reconnection attempts
 // but the web server will be closed if the connection is not re-established.

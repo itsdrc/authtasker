@@ -1,7 +1,7 @@
-import { AsyncLocalStorage } from "async_hooks";
 import winston from "winston";
-import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
+import { AsyncLocalStorage } from "async_hooks";
 import { ConfigService } from "./config.service";
+import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
 import { IRequestLog } from "@root/interfaces/logs/request.log.interface";
 
 /*  

@@ -10,6 +10,7 @@ import {
     JwtService,
     LoggerService,
     RedisService,
+    TasksService,
     UserService
 } from "@root/services";
 
@@ -20,18 +21,13 @@ import {
     rolesMiddlewareFactory
 } from "@root/middlewares";
 
-
+import { UserRoutes, TasksRoutes } from ".";
 import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
 import { RequestLimiterMiddlewares, RolesMiddlewares } from "@root/types/middlewares";
-import { IUser } from "@root/interfaces/user/user.interface";
-import { loadUserModel } from "@root/databases/mongo/models/user.model.load";
-import { UserRoutes } from "./user.routes";
-import { TasksRoutes } from "./tasks.routes";
-import { ITasks } from "@root/interfaces/tasks/task.interface";
-import { loadTasksModel } from "@root/databases/mongo/models/tasks.model.load";
-import { TasksService } from "@root/services/tasks.service";
 import { SeedRoutes } from "@root/seed/seed.routes";
 import { HealthController } from "@root/controllers/health.controller";
+import { ITasks, IUser } from "@root/interfaces";
+import { loadTasksModel, loadUserModel } from "@root/databases/mongo/models";
 
 export class AppRoutes {
 

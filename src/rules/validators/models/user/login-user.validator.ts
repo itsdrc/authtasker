@@ -1,5 +1,4 @@
 import { IsDefined, IsEmail, IsString, MaxLength, validate } from "class-validator";
-
 import { CreateUserValidator } from "./create-user.validator";
 import { ValidationResult } from "../../types/validation-result.type";
 import { validationOptionsConfig } from "../../config/validation.config";

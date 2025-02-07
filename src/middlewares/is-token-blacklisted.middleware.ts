@@ -1,8 +1,6 @@
 import { handleError } from "@root/common/handlers/error.handler";
-import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
-import { JwtBlackListService } from "@root/services/jwt-blacklist.service";
-import { JwtService } from "@root/services/jwt.service";
-import { LoggerService } from "@root/services/logger.service";
+import { HTTP_STATUS_CODE } from "@root/rules/constants";
+import { JwtBlackListService, JwtService, LoggerService } from "@root/services";
 import { NextFunction, Response, Request } from "express";
 
 export const isTokenBlackListedFactory = (

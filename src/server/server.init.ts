@@ -1,8 +1,8 @@
 import express, { Router } from "express";
-import { Server as HttpServer } from "http";
-import timeout from "connect-timeout";
-import { SystemLoggerService } from "@root/services/system-logger.service";
 import helmet from "helmet";
+import timeout from "connect-timeout";
+import { Server as HttpServer } from "http";
+import { SystemLoggerService } from "@root/services";
 
 export class Server {
 

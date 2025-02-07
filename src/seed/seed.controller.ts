@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import { LoggerService } from "@root/services";
-import { UserSeedService } from "./services/user.seed.service";
-import { TasksSeedService } from "./services/tasks.seed.service";
 import { handleError } from "@root/common/handlers/error.handler";
+import { LoggerService } from "@root/services";
+import { TasksSeedService, UserSeedService } from "./services";
 
 export class SeedController {
 

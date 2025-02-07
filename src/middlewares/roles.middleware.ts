@@ -1,16 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { Model } from "mongoose";
-
 import { canAccess } from "./helpers/can-access.helper";
-import { handleError } from "@root/common/handlers/error.handler";
-import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
-import { IUser } from "@root/interfaces/user/user.interface";
-import { JwtService } from "@root/services/jwt.service";
-import { LoggerService } from "@root/services/logger.service";
-import type { UserRole } from "@root/types/user/user-roles.type";
 import { FORBIDDEN_MESSAGE } from "@root/rules/errors/messages/error.messages";
-import { TOKEN_PURPOSES } from "@root/rules/constants/token-purposes.constants";
-import { JwtBlackListService } from "@root/services";
+import { handleError } from "@root/common/handlers/error.handler";
+import { HTTP_STATUS_CODE, TOKEN_PURPOSES } from "@root/rules/constants";
+import { IUser } from "@root/interfaces";
+import { JwtBlackListService, JwtService, LoggerService } from "@root/services";
+import { UserRole } from "@root/types/user";
 
 export const rolesMiddlewareFactory = (
     minRoleRequired: UserRole,

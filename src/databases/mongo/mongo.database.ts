@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
+import { ConfigService, LoggerService, SystemLoggerService } from "@root/services";
 import { EventManager } from "@root/events/eventManager";
-import { ConfigService, LoggerService } from "@root/services";
-import { SystemLoggerService } from "@root/services/system-logger.service";
 
 // This class is able to re-start the web server
 // when the connection to the database is lost and then re-established.

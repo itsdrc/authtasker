@@ -1,13 +1,10 @@
 import { Router } from "express";
 import { Model } from "mongoose";
-import { SeedController } from "./seed.controller";
 import { ConfigService, HashingService, LoggerService } from "@root/services";
-import { IUser } from "@root/interfaces/user/user.interface";
-import { ITasks } from "@root/interfaces/tasks/task.interface";
-import { TasksSeedService } from "./services/tasks.seed.service";
-import { TasksDataGenerator } from "./generators/tasks.generator";
-import { UserSeedService } from "./services/user.seed.service";
-import { UserDataGenerator } from "./generators/user.generator";
+import { ITasks, IUser } from "@root/interfaces";
+import { SeedController } from "./seed.controller";
+import { TasksDataGenerator, UserDataGenerator } from "./generators";
+import { TasksSeedService, UserSeedService } from "./services";
 
 export class SeedRoutes {
 

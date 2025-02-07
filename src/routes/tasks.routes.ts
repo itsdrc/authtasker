@@ -1,9 +1,7 @@
 import { Router } from "express";
-import { TasksController } from "@root/controllers/tasks.controller";
-import { LoggerService } from "@root/services";
-import { SystemLoggerService } from "@root/services/system-logger.service";
-import { TasksService } from "@root/services/tasks.service";
+import { LoggerService, SystemLoggerService, TasksService } from "@root/services";
 import { RequestLimiterMiddlewares, RolesMiddlewares } from "@root/types/middlewares";
+import { TasksController } from "@root/controllers";
 
 export class TasksRoutes {
 

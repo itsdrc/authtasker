@@ -1,12 +1,9 @@
-import { LoggerService } from "@root/services";
-import { TasksService } from "@root/services/tasks.service";
 import { Request, Response } from "express";
-import { handleError } from "@root/common/handlers/error.handler";
-import { CreateTaskValidator } from "@root/rules/validators/models/tasks/create-task.validator";
-import { HTTP_STATUS_CODE } from "@root/rules/constants/http-status-codes.constants";
+import { CreateTaskValidator, UpdateTaskValidator } from "@root/rules/validators/models/tasks";
 import { getUserInfoOrHandleError } from "./handlers/get-user-info.handler";
-import { UpdateTaskValidator } from "@root/rules/validators/models/tasks/update-task.validator";
-import { PAGINATION_SETTINGS } from "@root/rules/constants/pagination.constants";
+import { handleError } from "@root/common/handlers/error.handler";
+import { HTTP_STATUS_CODE, PAGINATION_SETTINGS } from "@root/rules/constants";
+import { LoggerService, TasksService } from "@root/services";
 
 export class TasksController {
 
