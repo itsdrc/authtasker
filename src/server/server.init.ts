@@ -1,6 +1,7 @@
-import { SystemLoggerService } from "@root/services/system-logger.service";
 import express, { Router } from "express";
 import { Server as HttpServer } from "http";
+import timeout from "connect-timeout";
+import { SystemLoggerService } from "@root/services/system-logger.service";
 
 export class Server {
 
@@ -14,6 +15,7 @@ export class Server {
         this.app.use(express.json());
         this.app.use(express.json({ limit: '10kb' }));
         this.app.disable('x-powered-by');
+        this.app.use(timeout('5s'));
         this.app.use(this.routes);
     }
 
