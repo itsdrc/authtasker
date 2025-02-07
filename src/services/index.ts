@@ -8,3 +8,4 @@ export * from './redis.service';
 export * from './logger.service';
 export * from './user.service';
 export * from './tasks.service'
+export * from './system-logger.service'
