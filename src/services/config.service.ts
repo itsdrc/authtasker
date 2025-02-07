@@ -20,12 +20,14 @@ export class ConfigService {
     public readonly ADMIN_NAME: string;
     public readonly ADMIN_EMAIL: string;
     public readonly ADMIN_PASSWORD: string;
+    public readonly API_MAX_REQ_PER_MINUTE: number;
+    public readonly AUTH_MAX_REQ_PER_MINUTE: number;
 
     constructor() {
 
         this.NODE_ENV = env.get('NODE_ENV')
             .required()
-            .asEnum(['development', 'e2e', 'integration','production'])
+            .asEnum(['development', 'e2e', 'integration', 'production'])
 
         this.HTTP_LOGS = env.get('HTTP_LOGS')
             .default("true")
@@ -94,5 +96,13 @@ export class ConfigService {
         this.ADMIN_PASSWORD = env.get('ADMIN_PASSWORD')
             .required()
             .asString();
+
+        this.API_MAX_REQ_PER_MINUTE = env.get('API_MAX_REQ_PER_MINUTE')
+            .required()
+            .asInt();
+
+        this.AUTH_MAX_REQ_PER_MINUTE = env.get('AUTH_MAX_REQ_PER_MINUTE')
+            .required()
+            .asInt();
     }
 }

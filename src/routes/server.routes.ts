@@ -12,17 +12,24 @@ import {
     RedisService,
     UserService
 } from "@root/services";
+
+import {
+    apiLimiterMiddlewareFactory,
+    authLimiterMiddlewareFactory,
+    requestContextMiddlewareFactory,
+    rolesMiddlewareFactory
+} from "@root/middlewares";
+
+
 import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
+import { RequestLimiterMiddlewares, RolesMiddlewares } from "@root/types/middlewares";
 import { IUser } from "@root/interfaces/user/user.interface";
 import { loadUserModel } from "@root/databases/mongo/models/user.model.load";
-import { requestContextMiddlewareFactory } from "@root/middlewares/request-context.middleware";
 import { UserRoutes } from "./user.routes";
 import { TasksRoutes } from "./tasks.routes";
 import { ITasks } from "@root/interfaces/tasks/task.interface";
 import { loadTasksModel } from "@root/databases/mongo/models/tasks.model.load";
 import { TasksService } from "@root/services/tasks.service";
-import { rolesMiddlewareFactory } from "@root/middlewares/roles.middleware";
-import { RolesMiddlewares } from "@root/types/middlewares/roles.middlewares.type";
 import { SeedRoutes } from "@root/seed/seed.routes";
 import { HealthController } from "@root/controllers/health.controller";
 
@@ -37,6 +44,7 @@ export class AppRoutes {
     private readonly userService: UserService;
     private readonly tasksService: TasksService;
     private readonly rolesMiddlewares: RolesMiddlewares;
+    private readonly requestLimiterMiddlewares: RequestLimiterMiddlewares;
     private readonly healthController: HealthController;
 
     constructor(
@@ -87,6 +95,11 @@ export class AppRoutes {
             ),
         };
 
+        this.requestLimiterMiddlewares = {
+            authLimiter: authLimiterMiddlewareFactory(configService),
+            apiLimiter: apiLimiterMiddlewareFactory(configService),
+        }
+
         // api services
         this.userService = new UserService(
             this.configService,
@@ -125,6 +138,7 @@ export class AppRoutes {
             this.hashingService,
             this.loggerService,
             this.rolesMiddlewares,
+            this.requestLimiterMiddlewares
         );
         return await userRoutes.build();
     }
@@ -134,6 +148,7 @@ export class AppRoutes {
             this.tasksService,
             this.loggerService,
             this.rolesMiddlewares,
+            this.requestLimiterMiddlewares
         );
         return await tasksRoutes.build();
     }
