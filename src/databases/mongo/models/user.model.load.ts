@@ -56,7 +56,6 @@ export const loadUserModel = (configService: ConfigService): Model<IUser> => {
             if (doc) EventManager.emit('mongoose.userModel.save', doc.name);
         });
 
-        // TODO: WHAT IF USER IS NOT FOUND
         userSchema.post('deleteOne', (res) => {
             if (res) EventManager.emit('mongoose.userModel.deleteOne');            
         });
