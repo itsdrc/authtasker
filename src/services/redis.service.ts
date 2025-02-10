@@ -18,6 +18,7 @@ export class RedisService {
     constructor(
         private readonly configService: ConfigService,
     ) {
+        ++RedisService.instances;
         const maxRetries = 5;
         let connectionAttempt = 0;
 
@@ -40,11 +41,10 @@ export class RedisService {
         });
 
         if (configService.NODE_ENV === 'development' || configService.NODE_ENV === 'e2e') {
-            this.listenConnectionEvents();
+            if (RedisService.instances === 1) {
+                this.listenConnectionEvents();
+            }
         }
-
-        SystemLoggerService.info(`Redis service instance db:${RedisService.instances} injected`);
-        ++RedisService.instances;
     }
 
     listenConnectionEvents(): void {
