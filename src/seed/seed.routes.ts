@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Model } from "mongoose";
-import { ConfigService, HashingService, LoggerService } from "@root/services";
+import { ConfigService, HashingService, LoggerService, SystemLoggerService } from "@root/services";
 import { ITasks, IUser } from "@root/interfaces";
 import { SeedController } from "./seed.controller";
 import { TasksDataGenerator, UserDataGenerator } from "./generators";
@@ -14,7 +14,9 @@ export class SeedRoutes {
         private readonly tasksModel: Model<ITasks>,
         private readonly loggerService: LoggerService,
         private readonly hashingService: HashingService,
-    ) {}
+    ) {
+        SystemLoggerService.warn('Seed routes loaded');
+    }
 
     build(): Router {
         const router = Router();
