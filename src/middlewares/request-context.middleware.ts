@@ -9,9 +9,7 @@ export const requestContextMiddlewareFactory = (
     loggerService: LoggerService,
 ) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        try {
-            loggerService.debug('Request Context Middleware');
-
+        try {            
             const url = req.originalUrl;
             const method = req.method;
             const requestId = uuidv4();

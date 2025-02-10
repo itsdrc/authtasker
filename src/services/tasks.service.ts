@@ -133,7 +133,7 @@ export class TasksService {
         const task = await this.isModificationAuthorized(requestUserInfo, id);
 
         if (!task) {
-            this.loggerService.error('User is not authorized to perform this action');
+            this.loggerService.error(`Not authorized to perform this action`);
             throw HttpError.forbidden(FORBIDDEN_MESSAGE);
         }
 
@@ -146,7 +146,7 @@ export class TasksService {
             const taskToUpdate = await this.isModificationAuthorized(requestUserInfo, id);
 
             if (!taskToUpdate) {
-                this.loggerService.error('User is not authorized to perform this action');
+                this.loggerService.error(`Not authorized to perform this action`);
                 throw HttpError.forbidden(FORBIDDEN_MESSAGE);
             }
 

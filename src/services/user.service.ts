@@ -38,17 +38,18 @@ export class UserService {
     private async blackListToken(jti: string, tokenExp: number) {
         const currentTime = Math.floor(Date.now() / 1000);
         const remainingTokenTTL = tokenExp! - currentTime;
-        this.loggerService.debug(`Token with id ${jti} blacklisted`);
+        this.loggerService.debug(`Token ${jti} blacklisted`);
         await this.jwtBlacklistService.blacklist(jti, remainingTokenTTL);
     }
 
     private generateSessionToken(userId: string): string {
-        const token = this.jwtService.generate(this.configService.JWT_SESSION_EXPIRATION_TIME, {
+        const expirationTime = this.configService.JWT_SESSION_EXPIRATION_TIME;
+        const token = this.jwtService.generate(expirationTime, {
             id: userId,
             purpose: TOKEN_PURPOSES.SESSION
         });
 
-        this.loggerService.info(`Session token generated for user with id ${userId}`);
+        this.loggerService.info(`Session token generated, expires at ${expirationTime}`);
         return token;
     }
 
@@ -152,7 +153,7 @@ export class UserService {
         user.role = 'editor';
 
         await user.save();
-        this.loggerService.info(`User ${user.id} email validated, and role updated to editor`);
+        this.loggerService.info(`User ${user.id} email validated`);
     }
 
     async create(user: CreateUserValidator): Promise<{ user: HydratedDocument<IUser>, token: string }> {
@@ -203,11 +204,11 @@ export class UserService {
         // token generation
         const token = this.generateSessionToken(userDb.id);
 
-        this.loggerService.info(`User ${userDb.id} successfully logged in`);
+        this.loggerService.info(`User ${userDb.id} logged in`);
         return {
             user: userDb,
             token,
-        }
+        };
     }
 
     async logout(requestUserInfo: UserFromRequest): Promise<void> {
@@ -222,10 +223,9 @@ export class UserService {
             userDb = await this.userModel.findById(id).exec();
 
         // id is not valid / user not found
-        if (!userDb) {
-            const error = `User with id ${id} not found`;
-            this.loggerService.error(error)
-            throw HttpError.notFound(error);
+        if (!userDb) {            
+            this.loggerService.error(`User ${id} not found`)
+            throw HttpError.notFound(`User with id ${id} not found`);
         }
 
         return userDb;
@@ -271,12 +271,12 @@ export class UserService {
         const userToDelete = await this.IsModificationAuthorized(requestUserInfo, id);
 
         if (!userToDelete) {
-            this.loggerService.error('User is not authorized to perform this action');
+            this.loggerService.error(`Not authorized to perform this action`);
             throw HttpError.forbidden(FORBIDDEN_MESSAGE);
         }
 
         await userToDelete.deleteOne().exec();
-        this.loggerService.info(`User with id ${id} deleted`);
+        this.loggerService.info(`User ${id} deleted`);
 
         // remove all tasks associated
         const tasksRemoved = await this.tasksModel.deleteMany({ user: userToDelete.id });
@@ -287,7 +287,7 @@ export class UserService {
         try {
             const userToUpdate = await this.IsModificationAuthorized(requestUserInfo, id);
             if (!userToUpdate) {
-                this.loggerService.error('User is not authorized to perform this action');
+                this.loggerService.error(`Not authorized to perform this action`);
                 throw HttpError.forbidden(FORBIDDEN_MESSAGE);
             }
 

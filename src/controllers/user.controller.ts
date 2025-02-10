@@ -22,12 +22,12 @@ export class UserController {
                 .validateAndTransform(user);
 
             if (validatedUser) {
-                this.loggerService.info(`User data successfully validated`);
+                this.loggerService.info(`Data successfully validated`);
                 const created = await this.userService.create(validatedUser);
                 res.status(HTTP_STATUS_CODE.CREATED).json(created);
                 return;
             } else {
-                this.loggerService.error(`User data validation failed`);
+                this.loggerService.error(`Data validation failed`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
@@ -44,12 +44,12 @@ export class UserController {
             const [error, validatedUser] = await LoginUserValidator.validate(user);
 
             if (validatedUser) {
-                this.loggerService.info(`User data successfully validated`);
+                this.loggerService.info(`Data successfully validated`);
                 const loggedIn = await this.userService.login(validatedUser);
                 res.status(HTTP_STATUS_CODE.OK).json(loggedIn);
                 return;
             } else {
-                this.loggerService.error(`User data validation failed`);
+                this.loggerService.error(`Data validation failed`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
@@ -111,8 +111,9 @@ export class UserController {
     }
 
     readonly findOne = async (req: Request, res: Response): Promise<void> => {
-        try {
+        try {            
             const id = req.params.id;
+            this.loggerService.info(`User ${id} search attempt`);
             const userFound = await this.userService.findOne(id);
             res.status(HTTP_STATUS_CODE.OK).json(userFound);
         } catch (error) {
@@ -122,6 +123,7 @@ export class UserController {
 
     readonly findAll = async (req: Request, res: Response): Promise<void> => {
         try {
+            this.loggerService.info(`Users search attempt`);
             const limit = (req.query.limit) ? +req.query.limit : PAGINATION_SETTINGS.DEFAULT_LIMIT;
             const page = (req.query.page) ? +req.query.page : PAGINATION_SETTINGS.DEFAULT_PAGE;
             const usersFound = await this.userService.findAll(limit, page);
@@ -133,12 +135,12 @@ export class UserController {
 
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('User deletion attempt');
-            const userIdToUpdate = req.params.id;
+            const userIdToDelete = req.params.id;
+            this.loggerService.info(`User ${userIdToDelete} deletion attempt`);
             const requestUserInfo = getUserInfoOrHandleError(req, res);
 
             if (requestUserInfo) {
-                await this.userService.deleteOne(requestUserInfo, userIdToUpdate);
+                await this.userService.deleteOne(requestUserInfo, userIdToDelete);
                 res.status(HTTP_STATUS_CODE.NO_CONTENT).end();
                 return;
             }
@@ -149,16 +151,16 @@ export class UserController {
     }
 
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
-        try {
-            this.loggerService.info('User update attempt');
+        try {            
             const userIdToUpdate = req.params.id;
+            this.loggerService.info(`User ${userIdToUpdate} update attempt`);
             const propertiesToUpdate = req.body;
 
             const [error, validatedProperties] = await UpdateUserValidator
                 .validateAndTransform(propertiesToUpdate);
 
             if (validatedProperties) {
-                this.loggerService.info(`User data successfully validated`);
+                this.loggerService.info(`Data successfully validated`);
                 const requestUserInfo = getUserInfoOrHandleError(req, res);
 
                 if (requestUserInfo) {
@@ -168,7 +170,7 @@ export class UserController {
                 }
 
             } else {
-                this.loggerService.error(`User data validation failed`);
+                this.loggerService.error(`Data validation failed`);
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }

@@ -19,7 +19,7 @@ export class TasksController {
                 .validateAndTransform(req.body);
 
             if (validatedTask) {
-                this.loggerService.info('Task data successfully validated');
+                this.loggerService.info('Data successfully validated');
                 const requestUserInfo = getUserInfoOrHandleError(req, res);
 
                 if (requestUserInfo) {
@@ -29,7 +29,7 @@ export class TasksController {
                 }
 
             } else {
-                this.loggerService.error('Task data validation failed'); 
+                this.loggerService.error('Data validation failed'); 
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
@@ -40,8 +40,9 @@ export class TasksController {
     }
 
     readonly findOne = async (req: Request, res: Response): Promise<void> => {
-        try {
+        try {            
             const id = req.params.id;
+            this.loggerService.info(`Task ${id} search attempt`);            
             const taskFound = await this.tasksService.findOne(id);
             res.status(HTTP_STATUS_CODE.OK).json(taskFound);
         } catch (error) {
@@ -51,6 +52,7 @@ export class TasksController {
 
     readonly findAll = async (req: Request, res: Response): Promise<void> => {
         try {
+            this.loggerService.info('Tasks search attempt');
             const limit = (req.query.limit) ? +req.query.limit : PAGINATION_SETTINGS.DEFAULT_LIMIT;
             const page = (req.query.page) ? +req.query.page : PAGINATION_SETTINGS.DEFAULT_PAGE;
             const tasksFound = await this.tasksService.findAll(limit, page);
@@ -63,6 +65,7 @@ export class TasksController {
     readonly findAllByUser = async (req: Request, res: Response): Promise<void> => {
         try {
             const userId = req.params.id;
+            this.loggerService.info(`Tasks by user ${userId} search attempt`);
             const tasksFound = await this.tasksService.findAllByUser(userId);
             res.status(HTTP_STATUS_CODE.OK).json(tasksFound);
         } catch (error) {
@@ -72,8 +75,8 @@ export class TasksController {
 
     readonly deleteOne = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('Task deletion attempt');
             const id = req.params.id;
+            this.loggerService.info(`Task ${id} deletion attempt`);
             const requestUserInfo = getUserInfoOrHandleError(req, res);
 
             if (requestUserInfo) {
@@ -89,13 +92,13 @@ export class TasksController {
 
     readonly updateOne = async (req: Request, res: Response): Promise<void> => {
         try {
-            this.loggerService.info('Task update attempt');
             const id = req.params.id;
+            this.loggerService.info(`Task ${id} update attempt`);
             const [error, validatedTask] = await UpdateTaskValidator
                 .validateAndTransform(req.body);
 
             if (validatedTask) {
-                this.loggerService.info('Task data successfully validated');
+                this.loggerService.info('Data successfully validated');
                 const requestUserInfo = getUserInfoOrHandleError(req, res);
 
                 if (requestUserInfo) {
@@ -105,7 +108,7 @@ export class TasksController {
                 }
 
             } else {
-                this.loggerService.error('Task data validation failed'); 
+                this.loggerService.error('Data validation failed'); 
                 res.status(HTTP_STATUS_CODE.BADREQUEST).json({ error });
                 return;
             }
