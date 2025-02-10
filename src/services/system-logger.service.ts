@@ -16,9 +16,8 @@ export class SystemLoggerService {
                         winston.format.printf(({ level, message, timestamp }) => {
                             const colorizer = winston.format.colorize().colorize;
 
-                            // always green
-                            const coloredTimestamp = colorizer('info', `[${timestamp}]`);
-                            const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);
+                            const coloredLevel = colorizer(level, `[${(level as string).toUpperCase()}]`);                            
+                            const coloredTimestamp = colorizer(level, `[${timestamp}]`);
                             const finalMessage = (message as any).toUpperCase();
 
                             const coloredMessage = colorizer(level, finalMessage);
