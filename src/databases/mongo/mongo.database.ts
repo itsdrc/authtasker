@@ -7,7 +7,7 @@ import { EventManager } from "@root/events/eventManager";
 
 export class MongoDatabase {
 
-    private firstConnectionSuccess = true;
+    private firstConnectionSuccess = false;
 
     constructor(
         private readonly configService: ConfigService,
