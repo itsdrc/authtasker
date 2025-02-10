@@ -41,7 +41,7 @@ export class UserRoutes {
         const router = Router();
 
         router.post(
-            '/create',
+            '/register',
             this.requestLimiterMiddlewares.authLimiter,
             this.userController.create
         );
