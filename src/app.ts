@@ -40,10 +40,13 @@ async function main() {
     );
     server.start();
 
+    // function called in case mongodb reconnects after a disconnection
     ApplicationEvents.resumeApplication(async () => {
         await server.start();
+        await redisService.connect();
     });
 
+    // function called in case redis or mongo connection fails
     ApplicationEvents.closeApplication(async () => {
         await server.close();
     });

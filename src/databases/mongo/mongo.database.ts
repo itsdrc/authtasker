@@ -2,8 +2,9 @@ import mongoose from "mongoose";
 import { ConfigService, LoggerService, SystemLoggerService } from "@root/services";
 import { EventManager } from "@root/events/eventManager";
 
-// This class is able to re-start the web server
-// when the connection to the database is lost and then re-established.
+// The MongoDatabase emits the signal "fatalServiceConnectionError"
+// immediately when the mongo service disconnects. It also emits the signal
+// "serviceConnectionResumed" when the connection is reestablished.
 
 export class MongoDatabase {
 

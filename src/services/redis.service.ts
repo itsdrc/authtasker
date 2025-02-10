@@ -3,13 +3,17 @@ import { ConfigService } from './config.service';
 import { EventManager } from '@root/events/eventManager';
 import { SystemLoggerService } from './system-logger.service';
 
-// The redis service is able to perform a max of reconnection attempts
-// but the web server will be closed if the connection is not re-established.
+// The RedisService emits the signal "fatalServiceConnectionError"
+// when the connection can not be reestablished after a disconnection.
+// Do note this service connection will not be re-opened after
+// the max reconnection attemps unless the "serviceConnectionResumed" signal
+// is emmited from another part of the application.
 
 export class RedisService {
 
     private redis: Redis;
     static instances = 0;
+    private firstConnectionSuccess = false;
 
     constructor(
         private readonly configService: ConfigService,
@@ -22,17 +26,17 @@ export class RedisService {
             port: configService.REDIS_PORT,
             host: configService.REDIS_HOST,
             password: configService.REDIS_PASSWORD,
-            db: RedisService.instances,    
+            db: RedisService.instances,
             retryStrategy: (times) => {
                 if (times >= maxRetries) {
                     return null;
                 }
 
-                connectionAttempt = times;                
+                connectionAttempt = times;
                 const delay = Math.min(times * 1000, 50000);
                 SystemLoggerService.warn(`Retrying Redis connection (attempt ${times} of ${maxRetries}) in ${delay}ms...`);
                 return delay;
-            },        
+            },
         });
 
         if (configService.NODE_ENV === 'development' || configService.NODE_ENV === 'e2e') {
@@ -44,6 +48,15 @@ export class RedisService {
     }
 
     listenConnectionEvents(): void {
+        this.redis.on('connect', () => {
+            if (!this.firstConnectionSuccess) {
+                SystemLoggerService.info(`Redis service connected`);
+                this.firstConnectionSuccess = true;
+            } else {
+                SystemLoggerService.info(`Redis service reconnected`);
+            }
+        });
+
         // connection fully closed and will not reconnect
         this.redis.on('end', () => {
             SystemLoggerService.error(`Redis service disconnected`);
@@ -59,7 +72,9 @@ export class RedisService {
     }
 
     async connect(): Promise<void> {
-        await this.redis.connect();
+        if (this.redis.status !== 'ready') {
+            await this.redis.connect();
+        }
     }
 
     async disconnect(): Promise<void> {
