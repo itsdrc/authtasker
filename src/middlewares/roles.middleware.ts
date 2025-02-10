@@ -17,12 +17,12 @@ export const rolesMiddlewareFactory = (
 ) => {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
+            loggerService.debug('Roles Middleware');
+
             const returnInvalidBearerToken = (): void => {
                 loggerService.error('Access denied, invalid bearer token');
                 res.status(HTTP_STATUS_CODE.UNAUTHORIZED).json({ error: 'Invalid bearer token' });
-            };
-
-            loggerService.debug('Executing roles middleware');
+            };            
 
             // token not provided
             const authorizationHeader = req.header('authorization');

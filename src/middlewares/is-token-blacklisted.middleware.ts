@@ -10,7 +10,7 @@ export const isTokenBlackListedFactory = (
 ) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
-            loggerService.debug('Verifyng token blacklist...');
+            loggerService.debug('Is Token Blacklisted Middleware');
 
             const auth = req.header('authorization');
 

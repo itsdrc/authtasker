@@ -10,7 +10,7 @@ export const requestContextMiddlewareFactory = (
 ) => {
     return (req: Request, res: Response, next: NextFunction) => {
         try {
-            loggerService.info('INCOMING REQUEST RECEIVED, INITIALIZING CONTEXT...');
+            loggerService.debug('Request Context Middleware');
 
             const url = req.originalUrl;
             const method = req.method;
