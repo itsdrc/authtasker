@@ -18,10 +18,9 @@ export class RedisService {
     constructor(
         private readonly configService: ConfigService,
     ) {
-        ++RedisService.instances;
         const maxRetries = 5;
         let connectionAttempt = 0;
-
+        
         this.redis = new Redis({
             lazyConnect: true,
             port: configService.REDIS_PORT,
@@ -32,19 +31,23 @@ export class RedisService {
                 if (times >= maxRetries) {
                     return null;
                 }
-
+                
                 connectionAttempt = times;
                 const delay = Math.min(times * 1000, 50000);
                 SystemLoggerService.warn(`Retrying Redis connection (attempt ${times} of ${maxRetries}) in ${delay}ms...`);
                 return delay;
             },
         });
-
+        
+        SystemLoggerService.info(`Redis service instance ${RedisService.instances} created`);
+        
         if (configService.NODE_ENV === 'development' || configService.NODE_ENV === 'e2e') {
-            if (RedisService.instances === 1) {
+            if (RedisService.instances === 0) {
                 this.listenConnectionEvents();
             }
         }
+        
+        ++RedisService.instances;
     }
 
     listenConnectionEvents(): void {
