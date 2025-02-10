@@ -59,7 +59,7 @@ beforeAll(async () => {
     global.HASHING_SERVICE = hashingService;
 
     // paths
-    global.REGISTER_USER_PATH = `/api/users/create`;
+    global.REGISTER_USER_PATH = `/api/users/register`;
     global.LOGIN_USER_PATH = `/api/users/login`;
     global.USERS_PATH = `/api/users`;
     global.CREATE_TASK_PATH = '/api/tasks/create';
