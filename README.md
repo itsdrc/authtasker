@@ -12,7 +12,7 @@
 - Logging and monitoring (http and system logs)
 - Unit, integration and e2e tests
 - Seed data (only in development mode)
-- Token blacklisting
+- Token blacklisting using redis
 - Input sanitization and validation
 - API rate limiting to prevent abuse
 - Administrator user creation when the server is started
