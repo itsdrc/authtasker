@@ -113,6 +113,6 @@ npm run test:e2e:parallel
 ![Image](https://github.com/user-attachments/assets/b928b138-0481-4884-b6a2-3a7c53daff86)
 
 ## Api documentation
-
+https://authtaskerdocs.apidog.io
 
 
