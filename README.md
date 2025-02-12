@@ -35,8 +35,6 @@ Backend application designed to manage user authentication, authorization and ta
 - Find all using pagination (limit, page)
 - Get all tasks created by user
 
-## Prerequisites
-
 ## Build and run
 
 ### Clone the repository
