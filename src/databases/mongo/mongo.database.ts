@@ -61,7 +61,7 @@ export class MongoDatabase {
         });
 
         EventManager.listen(`mongoose.${model}Model.findOne`, (property: string) => {
-            this.loggerService.debug(`${model} "${property}" found in db`);
+            this.loggerService.debug(`${model} "${property}" loaded from database`);
         });
 
         EventManager.listen(`mongoose.${model}Model.deleteOne`, () => {
