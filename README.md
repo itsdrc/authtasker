@@ -50,10 +50,10 @@ npm install
 ```
 ### Create env files
 Copy the .env.template file and create the following files
-- .env.dev
-- .env.e2e
-- .env.int
-- .env.prod
+- .env.dev (development)
+- .env.e2e (e2e server for testing)
+- .env.int: (integration tests)
+- .env.prod (production)
 
 ## Testing
 
