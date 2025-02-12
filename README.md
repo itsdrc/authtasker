@@ -1,6 +1,5 @@
 # Authtasker
-
-// TODO: description
+Backend application designed to manage user authentication, authorization and task management. Built with NodeJS, Typescript and Express.  
 
 ## Features
 - Authentication based on bearer token
