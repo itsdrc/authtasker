@@ -55,6 +55,16 @@ Copy the .env.template file and create the following files
 - .env.int: (integration tests)
 - .env.prod (production)
 
+### Run in development mode
+```
+npm run dev
+```
+
+### Run in production mode
+```
+npm run start
+```
+
 ## Testing
 
 ### unit
