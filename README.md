@@ -96,12 +96,21 @@ you will see a lot of logs being printed at the same time as the tests results
 ```
 npm run test:e2e:parallel
 ```
+## Logs
+#### System logs
+- Logs are saved in filesystem
+- Three levels: info, error, warn
 
+![Image](https://github.com/user-attachments/assets/7766983d-b9bc-4791-8709-9e6de809ddd2)
 
-## Usage
+#### Http logs
+- Logs are saved in filesystem
+- Debug messages are disabled in production mode.
+- Debug messages are not saved in filesystem
+- Four levels: info, error, debug, warn
+- Set HTTP_LOGS env to false to disable these logs
 
-
-### Logs
+![Image](https://github.com/user-attachments/assets/b928b138-0481-4884-b6a2-3a7c53daff86)
 
 ## Api documentation
 
