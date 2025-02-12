@@ -13,7 +13,7 @@ Backend application designed to manage user authentication, authorization and ta
 - Seed data (only in development mode)
 - Token blacklisting using redis
 - Input sanitization and validation
-- API rate limiting to prevent abuse
+- API rate limiting, max request size and max request timeout to prevent abuse
 - Administrator user creation when the server is started
 
 ### Users API
