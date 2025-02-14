@@ -24,7 +24,6 @@ import {
 import { UserRoutes, TasksRoutes } from ".";
 import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
 import { RequestLimiterMiddlewares, RolesMiddlewares } from "@root/types/middlewares";
-import { SeedRoutes } from "@root/seed/seed.routes";
 import { HealthController } from "@root/controllers/health.controller";
 import { ITasks, IUser } from "@root/interfaces";
 import { loadTasksModel, loadUserModel } from "@root/databases/mongo/models";
@@ -149,7 +148,8 @@ export class AppRoutes {
         return await tasksRoutes.build();
     }
 
-    private buildSeedRoutes() {
+    private async buildSeedRoutes() {
+        const { SeedRoutes } = await import("@root/seed/seed.routes");
         const seedRoutes = new SeedRoutes(
             this.configService,
             this.userModel,
@@ -170,7 +170,7 @@ export class AppRoutes {
         router.get('/health', this.rolesMiddlewares.admin, this.healthController.getServerHealth);
 
         if (this.configService.NODE_ENV === 'development') {
-            router.use('/seed', this.buildSeedRoutes());
+            router.use('/seed', await this.buildSeedRoutes());
         }
 
         return router;
