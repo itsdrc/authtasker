@@ -1,0 +1,1 @@
+export const toLowerCase = ({ value }: { value: string }) => value.toLowerCase().trim()

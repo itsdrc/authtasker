@@ -3,9 +3,14 @@
 
 # folders
 node_modules/
+/coverage/
+/dist/
+/logs/
+docker-volumes/*
+!docker-volumes/.gitkeep
 
-# db
-/mongo
-
-# files
-.env
+# env files
+envs/.env.prod
+envs/.env.dev
+envs/.env.int
+envs/.env.e2e
