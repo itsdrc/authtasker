@@ -74,7 +74,7 @@ export class ConfigService {
             .asUrlString();
 
         this.REDIS_PORT = env.get('REDIS_PORT')
-            .default(6379)
+            .required()
             .asPortNumber();
 
         this.REDIS_HOST = env.get('REDIS_HOST')
