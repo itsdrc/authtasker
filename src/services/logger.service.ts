@@ -35,7 +35,7 @@ export class LoggerService {
 
                     const finalMessage = (() => {
                         let mssg = (message as string).toLowerCase();
-                        return mssg[0].toUpperCase() + mssg.slice(1);                        
+                        return mssg[0].toUpperCase() + mssg.slice(1);
                     })();
 
                     const coloredTimestamp = colorizer(level, `[${timestamp}]`);
@@ -56,7 +56,12 @@ export class LoggerService {
         const fileTransport = new winston.transports.File({
             // no debug messages in fs
             level: 'info',
-            filename
+            filename,
+            // add timestamp in filesystem logs
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.json(),
+            )
         });
 
         this.logger = winston.createLogger({
