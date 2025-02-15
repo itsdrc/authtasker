@@ -5,9 +5,6 @@ import { HashingService } from "@root/services/hashing.service";
 import { IUser } from "@root/interfaces/user/user.interface";
 import { MongoDatabase } from "@root/databases/mongo/mongo.database";
 import { SystemLoggerService } from "@root/services/system-logger.service";
-import { mock } from "jest-mock-extended";
-import { LoggerService } from "@root/services";
-import { config } from "dotenv";
 
 // disable logs when user model is loaded
 SystemLoggerService.info = jest.fn();
