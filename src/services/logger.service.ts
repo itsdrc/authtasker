@@ -120,7 +120,7 @@ export class LoggerService {
     logRequest(data: IRequestFsLog) {
         if (this.configService.HTTP_LOGS) {
             this.fileLogger.log({
-                message: `Request completed (${data.responseTime}ms)`,
+                message: `Request completed`,
                 level: 'info',
                 // timestamp added automatically
                 ...data
