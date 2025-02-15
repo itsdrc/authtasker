@@ -18,7 +18,8 @@ import { IRequestFsLog } from "@root/interfaces";
 export class LoggerService {
 
     private consoleLogger: winston.Logger;
-    private fileLogger: winston.Logger;
+    private requestCompletedFileLogger: winston.Logger
+    private httpMessageFileLogger: winston.Logger;
 
     constructor(
         private readonly configService: ConfigService,
@@ -50,27 +51,41 @@ export class LoggerService {
             ),
         });
 
-        const devLogsFilename = 'logs/dev/http.logs.log';
-        const prodLogsFilename = 'logs/prod/http.logs.log';
-
-        const filename = currentEnv === 'production' ? prodLogsFilename : devLogsFilename;
-        const fileTransport = new winston.transports.File({
-            // no debug messages in fs
-            level: 'info',
-            filename,
-            // add timestamp in filesystem logs
-            format: winston.format.combine(
-                winston.format.timestamp(),
-                winston.format.json(),
-            )
-        });
-
         this.consoleLogger = winston.createLogger({
             transports: [consoleTransport]
         });
 
-        this.fileLogger = winston.createLogger({
-            transports: [fileTransport]
+        const devLogsFilename = 'logs/dev/http.logs.log';
+        const prodLogsFilename = 'logs/prod/http.logs.log';
+        const filename = currentEnv === 'production' ? prodLogsFilename : devLogsFilename;
+
+        this.httpMessageFileLogger = winston.createLogger({
+            transports: [new winston.transports.File({
+                // no debug messages in fs
+                level: 'info',
+                filename,
+                // add timestamp in filesystem logs
+                format: winston.format.combine(
+                    winston.format.timestamp(),
+                    winston.format.json(),
+                )
+            })]
+        });
+
+        this.requestCompletedFileLogger = winston.createLogger({
+            transports: [new winston.transports.File({
+                // no debug messages in fs
+                level: 'info',
+                filename,
+                // add timestamp in filesystem logs
+                // level is not saved
+                format: winston.format.combine(
+                    winston.format.timestamp(),
+                    winston.format.printf(({ level, timestamp, message, ...meta }) => {
+                        return JSON.stringify({ timestamp, message, ...meta });
+                    })
+                ),
+            })]
         });
     }
 
@@ -81,17 +96,17 @@ export class LoggerService {
     ): void {
         if (this.configService.HTTP_LOGS) {
             const requestId = this.asyncLocalStorage.getStore()?.requestId || 'N/A';
-            const method = this.asyncLocalStorage.getStore()?.method || 'Unknown Route';            
+            const method = this.asyncLocalStorage.getStore()?.method || 'Unknown Route';
 
             this.consoleLogger.log({
                 level,
                 message,
-                method,                
+                method,
                 requestId,
                 stackTrace, // TODO:¿?
             });
 
-            this.fileLogger.log({
+            this.httpMessageFileLogger.log({
                 level,
                 message,
                 requestId,
@@ -119,10 +134,9 @@ export class LoggerService {
 
     logRequest(data: IRequestFsLog) {
         if (this.configService.HTTP_LOGS) {
-            this.fileLogger.log({
+            this.requestCompletedFileLogger.info({
                 message: `Request completed`,
-                level: 'info',
-                // timestamp added automatically
+                // timestamp added automatically, level not needed
                 ...data
             });
 
