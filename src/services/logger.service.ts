@@ -55,15 +55,17 @@ export class LoggerService {
             transports: [consoleTransport]
         });
 
-        const devLogsFilename = 'logs/dev/http.logs.log';
-        const prodLogsFilename = 'logs/prod/http.logs.log';
-        const filename = currentEnv === 'production' ? prodLogsFilename : devLogsFilename;
+        const devLogsFolder = 'logs/dev';
+        const prodLogsFolder = 'logs/prod';
+
+        const folder = currentEnv === 'production' ?
+            prodLogsFolder : devLogsFolder;
 
         this.httpMessageFileLogger = winston.createLogger({
             transports: [new winston.transports.File({
                 // no debug messages in fs
                 level: 'info',
-                filename,
+                filename: `${folder}/http-messages.log`,
                 // add timestamp in filesystem logs
                 format: winston.format.combine(
                     winston.format.timestamp(),
@@ -76,7 +78,7 @@ export class LoggerService {
             transports: [new winston.transports.File({
                 // no debug messages in fs
                 level: 'info',
-                filename,
+                filename: `${folder}/request-completed.log`,
                 // add timestamp in filesystem logs
                 // level is not saved
                 format: winston.format.combine(
