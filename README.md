@@ -57,7 +57,12 @@ Copy the .env.template file and create the following files
 npm run dev
 ```
 
-### Run in production mode
+### Build production
+```
+npm run build
+```
+
+### Run production
 ```
 npm run start
 ```
