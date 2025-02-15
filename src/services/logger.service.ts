@@ -104,14 +104,14 @@ export class LoggerService {
                 level,
                 message,
                 method,
-                requestId,
-                stackTrace, // TODO:¿?
+                requestId,                
             });
 
             this.httpMessageFileLogger.log({
                 level,
                 message,
                 requestId,
+                stackTrace
             });
         }
     }
@@ -120,9 +120,9 @@ export class LoggerService {
         this.log('info', message);
     }
 
-    error(message: string, stackTrace?: string) {
-        // stackTrace is not shown in console, 
-        // use debug to print the stack
+    error(message: string, stackTrace?: string) {        
+        // stackTrace is not shown in console, but saved in fs
+        // use debug to print the stack on console
         this.log('error', message, stackTrace);
     }
 
