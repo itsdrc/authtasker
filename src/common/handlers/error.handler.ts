@@ -13,8 +13,7 @@ export const handleError = (res: Response, error: Error | unknown, logger: Logge
     if (error instanceof Error) {
         res.status(HTTP_STATUS_CODE.INTERNALSERVER).json({ error: 'Unexpected error' });
         logger.error(`Unexpected error: ${error.message}`, error.stack);
-        logger.debug(error.stack as string);
-        SystemLoggerService
+        logger.debug(error.stack as string);        
         return;
     }
 
