@@ -114,6 +114,11 @@ npm run test:e2e:parallel
 
 ![Image](https://github.com/user-attachments/assets/b928b138-0481-4884-b6a2-3a7c53daff86)
 
+#### Request completed
+When a request is completed is registered in filesystem as follows
+
+![Image](https://github.com/user-attachments/assets/7c37f338-5820-4eb6-8210-d503ca0c0d99)
+
 ## Api documentation
 https://authtaskerdocs.apidog.io
 
