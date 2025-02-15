@@ -17,7 +17,6 @@ export const requestContextMiddlewareFactory = (
             const store = {
                 requestId,
                 method,
-                url,
             };
 
             const start = process.hrtime();
@@ -27,7 +26,7 @@ export const requestContextMiddlewareFactory = (
                 const durationInMs = (seconds * 1000) + (nanoseconds / 1000000);
 
                 loggerService.logRequest({
-                    ip: req.ip,
+                    ip: req.ip!,
                     method: req.method,
                     requestId: requestId,
                     responseTime: durationInMs,

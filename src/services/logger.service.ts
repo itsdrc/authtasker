@@ -2,7 +2,7 @@ import winston from "winston";
 import { AsyncLocalStorage } from "async_hooks";
 import { ConfigService } from "./config.service";
 import { IAsyncLocalStorageStore } from "@root/interfaces/common/async-local-storage.interface";
-import { IRequestLog } from "@root/interfaces/logs/request.log.interface";
+import { IRequestFsLog } from "@root/interfaces";
 
 /*  
     WINSTON LEVELS
@@ -17,7 +17,8 @@ import { IRequestLog } from "@root/interfaces/logs/request.log.interface";
 
 export class LoggerService {
 
-    private logger: winston.Logger;
+    private consoleLogger: winston.Logger;
+    private fileLogger: winston.Logger;
 
     constructor(
         private readonly configService: ConfigService,
@@ -64,11 +65,12 @@ export class LoggerService {
             )
         });
 
-        this.logger = winston.createLogger({
-            transports: [
-                consoleTransport,
-                fileTransport
-            ]
+        this.consoleLogger = winston.createLogger({
+            transports: [consoleTransport]
+        });
+
+        this.fileLogger = winston.createLogger({
+            transports: [fileTransport]
         });
     }
 
@@ -79,15 +81,20 @@ export class LoggerService {
     ): void {
         if (this.configService.HTTP_LOGS) {
             const requestId = this.asyncLocalStorage.getStore()?.requestId || 'N/A';
-            const method = this.asyncLocalStorage.getStore()?.method || 'Unknown Route';
-            const url = this.asyncLocalStorage.getStore()?.url;
-            this.logger.log({
+            const method = this.asyncLocalStorage.getStore()?.method || 'Unknown Route';            
+
+            this.consoleLogger.log({
                 level,
                 message,
-                method,
-                url,
+                method,                
                 requestId,
-                stackTrace,
+                stackTrace, // TODO:¿?
+            });
+
+            this.fileLogger.log({
+                level,
+                message,
+                requestId,
             });
         }
     }
@@ -110,13 +117,23 @@ export class LoggerService {
         this.log('warn', message);
     }
 
-    logRequest(data: IRequestLog) {
+    logRequest(data: IRequestFsLog) {
         if (this.configService.HTTP_LOGS) {
-            this.logger.log({
+            this.fileLogger.log({
                 message: `Request completed (${data.responseTime}ms)`,
                 level: 'info',
+                // timestamp added automatically
                 ...data
-            })
+            });
+
+            const { requestId, method } = data;
+
+            this.consoleLogger.log({
+                message: `Request completed (${data.responseTime}ms)`,
+                level: 'info',
+                requestId,
+                method
+            });
         };
     }
 }
