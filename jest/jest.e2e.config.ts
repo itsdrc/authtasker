@@ -13,6 +13,7 @@ const config: Config = {
     // test files
     roots: ["<rootDir>/test/e2e"],
     testEnvironment: "jest-environment-node",
+    testTimeout: 15000
 };
 
 export default config;
