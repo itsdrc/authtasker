@@ -39,7 +39,8 @@ Backend application designed to manage user authentication, authorization and ta
 
 ### Clone the repository
 ```
-git clone https://github.com/itsdrc/authtasker.git
+git clone https://github.com/dxrzc/authtasker.git
+cd authtasker
 ```
 ### Install dependencies
 ```
